@@ -14,6 +14,6 @@ jobs:
           command: chmod +x ./MyApplication/gradlew
       - run:
           command: ./MyApplication/gradlew build
-     # - run:
-     #     name: Run Tests
-     #     command: # Add test file here when ready #
+      - run:
+          name: Run Tests
+          command: ./MyApplication/gradlew lint test
