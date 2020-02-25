@@ -10,4 +10,5 @@ jobs:
     steps:
       - checkout
       - run:
-          command: ./MyApplication/gradlew build
+          name: chmod permissions
+          command: chmod +x ./MyApplication/gradlew build
