@@ -11,4 +11,6 @@ jobs:
       - checkout
       - run:
           name: chmod permissions
-          command: chmod +x ./MyApplication/gradlew build
+          command: chmod +x ./MyApplication/gradlew
+      - run:
+          command: ./MyApplication/gradlew build
