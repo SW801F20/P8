@@ -16,4 +16,4 @@ jobs:
           command: ./MyApplication/gradlew build
       - run:
           name: List Tasks
-          command: ./MyApplication/gradlew tasks
+          command: ./MyApplication/gradlew tasks --all
