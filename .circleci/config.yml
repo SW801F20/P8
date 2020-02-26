@@ -11,9 +11,9 @@ jobs:
       - checkout
       - run:
           name: chmod permissions
-          command: chmod +x ./gradlew
+          command: chmod +x ./App/gradlew
       - run:
-          command: ./gradlew build
+          command: ./App/gradlew build
       - run:
           name: Run Tests
-          command: ./gradlew test
+          command: ./App/gradlew test
