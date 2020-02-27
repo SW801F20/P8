@@ -19,4 +19,10 @@ class ExampleUnitTest {
     fun failing_test() {
         assertEquals(4, 2)
     }
+
+    @Test
+    fun failing_test2() {
+        assertEquals(4, 3)
+    }
+
 }
