@@ -6,14 +6,16 @@ orbs:
 jobs:
   build:
     executor: android/android
-        
     steps:
       - checkout
       - run:
           name: chmod permissions
-          command: chmod +x ./App/gradlew
+          command: cd App && chmod +x ./gradlew
       - run:
-          command: ./App/gradlew build
+          name: List dir
+          command: ls
+      - run:
+          command: cd App && ./gradlew build
       - run:
           name: Run Tests
-          command: ./App/gradlew test
+          command: cd App && ./gradlew test
