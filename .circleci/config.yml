@@ -6,7 +6,6 @@ orbs:
 jobs:
   build:
     executor: android/android
-    working_directory: ~/App
     steps:
       - checkout
       - run:
