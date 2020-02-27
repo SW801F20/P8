@@ -15,7 +15,7 @@ jobs:
           name: List dir
           command: ls
       - run:
-          command: cd App && pwd && ls && ./gradlew build
+          command: cd App && ./gradlew build
       - run:
           name: Run Tests
           command: cd App && ./gradlew test
