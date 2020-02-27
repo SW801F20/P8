@@ -16,8 +16,8 @@ class ExampleUnitTest {
     }
 
     @Test
-    fun failing_test() {
-        assertEquals(4, 2)
+    fun failing_test1() {
+        assertEquals(4, 1)
     }
 
     @Test
