@@ -12,9 +12,6 @@ jobs:
           name: chmod permissions
           command: cd App && chmod +x ./gradlew
       - run:
-          name: List dir
-          command: ls
-      - run:
           command: cd App && ./gradlew build -x test
       - run:
           name: Run Tests
