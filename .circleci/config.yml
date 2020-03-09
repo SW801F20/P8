@@ -1,0 +1,18 @@
+version: 2.1
+
+orbs:
+ android: circleci/android@0.2.0
+
+jobs:
+  build:
+    executor: android/android
+    steps:
+      - checkout
+      - run:
+          name: chmod permissions
+          command: cd App && chmod +x ./gradlew
+      - run:
+          command: cd App && ./gradlew build -x test
+      - run:
+          name: Run Tests
+          command: cd App && ./gradlew test
