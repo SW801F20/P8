@@ -1,0 +1,112 @@
+
+#Måske benytte openapi 3.0, da det vist kan mere
+#Mangler også lige at specificere host 
+#host:
+#basePath:
+#schemes:
+swagger: "2.0"
+info:
+  title: Walking Skeleton API
+  description: API for Walking Skeleton
+  version: "1"
+  
+  
+# Globally defining 
+consumes:
+  - application/json
+produces:
+  - application/json
+  
+  
+paths:
+  /Locations:
+    get:
+      tags:
+        - Locations
+      summary: Gets all locations
+      operationId: getLocations
+      responses:
+        200:
+          description: Successful operation
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Location"
+        404:
+          description: No locations were found
+          
+  /Location/{deviceID}:
+    get:
+      tags:
+        - Location
+      summary: Gets a specific location by ID
+      operationId: getLocationById
+      parameters:
+      - name: deviceID
+        in: path
+        description: ID of location to return
+        required: true
+        type: integer
+        format: int64
+      responses:
+        200:
+          description: Successful operation
+          schema:
+            $ref: "#/definitions/Location"
+        404:
+          description: No locations were found with that ID
+          
+    delete:
+      tags:
+      - Location
+      summary: Deletes a location with a specific ID
+      operationId: deleteLocation
+      parameters:
+      - name: deviceID
+        in: path
+        description: ID of location to delete
+        required: true
+        type: integer
+        format: int64
+      responses:
+        200:
+          description: Location successfully deleted
+        400:
+          description: Invalid ID supplied
+        404:
+          description: Location not found
+          
+      
+  /Location:
+    post:
+      tags:
+        - Location
+      summary: Adds a new location
+      parameters:
+      - in: body
+        name: body
+        description: Location object that needs to be added
+        required: true
+        schema:
+          $ref: "#/definitions/Location"
+      responses:
+        200:
+          description: Location added successfully
+        400:
+          description: Location added unsucessfully
+          
+
+definitions:
+  Location:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      deviceId:
+        type: integer
+        format: int64
+      locationValue:
+        type: string
+        example: some RSSI value
+  
