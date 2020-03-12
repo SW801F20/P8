@@ -6,7 +6,7 @@ class RSSIRepository private constructor(private val rssiDao: RSSI_DAO) {
 
     // This may seem redundant.
     // Imagine a code which also updates and checks the backend.
-    fun addQuote(rssi: RSSI) {
+    fun addRSSI(rssi: RSSI) {
         rssiDao.add_rssi(rssi)
     }
 

@@ -18,16 +18,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initializeUi() {
-        // Get the QuotesViewModelFactory with all of it's dependencies constructed
+        // Get the rssisViewModelFactory with all of it's dependencies constructed
         val factory = InjectorUtils.provideRSSIViewModelFactory()
-        // Use ViewModelProviders class to create / get already created QuotesViewModel
+        // Use ViewModelProviders class to create / get already created rssisViewModel
         // for this view (activity)
         val viewModel = ViewModelProviders.of(this, factory)
-            .get(QuotesViewModel::class.java)
+            .get(RSSIViewModel::class.java)
 
         // Observing LiveData from the RSSIViewModel which in turn observes
         // LiveData from the repository, which observes LiveData from the DAO ☺
-        viewModel.getQuotes().observe(this, Observer { RSSIs ->
+        viewModel.getRSSIs().observe(this, Observer { RSSIs ->
             val stringBuilder = StringBuilder()
             RSSIs.forEach { rssi ->
                 stringBuilder.append("$rssi\n\n")
@@ -35,13 +35,18 @@ class MainActivity : AppCompatActivity() {
             textView.text = stringBuilder.toString()
         })
 
-        // When button is clicked, instantiate a Quote and add it to DB through the ViewModel
-        /*button.setOnClickListener {
-            val rssi = RSSI(editText_quote.text.toString(), editText_author.text.toString())
-            viewModel.addQuote(rssi)
-            editText_quote.setText("")
+        // When button is clicked, instantiate a rssi and add it to DB through the ViewModel
+        button.setOnClickListener {
+            val rssi_temp : RSSI = RSSI(1.0, 1.0, "hello")
+            viewModel.addRSSI(rssi_temp)
+            textView.text = rssi_temp.toString()
+            /*
+            val rssi = RSSI(editText_rssi.text.toString(), editText_author.text.toString())
+            viewModel.addrssi(rssi)
+            editText_rssi.setText("")
             editText_author.setText("")
-        }*/
+            */
+        }
     }
 
 }

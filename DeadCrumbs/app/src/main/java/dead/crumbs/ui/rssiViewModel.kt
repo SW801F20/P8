@@ -4,10 +4,10 @@ import androidx.lifecycle.ViewModel
 import dead.crumbs.data.RSSI
 import dead.crumbs.data.RSSIRepository
 
-class QuotesViewModel(private val rssiRepository: RSSIRepository)
+class RSSIViewModel(private val rssiRepository: RSSIRepository)
     : ViewModel() {
 
-    fun getQuotes() = rssiRepository.getRSSIs()
+    fun getRSSIs() = rssiRepository.getRSSIs()
 
-    fun addQuote(rssi: RSSI) = rssiRepository.addQuote(rssi)
+    fun addRSSI(rssi: RSSI) = rssiRepository.addRSSI(rssi)
 }

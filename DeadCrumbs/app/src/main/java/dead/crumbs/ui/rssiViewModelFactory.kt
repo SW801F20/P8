@@ -9,6 +9,6 @@ class RSSIViewModelFactory(private val rssiRepository: RSSIRepository)
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-        return QuotesViewModel(rssiRepository) as T
+        return RSSIViewModel(rssiRepository) as T
     }
 }

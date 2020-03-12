@@ -6,7 +6,7 @@ import dead.crumbs.ui.RSSIViewModelFactory
 
 object InjectorUtils {
 
-    // This will be called from QuotesActivity
+    // This will be called from RSSIsActivity
     fun provideRSSIViewModelFactory(): RSSIViewModelFactory {
         // ViewModelFactory needs a repository, which in turn needs a DAO from a database
         // The whole dependency tree is constructed right here, in one place
