@@ -1,3 +1,9 @@
+# Todo:
+# Sikkerhed: fx API-keys osv.
+
+
+
+
 openapi: 3.0.3
 info:
   title: Walking Skeleton API
@@ -70,7 +76,7 @@ paths:
       requestBody:
         $ref: '#/components/requestBodies/Location'
       responses:
-        200:
+        201:
           description: location added successfully
         400:
           description: location added unsuccessfully
