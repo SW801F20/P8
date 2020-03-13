@@ -1,7 +1,10 @@
 package dead.crumbs.ui
 
+import android.bluetooth.BluetoothAdapter
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import dead.crumbs.R
@@ -39,6 +42,10 @@ class MainActivity : AppCompatActivity() {
         button.setOnClickListener {
             val rssi_temp : RSSI = RSSI(1.0, 1.0, "hello")
             viewModel.addRSSI(rssi_temp)
+
+            val intent = Intent(this, BluetoothActivity::class.java)
+            startActivity(intent)
+
             textView.text = rssi_temp.toString()
             /*
             val rssi = RSSI(editText_rssi.text.toString(), editText_author.text.toString())
@@ -47,6 +54,8 @@ class MainActivity : AppCompatActivity() {
             editText_author.setText("")
             */
         }
+
+
     }
 
 }
