@@ -43,16 +43,10 @@ class MainActivity : AppCompatActivity() {
             val rssi_temp : RSSI = RSSI(1.0, 1.0, "hello")
             viewModel.addRSSI(rssi_temp)
 
+            //val bluetoothActivity = BluetoothActivity(factory, viewModel)
             val intent = Intent(this, BluetoothActivity::class.java)
             startActivity(intent)
 
-            textView.text = rssi_temp.toString()
-            /*
-            val rssi = RSSI(editText_rssi.text.toString(), editText_author.text.toString())
-            viewModel.addrssi(rssi)
-            editText_rssi.setText("")
-            editText_author.setText("")
-            */
         }
 
 

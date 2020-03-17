@@ -1,24 +1,62 @@
 package dead.crumbs.ui
 
-import android.app.Activity
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProviders
 import dead.crumbs.R
+import dead.crumbs.utilities.InjectorUtils
 
-class BluetoothActivity : Activity(){
+
+//factory: RSSIViewModelFactory, viewModel: RSSIViewModel
+class BluetoothActivity() : AppCompatActivity(){
+    private var factory: RSSIViewModelFactory? = null
+    private var viewModel: RSSIViewModel? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.bluetooth_activity)
+        this.factory = InjectorUtils.provideRSSIViewModelFactory()
+        this.viewModel = ViewModelProviders.of(this, factory).get(RSSIViewModel::class.java)
         setupBluetooth()
     }
 
     private val REQUEST_ENABLE_BT = 1
+    private var bluetooth_enable = false
+
+    private val bluetoothAdapter : BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
+    // Create a BroadcastReceiver for ACTION_FOUND.
+    private val receiver = object : BroadcastReceiver() {
+
+        override fun onReceive(context: Context, intent: Intent) {
+            val action: String = intent.action!!
+            when(action) {
+                BluetoothAdapter.ACTION_STATE_CHANGED -> {
+                    // Discovery has found a device. Get the BluetoothDevice
+                    // object and its info from the Intent.
+                    val device: BluetoothDevice =
+                        intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                    val deviceName = device.name
+                    val deviceHardwareAddress = device.address // MAC address
+                    val t = Toast.makeText(this@BluetoothActivity,  "Bluetooth device discovered! " + device.name, Toast.LENGTH_LONG)
+                    t. show()
+                }
+            }
+        }
+    }
+
+
+
     fun setupBluetooth(){
 
         //Get bluetooth adapter
-        val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
         if (bluetoothAdapter == null) {
             // Device doesn't support Bluetooth
             throw Exception("Device doesn't support Bluetooth")
@@ -29,5 +67,43 @@ class BluetoothActivity : Activity(){
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
         }
 
+        // Register for broadcasts when a device is discovered.
+        //val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
+        val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
+        registerReceiver(receiver, filter)
+
+
+
+        //Start discovery of bluetooth devices
+        if (bluetoothAdapter.isDiscovering) {
+            bluetoothAdapter.cancelDiscovery()
+        }
+        if(!bluetoothAdapter.startDiscovery())
+            throw java.lang.Exception("Bluetooth StartDiscovery Failed")
     }
+
+
+
+
+    override fun onActivityResult(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?
+    ) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_ENABLE_BT && resultCode == RESULT_OK) {
+             bluetooth_enable = true
+            var t = Toast.makeText(this@BluetoothActivity,  "Bluetooth Enabled! :D:D", Toast.LENGTH_LONG)
+            t. show()
+        }
+    }
+
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        // Don't forget to unregister the ACTION_FOUND receiver.
+        unregisterReceiver(receiver)
+    }
+
 }
