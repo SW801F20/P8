@@ -44,7 +44,7 @@ paths:
         - $ref: '#/components/parameters/deviceId'
       responses:
         200:
-          description: a json object of a location
+          description: a JSON object of a location
           content:
             application/json:
               schema:
@@ -90,10 +90,10 @@ components:
       properties:
         id:
           type: integer
-          format: int64
+          format: int32
         deviceId:
           type: integer
-          format: int64
+          format: int32
         locationValue:
           type: string
           example: some RSSI value
@@ -111,15 +111,17 @@ components:
       description: The ID of the device.
       schema:
         type: integer
-        format: int64
+        format: int32
         minimum: 1
         
   requestBodies:
     Location:
-      description: a json object of a location
+      description: a JSON object of a location
       required: true
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Location'
+    
+
     
