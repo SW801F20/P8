@@ -28,9 +28,6 @@ class BluetoothActivity() : AppCompatActivity(){
         setupBluetooth()
     }
 
-    private val REQUEST_ENABLE_BT = 1
-    private var bluetooth_enable = false
-
     private val bluetoothAdapter : BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
     // Create a BroadcastReceiver for ACTION_FOUND.
     private val receiver = object : BroadcastReceiver() {
@@ -38,14 +35,14 @@ class BluetoothActivity() : AppCompatActivity(){
         override fun onReceive(context: Context, intent: Intent) {
             val action: String = intent.action!!
             when(action) {
-                BluetoothAdapter.ACTION_STATE_CHANGED -> {
+                BluetoothDevice.ACTION_FOUND -> {
                     // Discovery has found a device. Get the BluetoothDevice
                     // object and its info from the Intent.
-                    val device: BluetoothDevice =
+                    val device: BluetoothDevice? =
                         intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-                    val deviceName = device.name
-                    val deviceHardwareAddress = device.address // MAC address
-                    val t = Toast.makeText(this@BluetoothActivity,  "Bluetooth device discovered! " + device.name, Toast.LENGTH_LONG)
+                    val deviceName = device?.name
+                    val deviceHardwareAddress = device?.address // MAC address
+                    val t = Toast.makeText(this@BluetoothActivity,  "Bluetooth device discovered! " + device?.name, Toast.LENGTH_LONG)
                     t. show()
                 }
             }
@@ -62,14 +59,9 @@ class BluetoothActivity() : AppCompatActivity(){
             throw Exception("Device doesn't support Bluetooth")
         }
 
-        if (bluetoothAdapter?.isEnabled == false) {
-            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
-        }
-
         // Register for broadcasts when a device is discovered.
-        //val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
-        val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
+        val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
+        //val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
         registerReceiver(receiver, filter)
 
 
@@ -82,21 +74,6 @@ class BluetoothActivity() : AppCompatActivity(){
             throw java.lang.Exception("Bluetooth StartDiscovery Failed")
     }
 
-
-
-
-    override fun onActivityResult(
-        requestCode: Int,
-        resultCode: Int,
-        data: Intent?
-    ) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_ENABLE_BT && resultCode == RESULT_OK) {
-             bluetooth_enable = true
-            var t = Toast.makeText(this@BluetoothActivity,  "Bluetooth Enabled! :D:D", Toast.LENGTH_LONG)
-            t. show()
-        }
-    }
 
 
     override fun onDestroy() {
