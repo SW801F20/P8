@@ -17,8 +17,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
 
 namespace IO.Swagger.Models
 { 
@@ -27,20 +25,20 @@ namespace IO.Swagger.Models
     /// </summary>
     [DataContract]
     public partial class Location : IEquatable<Location>
-    {         
+    { 
         /// <summary>
         /// Gets or Sets Id
         /// </summary>
         [Required]
         [DataMember(Name="id")]
-        public long? Id { get; set; }
+        public int? Id { get; set; }
 
         /// <summary>
         /// Gets or Sets DeviceId
         /// </summary>
         [Required]
         [DataMember(Name="deviceId")]
-        public long? DeviceId { get; set; }
+        public int? DeviceId { get; set; }
 
         /// <summary>
         /// Gets or Sets LocationValue

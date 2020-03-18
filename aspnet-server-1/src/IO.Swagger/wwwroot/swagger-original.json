@@ -52,12 +52,12 @@
           "schema" : {
             "minimum" : 1,
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int32"
           }
         } ],
         "responses" : {
           "200" : {
-            "description" : "a json object of a location",
+            "description" : "a JSON object of a location",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -87,7 +87,7 @@
           "schema" : {
             "minimum" : 1,
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int32"
           }
         } ],
         "responses" : {
@@ -129,11 +129,11 @@
         "properties" : {
           "id" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int32"
           },
           "deviceId" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int32"
           },
           "locationValue" : {
             "type" : "string",
@@ -158,13 +158,13 @@
         "schema" : {
           "minimum" : 1,
           "type" : "integer",
-          "format" : "int64"
+          "format" : "int32"
         }
       }
     },
     "requestBodies" : {
       "Location" : {
-        "description" : "a json object of a location",
+        "description" : "a JSON object of a location",
         "content" : {
           "application/json" : {
             "schema" : {

@@ -40,7 +40,7 @@ namespace IO.Swagger.Controllers
         [Route("/Location/{deviceId}")]
         [ValidateModelState]
         [SwaggerOperation("DeleteLocation")]
-        public virtual IActionResult DeleteLocation([FromRoute][Required]long? deviceId)
+        public virtual IActionResult DeleteLocation([FromRoute][Required]int? deviceId)
         { 
             // TODO: Initiate client elsewhere
             MongoClient dbClient = new MongoClient("mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb");
@@ -68,23 +68,23 @@ namespace IO.Swagger.Controllers
         [ValidateModelState]
         [SwaggerOperation("GetLocation")]
         [SwaggerResponse(statusCode: 200, type: typeof(Location), description: "a json object of a location")]
-        public virtual IActionResult GetLocation([FromRoute][Required]long? deviceId)
+        public virtual IActionResult GetLocation([FromRoute][Required]int? deviceId)
         { 
             MongoClient dbClient = new MongoClient("mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb");
             var database = dbClient.GetDatabase("walkingskeleton");
             var locationCollection = database.GetCollection<BsonDocument>("locations");
             var filter = Builders<BsonDocument>.Filter.Eq("id", deviceId);
             BsonDocument result = locationCollection.Find(filter).FirstOrDefault();
+
             if (result != null)
             {            
                 Location location = new Location(){
-                    Id = (long) result["id"].AsDouble,
-                    DeviceId = (long) result["deviceId"].AsDouble,
+                    Id = result["id"].AsInt32,
+                    DeviceId = result["deviceId"].AsInt32,
                     LocationValue = result["locationValue"].AsString
                 };  
                 
-                //TODO: Maybe use built in methods instead, e.g. Ok for 200.
-                return StatusCode(200, new ObjectResult(location));  
+                return new ObjectResult(location);  
             }
             else
             {
@@ -104,31 +104,31 @@ namespace IO.Swagger.Controllers
         [SwaggerOperation("GetLocations")]
         [SwaggerResponse(statusCode: 200, type: typeof(List<Location>), description: "a JSON array of locations")]
         public virtual IActionResult GetLocations()
-        { 
-
+        {             
             MongoClient dbClient = new MongoClient("mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb");
             var database = dbClient.GetDatabase("walkingskeleton");
             var locationCollection = database.GetCollection<BsonDocument>("locations");
-            // filter 
+            // filter that matches everything.
             var filter = Builders<BsonDocument>.Filter.Empty;
             List<BsonDocument> results = locationCollection.Find(filter).ToList();
             
-            if (results != null)
+            if (results.Count > 0)
             {                
                 List<Location> lstLocations = new List<Location>();
 
                 foreach(var item in results)
                 {                    
                     Location location = new Location(){
-                        Id = (long) item["id"].AsDouble,
-                        DeviceId = (long) item["deviceId"].AsDouble,
+                        // Have to convert from BsonValue.
+                        Id = item["id"].AsInt32,
+                        DeviceId = item["deviceId"].AsInt32,
                         LocationValue = item["locationValue"].AsString
                     };
 
                     lstLocations.Add(location);
 
                 }
-                return StatusCode(200, new ObjectResult(lstLocations));
+                return new ObjectResult(lstLocations);
             }
             else
             {
@@ -147,7 +147,7 @@ namespace IO.Swagger.Controllers
         [ValidateModelState]
         [SwaggerOperation("PostLocation")]
         public virtual IActionResult PostLocation([FromBody]Location body)
-        { 
+        {
             // TODO: Initiate client elsewhere
             MongoClient dbClient = new MongoClient("mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb");
         
@@ -159,10 +159,11 @@ namespace IO.Swagger.Controllers
                 {"locationValue", body.LocationValue},
 			};
 
+            // TODO: Check if it was successful.
             locations.InsertOne(locationDocument);
 
             // It seems like incorrect input is handled automatically and an error (400) is returned
-            return this.Ok();
+            return this.Ok("Done");
         }
     }
 }
