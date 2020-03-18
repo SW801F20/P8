@@ -5,7 +5,6 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
-import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import dead.crumbs.R
@@ -63,10 +62,18 @@ class MainActivity : AppCompatActivity() {
             textView.text = stringBuilder.toString()
         })
 
+        WifiDirectButton.setOnClickListener {
+            //val rssi_temp : RSSI = RSSI(1.0, 1.0, "hello")
+            //viewModel.addRSSI(rssi_temp)
+
+            //val wifi_direct_Activity = WiFiDirectActivity(factory, viewModel)
+            val intent = Intent(this, WiFiDirectActivity::class.java)
+            startActivity(intent)
+        }
         // When button is clicked, instantiate a rssi and add it to DB through the ViewModel
-        button.setOnClickListener {
-            val rssi_temp : RSSI = RSSI(1.0, 1.0, "hello")
-            viewModel.addRSSI(rssi_temp)
+        BluetoothButton.setOnClickListener {
+            //val rssi_temp : RSSI = RSSI(1.0, 1.0, "hello")
+            //viewModel.addRSSI(rssi_temp)
 
             //val bluetoothActivity = BluetoothActivity(factory, viewModel)
             val intent = Intent(this, BluetoothActivity::class.java)
