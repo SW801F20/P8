@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProviders
@@ -40,9 +41,10 @@ class BluetoothActivity() : AppCompatActivity(){
                     // object and its info from the Intent.
                     val device: BluetoothDevice? =
                         intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-                    val deviceName = device?.name
                     val deviceHardwareAddress = device?.address // MAC address
-                    val t = Toast.makeText(this@BluetoothActivity,  "Bluetooth device discovered! " + device?.name, Toast.LENGTH_LONG)
+
+                    val rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE) // rssi
+                    val t = Toast.makeText(this@BluetoothActivity,  "Bluetooth device discovered! " + device?.address + " RSSI: " + rssi, Toast.LENGTH_LONG)
                     t. show()
                 }
             }
@@ -63,15 +65,6 @@ class BluetoothActivity() : AppCompatActivity(){
         val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
         //val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
         registerReceiver(receiver, filter)
-
-
-
-        //Start discovery of bluetooth devices
-        if (bluetoothAdapter.isDiscovering) {
-            bluetoothAdapter.cancelDiscovery()
-        }
-        if(!bluetoothAdapter.startDiscovery())
-            throw java.lang.Exception("Bluetooth StartDiscovery Failed")
     }
 
 
@@ -81,6 +74,15 @@ class BluetoothActivity() : AppCompatActivity(){
 
         // Don't forget to unregister the ACTION_FOUND receiver.
         unregisterReceiver(receiver)
+    }
+
+    fun onPressDiscover(view: View){
+        //Start discovery of bluetooth devices
+        if (bluetoothAdapter!!.isDiscovering) {
+            bluetoothAdapter!!.cancelDiscovery()
+        }
+        if(!bluetoothAdapter!!.startDiscovery())
+            throw java.lang.Exception("Bluetooth StartDiscovery Failed")
     }
 
 }
