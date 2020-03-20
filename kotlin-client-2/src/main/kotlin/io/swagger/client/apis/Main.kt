@@ -6,7 +6,8 @@ fun main(args: Array<String>) {
 
     //State of the database is that there are two locations
     //with an id of 1 and an id of 2.
-
+    
+    //Make sure to check that the url is correct.
     val client = DefaultApi("http://localhost:50352")
 
     println("Testing /Locations - GET")
