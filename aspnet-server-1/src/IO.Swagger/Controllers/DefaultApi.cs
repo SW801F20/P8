@@ -72,7 +72,7 @@ namespace IO.Swagger.Controllers
             MongoClient dbClient = new MongoClient("mongodb://admin:mongo801@130.225.57.95:27017");
             var database = dbClient.GetDatabase("walkingskeleton");
             var locationCollection = database.GetCollection<BsonDocument>("locations");
-            var filter = Builders<BsonDocument>.Filter.Eq("id", deviceId);
+            var filter = Builders<BsonDocument>.Filter.Eq("deviceId", deviceId);
             BsonDocument result = locationCollection.Find(filter).FirstOrDefault();
 
             if (result != null)
