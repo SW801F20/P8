@@ -1,12 +1,15 @@
 package dead.crumbs.ui
 
+import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -61,10 +64,10 @@ class BluetoothActivity() : AppCompatActivity(){
             throw Exception("Device doesn't support Bluetooth")
         }
 
-        // Register for broadcasts when a device is discovered.
         val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
         //val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
         registerReceiver(receiver, filter)
+
     }
 
 
@@ -77,12 +80,39 @@ class BluetoothActivity() : AppCompatActivity(){
     }
 
     fun onPressDiscover(view: View){
-        //Start discovery of bluetooth devices
+        //Check if App has been granted necessary permission, if not request them
+        checkBTPermissions()
+
         if (bluetoothAdapter!!.isDiscovering) {
-            bluetoothAdapter!!.cancelDiscovery()
+            //Restart discovery
+            bluetoothAdapter.cancelDiscovery()
+            bluetoothAdapter.startDiscovery()
         }
-        if(!bluetoothAdapter!!.startDiscovery())
-            throw java.lang.Exception("Bluetooth StartDiscovery Failed")
+        else{
+            //Start discovery
+            if(!bluetoothAdapter.startDiscovery())
+                throw java.lang.Exception("Bluetooth StartDiscovery Failed")
+        }
+    }
+
+    private fun checkBTPermissions() {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
+            var permissionCheck =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    checkSelfPermission("Manifest.permission.ACCESS_FINE_LOCATION")
+                } else {
+                    TODO("VERSION.SDK_INT < M")
+                }
+            permissionCheck += checkSelfPermission("Manifest.permission.ACCESS_COARSE_LOCATION")
+            if (permissionCheck != 0) {
+                requestPermissions(
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ), 1001
+                ) //Any number
+            }
+        }
     }
 
 }
