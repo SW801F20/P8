@@ -1,6 +1,7 @@
 package dead.crumbs.ui
 
 import android.Manifest
+import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
@@ -14,7 +15,7 @@ import dead.crumbs.data.BluetoothRSSI
 
 
 //factory: RSSIViewModelFactory, viewModel: RSSIViewModel
-class BluetoothActivity() : AppCompatActivity(){
+class BluetoothActivity() : Activity(){
     private var factory: RSSIViewModelFactory? = null
     private var viewModel: RSSIViewModel? = null
 
@@ -42,8 +43,21 @@ class BluetoothActivity() : AppCompatActivity(){
             }
         }
     }
+    private val receiver2 = object : BroadcastReceiver() {
 
+        override fun onReceive(context: Context, intent: Intent) {
+            val action: String = intent.action!!
+            when(action) {
+                BluetoothAdapter.ACTION_DISCOVERY_FINISHED->{
+                    discover()
+                }
+            }
+        }
+    }
 
+    override fun onResume() {
+        super.onResume()
+    }
 
     fun setupBluetooth(){
         //Get bluetooth adapter
@@ -56,6 +70,10 @@ class BluetoothActivity() : AppCompatActivity(){
         //val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
         registerReceiver(receiver, filter)
 
+        val filter2 = IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
+        //val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
+        registerReceiver(receiver2, filter2)
+
         discover()
     }
 
@@ -64,9 +82,10 @@ class BluetoothActivity() : AppCompatActivity(){
 
         // Don't forget to unregister the ACTION_FOUND receiver.
         unregisterReceiver(receiver)
+        unregisterReceiver(receiver2)
     }
 
-    fun discover(){
+    private fun discover(){
         //Check if App has been granted necessary permission, if not request them
         checkBTPermissions()
 
