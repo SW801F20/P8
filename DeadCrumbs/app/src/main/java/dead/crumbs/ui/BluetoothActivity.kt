@@ -12,6 +12,8 @@ import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import dead.crumbs.data.BluetoothRSSI
+import java.util.*
+import kotlin.concurrent.timer
 
 
 //factory: RSSIViewModelFactory, viewModel: RSSIViewModel
@@ -53,10 +55,6 @@ class BluetoothActivity() : Activity(){
                 }
             }
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
     }
 
     fun setupBluetooth(){

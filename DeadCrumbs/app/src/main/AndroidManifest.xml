@@ -28,6 +28,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.BluetoothActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
         />
     </application>
 
