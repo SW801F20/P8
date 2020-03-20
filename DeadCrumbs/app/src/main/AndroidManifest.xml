@@ -27,7 +27,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.BluetoothActivity"/>
-        <activity android:name=".ui.WiFiDirectActivity"/>
     </application>
 
 </manifest>

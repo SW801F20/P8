@@ -62,14 +62,6 @@ class MainActivity : AppCompatActivity() {
             textView.text = stringBuilder.toString()
         })
 
-        WifiDirectButton.setOnClickListener {
-            //val rssi_temp : RSSI = RSSI(1.0, 1.0, "hello")
-            //viewModel.addRSSI(rssi_temp)
-
-            //val wifi_direct_Activity = WiFiDirectActivity(factory, viewModel)
-            val intent = Intent(this, WiFiDirectActivity::class.java)
-            startActivity(intent)
-        }
         // When button is clicked, instantiate a rssi and add it to DB through the ViewModel
         BluetoothButton.setOnClickListener {
             //val rssi_temp : RSSI = RSSI(1.0, 1.0, "hello")
