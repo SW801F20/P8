@@ -8,7 +8,7 @@ import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import dead.crumbs.R
-import dead.crumbs.data.RSSI
+import dead.crumbs.data.BluetoothRSSI
 import dead.crumbs.utilities.InjectorUtils
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -71,6 +71,15 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, BluetoothActivity::class.java)
             startActivity(intent)
         }
+    }
+
+    companion object{
+        fun receiveRSSI(rssi : BluetoothRSSI){
+            if (rssi != null){
+
+            }
+        }
+
     }
 
     override fun onActivityResult(

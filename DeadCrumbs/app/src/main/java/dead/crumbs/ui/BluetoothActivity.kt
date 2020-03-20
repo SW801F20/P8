@@ -9,13 +9,8 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
-import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProviders
-import dead.crumbs.R
-import dead.crumbs.utilities.InjectorUtils
+import dead.crumbs.data.BluetoothRSSI
 
 
 //factory: RSSIViewModelFactory, viewModel: RSSIViewModel
@@ -26,9 +21,6 @@ class BluetoothActivity() : AppCompatActivity(){
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.bluetooth_activity)
-        this.factory = InjectorUtils.provideRSSIViewModelFactory()
-        this.viewModel = ViewModelProviders.of(this, factory).get(RSSIViewModel::class.java)
         setupBluetooth()
     }
 
@@ -44,11 +36,8 @@ class BluetoothActivity() : AppCompatActivity(){
                     // object and its info from the Intent.
                     val device: BluetoothDevice? =
                         intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-                    val deviceHardwareAddress = device?.address // MAC address
-
-                    val rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE) // rssi
-                    val t = Toast.makeText(this@BluetoothActivity,  "Bluetooth device discovered! " + device?.address + " RSSI: " + rssi, Toast.LENGTH_LONG)
-                    t. show()
+                    var bluetooth_rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE) // rssi
+                    MainActivity.receiveRSSI( BluetoothRSSI(bluetooth_rssi, device!!.address))
                 }
             }
         }
@@ -57,7 +46,6 @@ class BluetoothActivity() : AppCompatActivity(){
 
 
     fun setupBluetooth(){
-
         //Get bluetooth adapter
         if (bluetoothAdapter == null) {
             // Device doesn't support Bluetooth
@@ -68,9 +56,8 @@ class BluetoothActivity() : AppCompatActivity(){
         //val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
         registerReceiver(receiver, filter)
 
+        discover()
     }
-
-
 
     override fun onDestroy() {
         super.onDestroy()
@@ -79,7 +66,7 @@ class BluetoothActivity() : AppCompatActivity(){
         unregisterReceiver(receiver)
     }
 
-    fun onPressDiscover(view: View){
+    fun discover(){
         //Check if App has been granted necessary permission, if not request them
         checkBTPermissions()
 
