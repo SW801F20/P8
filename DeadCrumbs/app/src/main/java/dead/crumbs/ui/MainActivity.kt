@@ -19,6 +19,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         initializeUi()
+
         enableBluetooth()
 
         //----This enables Bluetooth Discoverability for 1 hour
