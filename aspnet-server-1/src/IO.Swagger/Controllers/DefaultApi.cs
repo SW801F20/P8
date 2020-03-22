@@ -29,6 +29,10 @@ namespace IO.Swagger.Controllers
     [ApiController]
     public class DefaultApiController : ControllerBase
     { 
+        //Connectionstring
+        private const string connection_string = "mongodb://admin:mongo801@130.225.57.95:27017";
+        
+
         /// <summary>
         /// deletes a location
         /// </summary>
@@ -43,7 +47,7 @@ namespace IO.Swagger.Controllers
         public virtual IActionResult DeleteLocation([FromRoute][Required]int? deviceId)
         {
             // TODO: Initiate client elsewhere
-            MongoClient dbClient = new MongoClient("mongodb://admin:mongo801@130.225.57.95:27017");
+            MongoClient dbClient = new MongoClient(connection_string);
             var db = dbClient.GetDatabase("walkingskeleton");
             var locations = db.GetCollection<BsonDocument>("locations");
             var deleteFilter = Builders<BsonDocument>.Filter.Eq("deviceId", deviceId);
@@ -69,7 +73,7 @@ namespace IO.Swagger.Controllers
         [SwaggerResponse(statusCode: 200, type: typeof(Location), description: "a json object of a location")]
         public virtual IActionResult GetLocation([FromRoute][Required]int? deviceId)
         {
-            MongoClient dbClient = new MongoClient("mongodb://admin:mongo801@130.225.57.95:27017");
+            MongoClient dbClient = new MongoClient(connection_string);
             var database = dbClient.GetDatabase("walkingskeleton");
             var locationCollection = database.GetCollection<BsonDocument>("locations");
             var filter = Builders<BsonDocument>.Filter.Eq("deviceId", deviceId);
@@ -104,7 +108,7 @@ namespace IO.Swagger.Controllers
         [SwaggerResponse(statusCode: 200, type: typeof(List<Location>), description: "a JSON array of locations")]
         public virtual IActionResult GetLocations()
         {
-            MongoClient dbClient = new MongoClient("mongodb://admin:mongo801@130.225.57.95:27017");
+            MongoClient dbClient = new MongoClient(connection_string);
             var database = dbClient.GetDatabase("walkingskeleton");
             var locationCollection = database.GetCollection<BsonDocument>("locations");
             // filter that matches everything.
@@ -148,7 +152,7 @@ namespace IO.Swagger.Controllers
         public virtual IActionResult PostLocation([FromBody]Location body)
         {
             // TODO: Initiate client elsewhere
-            MongoClient dbClient = new MongoClient("mongodb://admin:mongo801@130.225.57.95:27017");
+            MongoClient dbClient = new MongoClient(connection_string);
             var db = dbClient.GetDatabase("walkingskeleton");
             var locations = db.GetCollection<BsonDocument>("locations");
             var locationDocument = new BsonDocument{
