@@ -1,8 +1,8 @@
 package dead.crumbs.data
 
-data class BluetoothRSSI(val bluetooth_rssi : Short, val target_device : String){
+data class BluetoothRSSI(val bluetooth_rssi : Short, val target_mac_address : String){
 
     override fun toString(): String {
-        return "$target_device: bluetooth: $bluetooth_rssi"
+        return "$target_mac_address: bluetooth: $bluetooth_rssi"
     }
 }
