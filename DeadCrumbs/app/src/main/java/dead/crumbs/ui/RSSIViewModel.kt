@@ -9,5 +9,5 @@ class RSSIViewModel(private val rssiRepository: RSSIRepository)
 
     fun getRSSIs() = rssiRepository.getRSSIs()
 
-    fun addRSSI(rssi: RSSI) = rssiRepository.addRSSI(rssi)
+    fun addRSSI(rssi: BluetoothRSSI) = rssiRepository.addRSSI(rssi)
 }
