@@ -2,14 +2,14 @@ package dead.crumbs.data.DAO
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import dead.crumbs.data.RSSI
+import dead.crumbs.data.BluetoothRSSI
 
 class RSSI_DAO {
     // A fake database table
-    private val rssiList = mutableListOf<RSSI>()
+    private val rssiList = mutableListOf<BluetoothRSSI>()
     // MutableLiveData is from the Architecture Components Library
     // LiveData can be observed for changes
-    private val rssis = MutableLiveData<List<RSSI>>()
+    private val rssis = MutableLiveData<List<BluetoothRSSI>>()
 
     init {
         // Immediately connect the now empty quoteList
@@ -17,7 +17,7 @@ class RSSI_DAO {
         rssis.value = rssiList
     }
 
-    fun add_rssi(rssi_val: RSSI) {
+    fun add_rssi(rssi_val: BluetoothRSSI) {
         rssiList.add(rssi_val)
         // After adding a rssi to the "database",
         // update the value of MutableLiveData
@@ -27,5 +27,5 @@ class RSSI_DAO {
 
     // Casting MutableLiveData to LiveData because its value
     // shouldn't be changed from other classes
-    fun getRSSIs() = rssis as LiveData<List<RSSI>>
+    fun getRSSIs() = rssis as LiveData<List<BluetoothRSSI>>
 }

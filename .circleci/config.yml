@@ -10,7 +10,7 @@ jobs:
       - checkout
       - run:
           name: chmod permissions
-          command: cd DeadCrumbs && chmod +x ./gradlew
+    command: cd DeadCrumbs && chmod +x ./gradlew
       - run:
           command: cd DeadCrumbs && ./gradlew build -x test
       - run:
