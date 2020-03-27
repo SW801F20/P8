@@ -19,6 +19,7 @@ class BluetoothService() : Service(){
     private var factory: RSSIViewModelFactory? = null
     private var viewModel: RSSIViewModel? = null
 
+    public var callback: ((BluetoothRSSI) -> Unit)? = null
 
     //Called on creation of BluetoothService
     override fun onCreate() {
@@ -58,7 +59,9 @@ class BluetoothService() : Service(){
                     val device: BluetoothDevice? =
                         intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
                     var bluetooth_rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE) // rssi
-                    MainActivity.receiveRSSI( BluetoothRSSI(bluetooth_rssi, device!!.address))
+
+                    //Add to RSSIViewModel
+                    callback?.let { it(BluetoothRSSI(bluetooth_rssi, device!!.address)) }
                 }
             }
         }

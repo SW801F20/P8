@@ -28,6 +28,41 @@ class MainActivity : AppCompatActivity() {
         initializeBluetoothScan()
     }
 
+    //----------Initialization of MainActivity UI----------//
+    var viewModel : RSSIViewModel? = null
+
+    private fun initializeUi() {
+        // Get the rssisViewModelFactory with all of it's dependencies constructed
+        val factory = InjectorUtils.provideRSSIViewModelFactory()
+        // Use ViewModelProviders class to create / get already created rssisViewModel
+        // for this view (activity)
+        viewModel = ViewModelProviders.of(this, factory)
+            .get(RSSIViewModel::class.java)
+
+        // Observing LiveData from the RSSIViewModel which in turn observes
+        // LiveData from the repository, which observes LiveData from the DAO ☺
+        viewModel!!.getRSSIs().observe(this, Observer { RSSIs ->
+            val stringBuilder = StringBuilder()
+            RSSIs.forEach { rssi ->
+                stringBuilder.append("$rssi\n\n")
+            }
+            textView.text = stringBuilder.toString()
+        })
+    }
+
+    override fun onActivityResult(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?
+    ) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_ENABLE_BT && resultCode == RESULT_OK) {
+            var t = Toast.makeText(this@MainActivity,  "Bluetooth Enabled!", Toast.LENGTH_LONG)
+            t. show()
+        }
+    }
+
+
     //------------Bluetooth Part-------------//
     private fun initializeBluetoothScan() {
         //Checks locations permissions, which are necessary for
@@ -101,6 +136,7 @@ class MainActivity : AppCompatActivity() {
             // We've bound to BluetoothService, cast the IBinder and get LocalService instance
             val binder = service as BluetoothService.LocalBinder
             mService = binder.getService()
+            mService.callback = fun(rssi:BluetoothRSSI) { viewModel!!.addRSSI(rssi) }
             mBound = true
         }
 
@@ -110,49 +146,5 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-
-
-    companion object{
-        var viewModel : RSSIViewModel? = null
-        fun receiveRSSI(rssi : BluetoothRSSI){
-            if (rssi != null){
-                viewModel!!.addRSSI(rssi)
-            }
-        }
-    }
-
-
-
-    //----------Initialization of MainActivity UI----------//
-    private fun initializeUi() {
-        // Get the rssisViewModelFactory with all of it's dependencies constructed
-        val factory = InjectorUtils.provideRSSIViewModelFactory()
-        // Use ViewModelProviders class to create / get already created rssisViewModel
-        // for this view (activity)
-        viewModel = ViewModelProviders.of(this, factory)
-            .get(RSSIViewModel::class.java)
-
-        // Observing LiveData from the RSSIViewModel which in turn observes
-        // LiveData from the repository, which observes LiveData from the DAO ☺
-        viewModel!!.getRSSIs().observe(this, Observer { RSSIs ->
-            val stringBuilder = StringBuilder()
-            RSSIs.forEach { rssi ->
-                stringBuilder.append("$rssi\n\n")
-            }
-            textView.text = stringBuilder.toString()
-        })
-    }
-
-    override fun onActivityResult(
-        requestCode: Int,
-        resultCode: Int,
-        data: Intent?
-    ) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_ENABLE_BT && resultCode == RESULT_OK) {
-            var t = Toast.makeText(this@MainActivity,  "Bluetooth Enabled!", Toast.LENGTH_LONG)
-            t. show()
-        }
-    }
 
 }
