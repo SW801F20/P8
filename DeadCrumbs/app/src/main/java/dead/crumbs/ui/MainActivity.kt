@@ -15,6 +15,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import dead.crumbs.R
 import dead.crumbs.data.BluetoothRSSI
+import dead.crumbs.data.RSSI
 import dead.crumbs.utilities.InjectorUtils
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -64,6 +65,8 @@ class MainActivity : AppCompatActivity() {
 
 
     //------------Bluetooth Part-------------//
+    private val rssiProximity: RSSIProximity = RSSIProximity();
+
     private fun initializeBluetoothScan() {
         //Checks locations permissions, which are necessary for
         checkBTPermissions()
@@ -136,13 +139,20 @@ class MainActivity : AppCompatActivity() {
             // We've bound to BluetoothService, cast the IBinder and get LocalService instance
             val binder = service as BluetoothService.LocalBinder
             mService = binder.getService()
-            mService.callback = fun(rssi:BluetoothRSSI) { viewModel!!.addRSSI(rssi) }
+            mService.callback = fun(rssi:BluetoothRSSI)
+            { viewModel!!.addRSSI(rssi); printDeviceDistance(rssi, rssiProximity.getNewAverageDist(rssi));} //callback
             mBound = true
         }
 
         override fun onServiceDisconnected(arg0: ComponentName) {
             mBound = false
         }
+    }
+    private fun printDeviceDistance(rssi: BluetoothRSSI, dist: Double){
+        if (rssi.target_mac_address.compareTo("Toni") == 0)
+            Toast.makeText(this@MainActivity, "TONI's distance is $dist", Toast.LENGTH_LONG).show()
+        else if(rssi.target_mac_address.compareTo("Berit") == 0)
+            Toast.makeText(this@MainActivity, "BERIT's distance is $dist", Toast.LENGTH_LONG).show()
     }
 
 
