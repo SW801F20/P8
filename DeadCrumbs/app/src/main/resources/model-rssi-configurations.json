@@ -1,0 +1,13 @@
+{
+    "configurations": [
+        {
+            "coefficient1": 0.006829659881992,
+            "coefficient2": -0.11713074201511,
+            "os": "Android",
+            "os_version": "9",
+            "build_number": "PPR1.180610.011.A405FNXXU2ASG1",
+            "model": "Galaxy A40",
+            "manufacturer": "Samsung"
+        }
+    ]
+}

@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity() {
 
 
     //------------Bluetooth Part-------------//
-    private val rssiProximity: RSSIProximity = RSSIProximity();
+    private val rssiProximity: RSSIProximity = RSSIProximity(this);
 
     private fun initializeBluetoothScan() {
         //Checks locations permissions, which are necessary for

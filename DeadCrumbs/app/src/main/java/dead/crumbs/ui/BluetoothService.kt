@@ -56,11 +56,23 @@ class BluetoothService() : Service(){
                         intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
 
                     var rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE).toDouble() // retrieve rssi
+
                     var mac_address: String = device!!.address         //Note Bluetooth mac address != WiFi mac address
+
+
+                    if ((mac_address.compareTo("E0:D0:83:D7:7D:29") == 0)||(mac_address.compareTo("E0:D0:83:D7:7D:28") == 0)){
+                        mac_address = "Toni"
+                    }
+                    else if((mac_address.compareTo("E0:D0:83:F7:E9:B9") == 0) || (mac_address.compareTo("E0:D0:83:F7:E9:B8") == 0)){
+                        mac_address = "Berit"
+                    }
+
                     var bluetoothRSSI = BluetoothRSSI(rssi, mac_address);
 
-                    //Add to RSSIViewModel through callback
-                    callback?.let { it(bluetoothRSSI) }
+                    if ((mac_address.compareTo("Toni") == 0)||(mac_address.compareTo("Berit") == 0)){
+                        //Add to RSSIViewModel through callback
+                        callback?.let { it(bluetoothRSSI) }
+                    }
                 }
             }
         }
