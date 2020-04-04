@@ -1,6 +1,7 @@
 package dead.crumbs.ui
 
 import dead.crumbs.data.BluetoothRSSI
+import kotlin.math.exp
 
 private val NUMBER_MEASUREMENTS = 5; //Number of measurements stored for each mac address - used for average
 private var deviceDistanceMap = mutableMapOf<String, MutableList<BluetoothRSSI>>()
@@ -34,14 +35,8 @@ class RSSIProximity() {
         return distance/map[mac_address]!!.count()
     }
 
+    //coefficients from exponential model fitting on recorded data set (with side by side rssi to distance data * 2)
     private fun distanceFromRSSI(rssi: BluetoothRSSI): Double{
-        var result: Double;
-        val oneMeterRSSI = -50;
-        val envFactor = 3.3;
-        result = Math.pow(
-            10.toDouble(), (oneMeterRSSI.toDouble() - rssi.bluetooth_rssi)
-                    / (10 * envFactor)
-        );
-        return result;
+        return 0.006829659881992 * exp(-0.11713074201511 * rssi.bluetooth_rssi)
     }
 }

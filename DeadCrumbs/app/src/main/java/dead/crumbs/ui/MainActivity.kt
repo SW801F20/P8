@@ -148,13 +148,10 @@ class MainActivity : AppCompatActivity() {
             mBound = false
         }
     }
+
+    //This functions is for debugging/testing
     private fun printDeviceDistance(rssi: BluetoothRSSI, dist: Double){
-        if (rssi.target_mac_address.compareTo("Toni") == 0)
-            Toast.makeText(this@MainActivity, "TONI's distance is $dist", Toast.LENGTH_LONG).show()
-        else if(rssi.target_mac_address.compareTo("Berit") == 0)
-            Toast.makeText(this@MainActivity, "BERIT's distance is $dist", Toast.LENGTH_LONG).show()
+        Toast.makeText(this@MainActivity, "${rssi.target_mac_address}'s distance is\n $dist m", Toast.LENGTH_LONG).show()
     }
-
-
 
 }
