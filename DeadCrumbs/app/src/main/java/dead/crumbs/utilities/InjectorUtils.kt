@@ -1,7 +1,10 @@
 package dead.crumbs.utilities
 
 import dead.crumbs.data.FakeDatabase
+import dead.crumbs.data.LocationRepository
 import dead.crumbs.data.RSSIRepository
+import dead.crumbs.ui.LocationViewModel
+import dead.crumbs.ui.LocationViewModelFactory
 import dead.crumbs.ui.RSSIViewModelFactory
 
 object InjectorUtils {
@@ -12,5 +15,11 @@ object InjectorUtils {
         // The whole dependency tree is constructed right here, in one place
         val rssiRepository = RSSIRepository.getInstance(FakeDatabase.getInstance().rssiDao)
         return RSSIViewModelFactory(rssiRepository)
+    }
+
+
+    fun provideLocationViewModelFactory(): LocationViewModelFactory {
+        val locationRepository = LocationRepository.getInstance(FakeDatabase.getInstance().locationDao)
+        return LocationViewModelFactory(locationRepository)
     }
 }

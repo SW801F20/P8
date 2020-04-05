@@ -6,8 +6,16 @@ android {
     compileSdkVersion 29
     buildToolsVersion "29.0.3"
 
+
+    //Needed in order for the client API to work
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
     defaultConfig {
         applicationId "dead.crumbs"
+        //minSdkVersion should be at least 23 to allow for clearTextCommunication (see manifest file)
         minSdkVersion 23
         targetSdkVersion 29
         versionCode 1
@@ -36,4 +44,11 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+
+    //Dependencies for using the client API
+    implementation "com.squareup.moshi:moshi-kotlin:1.8.0"
+    implementation "com.squareup.moshi:moshi-adapters:1.8.0"
+    implementation "com.squareup.okhttp3:okhttp:3.14.2"
+    implementation "org.threeten:threetenbp:1.4.0"
+    testImplementation "io.kotlintest:kotlintest:2.0.7"
 }
