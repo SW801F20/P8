@@ -7,7 +7,8 @@ import io.swagger.client.models.Location
 import kotlin.concurrent.thread
 
 class Location_DAO {
-    private val locationList = mutableListOf<Location>()
+    //I just stopped using the variable below, maybe its bad practice.
+    //private val locationList = mutableListOf<Location>()
     // MutableLiveData is from the Architecture Components Library
     // LiveData can be observed for changes
     private val locations = MutableLiveData<List<Location>>()
@@ -18,16 +19,7 @@ class Location_DAO {
 
     init {
         //start by retrieving everything from the database
-        var all_locations = arrayOf<Location>()
-
-        //operations over the internet should happen on a thread
-        val thread = thread(start = true){
-            all_locations = client.getLocations()
-        }
-        //Wait for the action to complete
-        thread.join()
-        locationList.addAll(all_locations)
-        locations.value = locationList
+        updateLocalData()
     }
 
     // Deletes all locations that matches the deviceId
@@ -43,13 +35,15 @@ class Location_DAO {
     // Add a locations to the local representations
     // and updates database
     fun addLocations(location: Location) {
-        locationList.add(location)
+        val tempLocs = locations.value?.toMutableList()
+        tempLocs?.add(location)
+
         val thread = thread(start = true){
             client.postLocation(body=location)
 
         }
         thread.join()
-        locations.value = locationList
+        locations.value = tempLocs
     }
 
     // Returns all locations
@@ -76,11 +70,13 @@ class Location_DAO {
 
     // Used to re-read the data from the database.
     private fun updateLocalData(){
-        var alllocations = arrayOf<Location>()
+        var all_locations = arrayOf<Location>()
+        //operations over the internet should happen on a thread
         val thread = thread(start = true){
-            alllocations = client.getLocations()
+            all_locations = client.getLocations()
         }
+        //Wait for the action to complete
         thread.join()
-        locations.value = alllocations.toList()
+        locations.value = all_locations.toList()
     }
 }
