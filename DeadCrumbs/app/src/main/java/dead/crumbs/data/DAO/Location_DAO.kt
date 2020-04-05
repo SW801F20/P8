@@ -7,7 +7,7 @@ import io.swagger.client.models.Location
 import kotlin.concurrent.thread
 
 class Location_DAO {
-    //I just stopped using the variable below, maybe its bad practice.
+    //I just stopped using the variable below, but maybe I should use it...
     //private val locationList = mutableListOf<Location>()
     // MutableLiveData is from the Architecture Components Library
     // LiveData can be observed for changes
