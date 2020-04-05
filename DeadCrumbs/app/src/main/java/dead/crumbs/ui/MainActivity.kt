@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
         initializeUi()
         initializeBluetoothScan()
 
-        // Button for entering Map (ui/MapsActivity)
+        // Button for viewing Map (ui/MapsActivity)
         button_map.setOnClickListener{
         val intent = Intent(this,MapsActivity::class.java)
             startActivity(intent)
