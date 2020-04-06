@@ -10,6 +10,7 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.IBinder
+import android.widget.Button
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -27,7 +28,13 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         initializeUi()
         initializeBluetoothScan()
+
+        // Button for viewing Map (ui/MapsActivity)
+        button_map.setOnClickListener{
+        val intent = Intent(this,MapsActivity::class.java)
+            startActivity(intent)
     }
+}
 
     //----------Initialization of MainActivity UI----------//
     var viewModel : RSSIViewModel? = null
@@ -62,6 +69,7 @@ class MainActivity : AppCompatActivity() {
             t. show()
         }
     }
+
 
 
     //------------Bluetooth Part-------------//
