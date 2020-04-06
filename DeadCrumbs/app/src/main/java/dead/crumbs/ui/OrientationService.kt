@@ -45,7 +45,7 @@ class OrientationService() : Service(), SensorEventListener {
         sensorManager.unregisterListener(this)
     }
 
-    //---------Roation/Orientation Sensor Code----------//
+    //---------Orientation Sensor Code----------//
     private lateinit var sensorManager: SensorManager
     private var sensor: Sensor? = null
     private val accelerometerReading = FloatArray(3)
@@ -58,19 +58,11 @@ class OrientationService() : Service(), SensorEventListener {
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR)
 
-
-        // Get updates from the accelerometer and magnetometer at a constant rate.
-        // To make batch operations more efficient and reduce power consumption,
-        // provide support for delaying updates to the application.
-        //
-        // In this example, the sensor reporting delay is small enough such that
-        // the application receives an update before the system checks the sensor
-        // readings again.
         sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.also { accelerometer ->
             sensorManager.registerListener(
                 this,
                 accelerometer,
-                SensorManager.SENSOR_DELAY_NORMAL,
+                SensorManager.SENSOR_DELAY_NORMAL, //TODO change delay?
                 SensorManager.SENSOR_DELAY_UI
             )
         }
@@ -78,7 +70,7 @@ class OrientationService() : Service(), SensorEventListener {
             sensorManager.registerListener(
                 this,
                 magneticField,
-                SensorManager.SENSOR_DELAY_NORMAL,
+                SensorManager.SENSOR_DELAY_NORMAL, //TODO change delay?
                 SensorManager.SENSOR_DELAY_UI
             )
         }

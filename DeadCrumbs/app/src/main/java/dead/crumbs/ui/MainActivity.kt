@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity() {
 
     //----------Orientation--------------------------------//
     private fun initializeOrientationService(){
-        checkBTPermissions() //We need same location permission
+        checkBTPermissions() //We need same location permission //TODO this may need change in future
         val intent = Intent(this, OrientationService::class.java)
         startService(intent)
         Intent(this, OrientationService::class.java).also { intent ->
