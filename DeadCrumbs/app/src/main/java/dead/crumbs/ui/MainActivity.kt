@@ -10,13 +10,11 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.IBinder
-import android.widget.Button
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import dead.crumbs.R
 import dead.crumbs.data.BluetoothRSSI
-import dead.crumbs.data.RSSI
 import dead.crumbs.utilities.InjectorUtils
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -36,6 +34,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        orientationService.onDestroy()
+        //bluetoothService.onDestroy() //TODO commented out due to bluetootservice currently never started
+    }
+
     //----------Orientation--------------------------------//
     private fun initializeOrientationService(){
         checkBTPermissions() //We need same location permission //TODO this may need change in future
@@ -48,7 +52,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var orientationService: OrientationService
-    private var mBoundOrientationService: Boolean = false
+    private var boundOrientationService: Boolean = false
 
     /** Defines callbacks for service binding, passed to bindService()  */
     private val connectionOrientationService = object : ServiceConnection {
@@ -61,11 +65,11 @@ class MainActivity : AppCompatActivity() {
                 printOrientation(orientationAngles);
             }
 
-            mBoundOrientationService = true
+            boundOrientationService = true
         }
 
         override fun onServiceDisconnected(arg0: ComponentName) {
-            mBoundOrientationService = false
+            boundOrientationService = false
         }
     }
 
@@ -185,8 +189,8 @@ class MainActivity : AppCompatActivity() {
 
 
     private val rssiProximity: RSSIProximity = RSSIProximity();
-    private lateinit var mService: BluetoothService
-    private var mBound: Boolean = false
+    private lateinit var bluetoothService: BluetoothService
+    private var boundBluetoothService: Boolean = false
 
     /** Defines callbacks for service binding, passed to bindService()  */
     private val connectionBluetoothService = object : ServiceConnection {
@@ -194,17 +198,17 @@ class MainActivity : AppCompatActivity() {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             // We've bound to BluetoothService, cast the IBinder and get LocalService instance
             val binder = service as BluetoothService.LocalBinder
-            mService = binder.getService()
-            mService.callback = fun(rssi:BluetoothRSSI) {       //callback function
+            bluetoothService = binder.getService()
+            bluetoothService.callback = fun(rssi:BluetoothRSSI) {       //callback function
                 viewModel!!.addRSSI(rssi);
                 printDeviceDistance(rssi, rssiProximity.getNewAverageDist(rssi));
             } 
 
-            mBound = true
+            boundBluetoothService = true
         }
 
         override fun onServiceDisconnected(arg0: ComponentName) {
-            mBound = false
+            boundBluetoothService = false
         }
     }
 

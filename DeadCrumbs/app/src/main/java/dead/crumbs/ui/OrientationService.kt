@@ -15,8 +15,6 @@ class OrientationService() : Service(), SensorEventListener {
     //Called on creation of OrientationService
     override fun onCreate() {
         super.onCreate()
-
-
         setupOrientation()
     }
     var callback: ((FloatArray) -> Unit)? = null
