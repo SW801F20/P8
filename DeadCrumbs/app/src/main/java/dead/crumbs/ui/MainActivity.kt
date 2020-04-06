@@ -25,7 +25,7 @@ class MainActivity : AppCompatActivity() {
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        /*setContentView(R.layout.activity_main)
         initializeUi()
         initializeBluetoothScan()
 
@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity() {
         button_map.setOnClickListener{
         val intent = Intent(this,MapsActivity::class.java)
             startActivity(intent)
-    }
+    }*/
 }
 
     //----------Initialization of MainActivity UI----------//
