@@ -12,12 +12,12 @@ import android.os.IBinder
 
 class OrientationService() : Service(), SensorEventListener {
 
-    //Called on creation of RotationService
+    //Called on creation of OrientationService
     override fun onCreate() {
         super.onCreate()
 
 
-        setupRotation()
+        setupOrientation()
     }
     var callback: ((FloatArray) -> Unit)? = null
 
@@ -54,7 +54,7 @@ class OrientationService() : Service(), SensorEventListener {
     private val orientationAngles = FloatArray(3)
 
 
-    private fun setupRotation() {
+    private fun setupOrientation() {
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR)
 
