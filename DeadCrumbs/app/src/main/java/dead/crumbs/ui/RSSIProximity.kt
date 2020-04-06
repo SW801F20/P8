@@ -3,7 +3,7 @@ package dead.crumbs.ui
 import dead.crumbs.data.BluetoothRSSI
 import kotlin.math.exp
 
-private val NUMBER_MEASUREMENTS = 5; //Number of measurements stored for each mac address - used for average
+private const val NUMBER_MEASUREMENTS = 5; //Number of measurements stored for each mac address - used for average
 private var deviceDistanceMap = mutableMapOf<String, MutableList<BluetoothRSSI>>()
 
 
@@ -17,7 +17,7 @@ class RSSIProximity() {
             map[rssi.target_mac_address] = mutableListOf(rssi)
         }
         else if (map.containsKey(rssi.target_mac_address)
-            && map.get(rssi.target_mac_address)!!.count() < NUMBER_MEASUREMENTS)
+            && map[rssi.target_mac_address]!!.count() < NUMBER_MEASUREMENTS)
             map[rssi.target_mac_address]!!.add(rssi)
         else{
             map[rssi.target_mac_address]!!.removeAt(0);         //removes oldest element

@@ -65,8 +65,6 @@ class MainActivity : AppCompatActivity() {
 
 
     //------------Bluetooth Part-------------//
-    private val rssiProximity: RSSIProximity = RSSIProximity();
-
     private fun initializeBluetoothScan() {
         //Checks locations permissions, which are necessary for
         checkBTPermissions()
@@ -129,6 +127,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    private val rssiProximity: RSSIProximity = RSSIProximity();
     private lateinit var mService: BluetoothService
     private var mBound: Boolean = false
 
@@ -139,8 +138,11 @@ class MainActivity : AppCompatActivity() {
             // We've bound to BluetoothService, cast the IBinder and get LocalService instance
             val binder = service as BluetoothService.LocalBinder
             mService = binder.getService()
-            mService.callback = fun(rssi:BluetoothRSSI)
-            { viewModel!!.addRSSI(rssi); printDeviceDistance(rssi, rssiProximity.getNewAverageDist(rssi));} //callback
+            mService.callback = fun(rssi:BluetoothRSSI) {       //callback function
+                viewModel!!.addRSSI(rssi);
+                printDeviceDistance(rssi, rssiProximity.getNewAverageDist(rssi));
+            } 
+
             mBound = true
         }
 
