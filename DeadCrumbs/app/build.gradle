@@ -26,6 +26,9 @@ android {
 }
 
 dependencies {
+    def play_services_version = '17.0.0'
+    implementation "com.google.android.gms:play-services-location:$play_services_version"
+    implementation "com.google.android.gms:play-services-maps:$play_services_version"
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'androidx.appcompat:appcompat:1.1.0'

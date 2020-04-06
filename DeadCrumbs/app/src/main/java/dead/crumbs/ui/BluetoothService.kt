@@ -1,35 +1,50 @@
 package dead.crumbs.ui
 
-import android.Manifest
-import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.Build
-import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import dead.crumbs.data.BluetoothRSSI
-import java.util.*
-import kotlin.concurrent.timer
-
+import android.app.Service
+import android.os.Binder
+import android.os.IBinder
 
 //factory: RSSIViewModelFactory, viewModel: RSSIViewModel
-class BluetoothActivity() : Activity(){
-    private var factory: RSSIViewModelFactory? = null
-    private var viewModel: RSSIViewModel? = null
+class BluetoothService() : Service(){
+    var callback: ((BluetoothRSSI) -> Unit)? = null
 
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    //Called on creation of BluetoothService
+    override fun onCreate() {
+        super.onCreate()
         setupBluetooth()
     }
 
+    //----------Binding--------------
+    // Binder given to clients
+    private val binder = LocalBinder()
+
+    /**
+     * Class used for the client Binder.  Because we know this service always
+     * runs in the same process as its clients, we don't need to deal with IPC.
+     */
+    inner class LocalBinder : Binder() {
+        // Return this instance of LocalService so clients can call public methods
+        fun getService(): BluetoothService = this@BluetoothService
+    }
+
+    override fun onBind(intent: Intent): IBinder {
+        return binder
+    }
+
+
+
+
+    //----------ScanBluetooth-------------
     private val bluetoothAdapter : BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
     // Create a BroadcastReceiver for ACTION_FOUND.
-    private val receiver = object : BroadcastReceiver() {
+    private val bluetoothScanReceiver = object : BroadcastReceiver() {
 
         override fun onReceive(context: Context, intent: Intent) {
             val action: String = intent.action!!
@@ -39,13 +54,21 @@ class BluetoothActivity() : Activity(){
                     // object and its info from the Intent.
                     val device: BluetoothDevice? =
                         intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-                    var bluetooth_rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE) // rssi
-                    MainActivity.receiveRSSI( BluetoothRSSI(bluetooth_rssi, device!!.address))
+
+                    var rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE).toDouble() // retrieve rssi
+                    var mac_address: String = device!!.address         //Note Bluetooth mac address != WiFi mac address
+                    var bluetoothRSSI = BluetoothRSSI(rssi, mac_address);
+
+                    //Add to RSSIViewModel through callback
+                    callback?.let { it(bluetoothRSSI) }
                 }
             }
         }
     }
-    private val receiver2 = object : BroadcastReceiver() {
+
+
+
+    private val bluetoothScanEndReceiver = object : BroadcastReceiver() {
 
         override fun onReceive(context: Context, intent: Intent) {
             val action: String = intent.action!!
@@ -65,12 +88,10 @@ class BluetoothActivity() : Activity(){
         }
 
         val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
-        //val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
-        registerReceiver(receiver, filter)
+        registerReceiver(bluetoothScanReceiver, filter)
 
         val filter2 = IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
-        //val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
-        registerReceiver(receiver2, filter2)
+        registerReceiver(bluetoothScanEndReceiver, filter2)
 
         discover()
     }
@@ -79,13 +100,12 @@ class BluetoothActivity() : Activity(){
         super.onDestroy()
 
         // Don't forget to unregister the ACTION_FOUND receiver.
-        unregisterReceiver(receiver)
-        unregisterReceiver(receiver2)
+        unregisterReceiver(bluetoothScanReceiver)
+        unregisterReceiver(bluetoothScanEndReceiver)
     }
 
     private fun discover(){
         //Check if App has been granted necessary permission, if not request them
-        checkBTPermissions()
 
         if (bluetoothAdapter!!.isDiscovering) {
             //Restart discovery
@@ -96,26 +116,6 @@ class BluetoothActivity() : Activity(){
             //Start discovery
             if(!bluetoothAdapter.startDiscovery())
                 throw java.lang.Exception("Bluetooth StartDiscovery Failed")
-        }
-    }
-
-    private fun checkBTPermissions() {
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
-            var permissionCheck =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    checkSelfPermission("Manifest.permission.ACCESS_FINE_LOCATION")
-                } else {
-                    TODO("VERSION.SDK_INT < M")
-                }
-            permissionCheck += checkSelfPermission("Manifest.permission.ACCESS_COARSE_LOCATION")
-            if (permissionCheck != 0) {
-                requestPermissions(
-                    arrayOf(
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
-                    ), 1001
-                ) //Any number
-            }
         }
     }
 
