@@ -56,6 +56,9 @@
         <service
             android:name=".ui.BluetoothService"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+        <service
+            android:name=".ui.OrientationService"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
     </application>
 
 </manifest>

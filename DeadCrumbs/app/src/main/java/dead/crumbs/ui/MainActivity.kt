@@ -27,14 +27,63 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         initializeUi()
-        initializeBluetoothScan()
-
+        //initializeBluetoothScan()
+        initializeOrientationService()
         // Button for viewing Map (ui/MapsActivity)
         button_map.setOnClickListener{
         val intent = Intent(this,MapsActivity::class.java)
             startActivity(intent)
+        }
     }
-}
+
+    //----------Orientation--------------------------------//
+    private fun initializeOrientationService(){
+        checkBTPermissions() //We need same location permission
+        val intent = Intent(this, OrientationService::class.java)
+        startService(intent)
+        Intent(this, OrientationService::class.java).also { intent ->
+            bindService(intent, connectionOrientationService, Context.BIND_AUTO_CREATE)
+        }
+
+    }
+
+    private lateinit var orientationService: OrientationService
+    private var mBoundOrientationService: Boolean = false
+
+    /** Defines callbacks for service binding, passed to bindService()  */
+    private val connectionOrientationService = object : ServiceConnection {
+
+        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            // We've bound to OrientationService, cast the IBinder and get LocalService instance
+            val binder = service as OrientationService.LocalBinder
+            orientationService = binder.getService()
+            orientationService.callback = fun(orientationAngles: FloatArray) {       //callback function
+                printOrientation(orientationAngles);
+            }
+
+            mBoundOrientationService = true
+        }
+
+        override fun onServiceDisconnected(arg0: ComponentName) {
+            mBoundOrientationService = false
+        }
+    }
+
+    //This functions is for debugging/testing
+    private fun printOrientation(orientationAngles: FloatArray){
+
+        var compasdegree : Double = 0.0
+        if (Math.toDegrees(orientationAngles[0].toDouble()) < 0)
+            compasdegree = 360 + Math.toDegrees(orientationAngles[0].toDouble())
+        else
+            compasdegree = Math.toDegrees(orientationAngles[0].toDouble())
+
+
+        Toast.makeText(this@MainActivity, "Value1 ${compasdegree}\n " +
+                "Value2 ${Math.toDegrees(orientationAngles[1].toDouble())}\n" +
+                "Value3 ${Math.toDegrees(orientationAngles[2].toDouble())}\n", Toast.LENGTH_LONG).show()
+    }
+
 
     //----------Initialization of MainActivity UI----------//
     var viewModel : RSSIViewModel? = null
@@ -130,7 +179,7 @@ class MainActivity : AppCompatActivity() {
         val intent = Intent(this, BluetoothService::class.java)
         startService(intent)
         Intent(this, BluetoothService::class.java).also { intent ->
-            bindService(intent, connection, Context.BIND_AUTO_CREATE)
+            bindService(intent, connectionBluetoothService, Context.BIND_AUTO_CREATE)
         }
     }
 
@@ -140,7 +189,7 @@ class MainActivity : AppCompatActivity() {
     private var mBound: Boolean = false
 
     /** Defines callbacks for service binding, passed to bindService()  */
-    private val connection = object : ServiceConnection {
+    private val connectionBluetoothService = object : ServiceConnection {
 
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             // We've bound to BluetoothService, cast the IBinder and get LocalService instance
