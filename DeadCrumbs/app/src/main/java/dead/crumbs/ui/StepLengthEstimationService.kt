@@ -32,8 +32,6 @@ class StepLengthEstimationService : Service(), SensorEventListener {
     }
 
     override fun onSensorChanged(p0: SensorEvent?) {
-        Log.v("y-axis change", p0.values[])
-
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }
