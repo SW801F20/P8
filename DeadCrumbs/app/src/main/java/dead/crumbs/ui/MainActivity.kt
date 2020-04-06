@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.IBinder
 import android.widget.Button
+
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -114,6 +115,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
 
     private fun enableBluetooth(){
         if (bluetoothAdapter == null) {
