@@ -11,6 +11,7 @@ class FakeDatabase private constructor() {
     var locationDao = Location_DAO()
         private set
 
+
     companion object {
         // @Volatile - Writes to this property are immediately visible to other threads
         @Volatile private var instance: FakeDatabase? = null

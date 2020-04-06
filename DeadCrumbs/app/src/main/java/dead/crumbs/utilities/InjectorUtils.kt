@@ -5,6 +5,7 @@ import dead.crumbs.data.LocationRepository
 import dead.crumbs.data.RSSIRepository
 import dead.crumbs.ui.LocationViewModel
 import dead.crumbs.ui.LocationViewModelFactory
+
 import dead.crumbs.ui.RSSIViewModelFactory
 
 object InjectorUtils {
