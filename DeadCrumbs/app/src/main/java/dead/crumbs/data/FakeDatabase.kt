@@ -1,11 +1,15 @@
 package dead.crumbs.data
 
+import dead.crumbs.data.DAO.Location_DAO
 import dead.crumbs.data.DAO.RSSI_DAO
 
 class FakeDatabase private constructor() {
 
     // All the DAOs go here!
     var rssiDao = RSSI_DAO()
+        private set
+
+    var locationDao = Location_DAO()
         private set
 
     companion object {
