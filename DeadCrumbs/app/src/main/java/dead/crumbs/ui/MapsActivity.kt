@@ -1,23 +1,16 @@
 package dead.crumbs.ui
 
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProviders
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
 import dead.crumbs.R
 import dead.crumbs.utilities.InjectorUtils
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.activity_maps.*
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     GoogleMap.OnMarkerClickListener{
@@ -39,7 +32,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
 
     private fun initializeUi() {
         // Get the rssisViewModelFactory with all of it's dependencies constructed
-        val factory = InjectorUtils.provideMapsViewModelFactory()
+        val factory = InjectorUtils.singletonProvideMapsViewModelFactory()
         // Use ViewModelProviders class to create / get already created rssisViewModel
         // for this view (activity)
         viewModel = ViewModelProviders.of(this, factory)
@@ -73,4 +66,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         p0?.showInfoWindow()
         return true
     }
+
+
 }

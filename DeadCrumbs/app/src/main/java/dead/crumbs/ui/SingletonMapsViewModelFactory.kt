@@ -1,14 +1,21 @@
 package dead.crumbs.ui
 
+import android.view.View
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import dead.crumbs.data.MapsRepository
 
-class MapsViewModelFactory(private val mapsRepository: MapsRepository)
+class SingletonMapsViewModelFactory(private val mapsRepository: MapsRepository)
     : ViewModelProvider.NewInstanceFactory() {
+
+    var mapsViewModel: ViewModel? = null
+
+
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-        return MapsViewModel(mapsRepository) as T
+        if (mapsViewModel == null)
+            mapsViewModel = MapsViewModel(mapsRepository)
+        return mapsViewModel as T
     }
 }
