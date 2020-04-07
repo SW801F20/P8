@@ -3,6 +3,7 @@ package dead.crumbs.ui
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProviders
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -14,6 +15,8 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import dead.crumbs.R
+import dead.crumbs.utilities.InjectorUtils
+import kotlinx.android.synthetic.main.activity_main.*
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     GoogleMap.OnMarkerClickListener{
@@ -30,6 +33,27 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         mapFragment.getMapAsync(this)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
+    }
+
+    var viewModel : MapsViewModel? = null
+
+    private fun initializeUi() {
+        // Get the rssisViewModelFactory with all of it's dependencies constructed
+        val factory = InjectorUtils.provideMapsViewModelFactory()
+        // Use ViewModelProviders class to create / get already created rssisViewModel
+        // for this view (activity)
+        viewModel = ViewModelProviders.of(this, factory)
+            .get(MapsViewModel::class.java)
+
+        // Observing LiveData from the RSSIViewModel which in turn observes
+        // LiveData from the repository, which observes LiveData from the DAO ☺
+        /*viewModel!!.getRSSIs().observe(this, Observer { RSSIs -> //TODO liveupdate here
+            val stringBuilder = StringBuilder()
+            RSSIs.forEach { rssi ->
+                stringBuilder.append("$rssi\n\n")
+            }
+            textView.text = stringBuilder.toString()
+        })*/
     }
 
 
@@ -73,7 +97,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         return MarkerOptions()
             .position(loc)
             .title(title)
-            .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(resources, icon)))
+            .rotation(90f)
+            //.icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(resources, icon)))
     }
 
 }

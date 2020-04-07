@@ -83,9 +83,9 @@ class MainActivity : AppCompatActivity() {
             compasdegree = Math.toDegrees(orientationAngles[0].toDouble())
 
 
-        Toast.makeText(this@MainActivity, "Value1 ${compasdegree}\n " +
+        /*Toast.makeText(this@MainActivity, "Value1 ${compasdegree}\n " +
                 "Value2 ${Math.toDegrees(orientationAngles[1].toDouble())}\n" +
-                "Value3 ${Math.toDegrees(orientationAngles[2].toDouble())}\n", Toast.LENGTH_LONG).show()
+                "Value3 ${Math.toDegrees(orientationAngles[2].toDouble())}\n", Toast.LENGTH_LONG).show()*/
     }
 
 
