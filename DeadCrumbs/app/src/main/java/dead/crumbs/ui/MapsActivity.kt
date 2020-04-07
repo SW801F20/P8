@@ -17,11 +17,11 @@ import com.google.android.gms.maps.model.MarkerOptions
 import dead.crumbs.R
 import dead.crumbs.utilities.InjectorUtils
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_maps.*
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     GoogleMap.OnMarkerClickListener{
 
-    private lateinit var map: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,7 +32,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
+        initializeUi()
     }
 
     var viewModel : MapsViewModel? = null
@@ -65,40 +65,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
      * installed Google Play services and returned to the app.
      */
     override fun onMapReady(googleMap: GoogleMap) {
-        map = googleMap
-
-        map.addMarker(newMarker( loc = LatLng(57.041480, 9.935950), name = "Me", icon = R.mipmap.my_picture))
-
-        val locations = arrayOf(
-            LatLng(57.030972, 9.933032),
-            LatLng(57.040919, 9.947623)
-        )
-        val titles = arrayOf("Adam", "Marie")
-        val distances = arrayOf(15.0, 20.0)
-        val pictures = arrayOf(R.mipmap.my_picture, R.mipmap.my_picture)
-
-        for (i in locations.indices) {
-            map.addMarker(newMarker(locations[i], titles[i], distances[i], pictures[i]))
-        }
-        map.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(57.041480, 9.935950), 14f))
-        map.uiSettings.isZoomControlsEnabled = true
-        map.setOnMarkerClickListener(this)
+        viewModel!!.setupMap(googleMap)
+        viewModel!!.map.setOnMarkerClickListener(this)
     }
 
     override fun onMarkerClick(p0: Marker?): Boolean {
         p0?.showInfoWindow()
         return true
     }
-
-
-    private fun newMarker(loc: LatLng, name: String, distance: Double? = null, icon: Int): MarkerOptions {
-        // If no distance is given, just display name
-        val title: String = if (distance != null) name + " " + distance + "m" else name
-        return MarkerOptions()
-            .position(loc)
-            .title(title)
-            .rotation(90f)
-            //.icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(resources, icon)))
-    }
-
 }
