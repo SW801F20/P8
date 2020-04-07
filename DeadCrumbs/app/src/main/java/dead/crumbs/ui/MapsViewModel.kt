@@ -17,7 +17,8 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
     var orientation: Float = 0f
 
     fun updateOrientation(orientation: Float){
-        markerList[0].rotation=orientation //TODO find me a little smarter
+        if(markerList.size != 0)
+            markerList[0].rotation=orientation //TODO find me a little smarter
     }
 
     fun setupMap(googleMap: GoogleMap){

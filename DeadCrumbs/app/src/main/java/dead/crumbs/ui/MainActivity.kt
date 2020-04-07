@@ -26,6 +26,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         initializeUi()
         //initializeBluetoothScan()
+        initializeMapsViewModel() //Must be called before "initializeOrientationService()"
         initializeOrientationService()
         // Button for viewing Map (ui/MapsActivity)
         button_map.setOnClickListener{
@@ -38,6 +39,16 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         orientationService.onDestroy()
         //bluetoothService.onDestroy() //TODO commented out due to bluetootservice currently never started
+    }
+
+    //----------Maps---------------------------------------//
+    var mapsViewModel: MapsViewModel? = null
+    fun initializeMapsViewModel(){
+        val factory = InjectorUtils.singletonProvideMapsViewModelFactory()
+        // Use ViewModelProviders class to create / get already created rssisViewModel
+        // for this view (activity)
+        mapsViewModel = ViewModelProviders.of(this, factory)
+            .get(MapsViewModel::class.java)
     }
 
     //----------Orientation--------------------------------//
@@ -80,12 +91,11 @@ class MainActivity : AppCompatActivity() {
         if (Math.toDegrees(orientationAngles[0].toDouble()) < 0)
             compasdegree = 360 + Math.toDegrees(orientationAngles[0].toDouble())
         else
-            compasdegree = Math.toDegrees(orientationAngles[0].toDouble())
+            compasdegree = Math.toDegrees(orientationAngles[0].toDouble()) //TODO make this entire conversion pretty
 
 
-        /*Toast.makeText(this@MainActivity, "Value1 ${compasdegree}\n " +
-                "Value2 ${Math.toDegrees(orientationAngles[1].toDouble())}\n" +
-                "Value3 ${Math.toDegrees(orientationAngles[2].toDouble())}\n", Toast.LENGTH_LONG).show()*/
+        mapsViewModel!!.updateOrientation(compasdegree.toFloat())
+        Toast.makeText(this@MainActivity, "Value1 ${compasdegree}", Toast.LENGTH_LONG).show()
     }
 
 
