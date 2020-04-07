@@ -29,6 +29,8 @@
         <service android:name=".ui.BluetoothService"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
         />
+        <service android:name=".ui.StepLengthEstimationService" />
+
     </application>
 
 </manifest>

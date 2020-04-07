@@ -24,8 +24,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        initializeUi()
-        initializeBluetoothScan()
+        //initializeUi()
+        //initializeBluetoothScan()
+
+        startStepLengthEstimation()
+
     }
 
     //----------Initialization of MainActivity UI----------//
@@ -85,6 +88,33 @@ class MainActivity : AppCompatActivity() {
         }
         startActivity(discoverableIntent)
     }
+
+    private fun startStepLengthEstimation(){
+        val intent = Intent(this, StepLengthEstimationService::class.java)
+        startService(intent)
+        Intent(this, StepLengthEstimationService::class.java).also { intent ->
+            bindService(intent, connectionStepLengthEstimationService, Context.BIND_AUTO_CREATE)
+        }
+    }
+
+    private lateinit var sleService: StepLengthEstimationService
+    private var sleBound: Boolean = false
+
+    /** Defines callbacks for service binding, passed to bindService()  */
+    private val connectionStepLengthEstimationService = object : ServiceConnection {
+
+        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            // We've bound to BluetoothService, cast the IBinder and get LocalService instance
+            val binder = service as StepLengthEstimationService.LocalBinder
+            sleService = binder.getService()
+            sleBound = true
+        }
+
+        override fun onServiceDisconnected(arg0: ComponentName) {
+            sleBound = false
+        }
+    }
+
 
     private fun checkBTPermissions() {
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
