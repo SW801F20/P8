@@ -10,14 +10,13 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.IBinder
-import android.widget.Button
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import dead.crumbs.R
 import dead.crumbs.data.BluetoothRSSI
-import dead.crumbs.data.RSSI
 import dead.crumbs.utilities.InjectorUtils
+import dead.crumbs.data.RSSI
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -27,7 +26,13 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         initializeUi()
+
+        // Bluetooth
         initializeBluetoothScan()
+
+        // Dead Reckoning
+        startDeadReckoning()
+
 
         // Button for viewing Map (ui/MapsActivity)
         button_map.setOnClickListener{
@@ -67,6 +72,36 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == REQUEST_ENABLE_BT && resultCode == RESULT_OK) {
             var t = Toast.makeText(this@MainActivity,  "Bluetooth Enabled!", Toast.LENGTH_LONG)
             t. show()
+        }
+    }
+
+    //------------Dead Reckoning-------------//
+
+    private lateinit var drService: DeadReckoningService
+    private var drBound: Boolean = false
+
+    private fun startDeadReckoning(){
+        val intent = Intent(this, DeadReckoningService::class.java)
+        startService(intent)
+        Intent(this, DeadReckoningService::class.java).also { intent ->
+            bindService(intent, connectionDeadReckoningService, Context.BIND_AUTO_CREATE)
+        }
+    }
+
+
+
+    /** Defines callbacks for service binding, passed to bindService()  */
+    private val connectionDeadReckoningService = object : ServiceConnection {
+
+        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            // We've bound to DeadReckoningService, cast the IBinder and get LocalService instance
+            val drBinder = service as DeadReckoningService.LocalBinder
+            drService = drBinder.getService()
+            drBound = true
+        }
+
+        override fun onServiceDisconnected(arg0: ComponentName) {
+            drBound = false
         }
     }
 
@@ -149,7 +184,7 @@ class MainActivity : AppCompatActivity() {
             mService.callback = fun(rssi:BluetoothRSSI) {       //callback function
                 viewModel!!.addRSSI(rssi);
                 printDeviceDistance(rssi, rssiProximity.getNewAverageDist(rssi));
-            } 
+            }
 
             mBound = true
         }
