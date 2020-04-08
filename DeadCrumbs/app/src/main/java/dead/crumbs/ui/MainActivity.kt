@@ -63,7 +63,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var orientationService: OrientationService
-    private var boundOrientationService: Boolean = false
 
     /** Defines callbacks for service binding, passed to bindService()  */
     private val connectionOrientationService = object : ServiceConnection {
@@ -75,14 +74,13 @@ class MainActivity : AppCompatActivity() {
             orientationService.callback = fun(orientationAngles: FloatArray) {       //callback function
                 printOrientation(orientationAngles);
             }
-
-            boundOrientationService = true
         }
 
         override fun onServiceDisconnected(arg0: ComponentName) {
-            boundOrientationService = false
+            //Do nothing
         }
     }
+
 
     //This functions is for debugging/testing
     private fun printOrientation(orientationAngles: FloatArray){
