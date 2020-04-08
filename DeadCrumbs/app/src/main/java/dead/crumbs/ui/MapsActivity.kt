@@ -1,6 +1,7 @@
 package dead.crumbs.ui
 
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProviders
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -27,6 +28,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         initializeUi()
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.i("MapDebug", "Destroying map")
+        viewModel?.mapIsInitialized = false
+        //either do this or only had markers if they
+        //aren't in the list
+        viewModel?.markerList = mutableListOf<Marker>()
+    }
+
+
 
     var viewModel : MapsViewModel? = null
 

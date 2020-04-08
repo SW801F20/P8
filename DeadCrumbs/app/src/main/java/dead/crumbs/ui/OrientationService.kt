@@ -98,6 +98,15 @@ class OrientationService() : Service(), SensorEventListener {
         callback?.let { it(orientationAngles) }
     }
 
+    fun updateOrientationAnglesStackOverflow(){
+        //You save the rotation matrix from previus measurement, R1.
+        //Then you calculate a new one now, R2.
+        //Then you calculate the following matrix:
+        // R = R1 * transpose(R2)
+        //Then you can calculate the rotation angle as:
+        //angle = acos((trace(R)-1)/2)
+    }
+
     // Get readings from accelerometer and magnetometer. To simplify calculations,
     // consider storing these readings as unit vectors.
     override fun onSensorChanged(event: SensorEvent) {

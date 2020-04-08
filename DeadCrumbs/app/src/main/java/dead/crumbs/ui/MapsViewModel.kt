@@ -1,5 +1,6 @@
 package dead.crumbs.ui
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -16,14 +17,34 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
     var markerList = mutableListOf<Marker>()
     var orientation: Float = 0f
 
+    var mapIsInitialized = false
+
     fun updateOrientation(orientation: Float){
         if(markerList.size != 0)
-            markerList[0].rotation=orientation //TODO find me a little smarter
+        {
+            Log.i("MapDebug", "Setting orientation")
+            Log.i("MapDebug", "Number of markers: " + markerList.size)
+            markerList[0].rotation=orientation+180 //TODO find me a little smarter
+
+        }
     }
 
     fun setupMap(googleMap: GoogleMap){
-        map = googleMap
+        if (!mapIsInitialized)
+        {
+            Log.i("MapDebug", "Initializing map")
+            map = googleMap
+            addMarkers()
+            map.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(57.041480, 9.935950), 14f))
+            map.uiSettings.isZoomControlsEnabled = true
+            mapIsInitialized = true
+        }
 
+    }
+
+
+    private fun addMarkers()
+    {
         var marker = map.addMarker(newMarker( loc = LatLng(57.041480, 9.935950), name = "Me", icon = R.mipmap.my_picture))
         markerList.add(marker)
 
@@ -39,10 +60,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
             var marker = map.addMarker(newMarker(locations[i], titles[i], distances[i], pictures[i]))
             markerList.add(marker)
         }
-        map.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(57.041480, 9.935950), 14f))
-        map.uiSettings.isZoomControlsEnabled = true
     }
-
     private fun newMarker(loc: LatLng, name: String, distance: Double? = null, icon: Int): MarkerOptions {
         // If no distance is given, just display name
         val title: String = if (distance != null) name + " " + distance + "m" else name
