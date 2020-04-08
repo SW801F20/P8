@@ -18,7 +18,7 @@ import kotlin.math.pow
 class StepLengthEstimationService : Service(), SensorEventListener {
     private lateinit var mSensorManager: SensorManager
     private var mAcclerometer : Sensor? = null
-
+    val acclerometerYs = mutableListOf<Float>()
     override fun onCreate() {
         super.onCreate()
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -41,8 +41,18 @@ class StepLengthEstimationService : Service(), SensorEventListener {
 
     override fun onSensorChanged(p0: SensorEvent?) {
         Log.v("Z-axis new value: ", p0!!.values[2].toString())
+        acclerometerYs += listOf<Float>(p0!!.values[2])
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        stopSelf()
+        mSensorManager.unregisterListener(this)
+        val max = acclerometerYs.max()
+        val min = acclerometerYs.min()
+        Log.v("extremeties", max.toString())
+        Log.v("extremeties", min.toString())
+    }
     //https://rosettacode.org/wiki/Nth_root#Kotlin
     fun nthRoot(x: Double, n: Int): Double {
         if (n < 2) throw IllegalArgumentException("n must be more than 1")
@@ -56,5 +66,9 @@ class StepLengthEstimationService : Service(), SensorEventListener {
             g2 = iter(iter(g2))
         }
         return g1
+    }
+
+    fun kill(){
+        onDestroy()
     }
 }

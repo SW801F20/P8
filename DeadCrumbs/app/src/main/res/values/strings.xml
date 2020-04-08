@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">DeadCrumbs</string>
+    <string name="StepRegister">Start registering step</string>
 </resources>

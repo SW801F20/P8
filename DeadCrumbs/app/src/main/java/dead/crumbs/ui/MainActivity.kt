@@ -10,6 +10,7 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.IBinder
+import android.os.Message
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -20,6 +21,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
     private val REQUEST_ENABLE_BT = 1
+    private var isBoundStepDection = false;
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,7 +29,10 @@ class MainActivity : AppCompatActivity() {
         //initializeUi()
         //initializeBluetoothScan()
 
-        startStepLengthEstimation()
+        stepRegister.setOnClickListener{
+            startStepLengthEstimation(isBoundStepDection)
+        }
+
 
     }
 
@@ -89,11 +94,18 @@ class MainActivity : AppCompatActivity() {
         startActivity(discoverableIntent)
     }
 
-    private fun startStepLengthEstimation(){
-        val intent = Intent(this, StepLengthEstimationService::class.java)
-        startService(intent)
-        Intent(this, StepLengthEstimationService::class.java).also { intent ->
-            bindService(intent, connectionStepLengthEstimationService, Context.BIND_AUTO_CREATE)
+    private fun startStepLengthEstimation(isBound: Boolean){
+        if(!isBound) {
+            val intent = Intent(this, StepLengthEstimationService::class.java)
+            startService(intent)
+            Intent(this, StepLengthEstimationService::class.java).also { intent ->
+                bindService(intent, connectionStepLengthEstimationService, Context.BIND_NOT_FOREGROUND)
+            }
+            isBoundStepDection = true;
+        }
+        else{
+            stopService(Intent(applicationContext, StepLengthEstimationService::class.java))
+            isBoundStepDection = false;
         }
     }
 
