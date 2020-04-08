@@ -98,7 +98,8 @@ class OrientationService() : Service(), SensorEventListener {
         callback?.let { it(orientationAngles) }
     }
 
-    fun updateOrientationAnglesStackOverflow(){
+    fun updateOrientationAnglesGyroscope(){
+        //Link: https://stackoverflow.com/questions/13350622/getting-rotation-degree-from-gyroscope-android-sensor
         //You save the rotation matrix from previus measurement, R1.
         //Then you calculate a new one now, R2.
         //Then you calculate the following matrix:
