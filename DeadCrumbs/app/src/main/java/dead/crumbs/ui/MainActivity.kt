@@ -78,7 +78,6 @@ class MainActivity : AppCompatActivity() {
     //------------Dead Reckoning-------------//
 
     private lateinit var drService: DeadReckoningService
-    private var drBound: Boolean = false
 
     private fun startDeadReckoning(){
         val intent = Intent(this, DeadReckoningService::class.java)
@@ -97,11 +96,10 @@ class MainActivity : AppCompatActivity() {
             // We've bound to DeadReckoningService, cast the IBinder and get LocalService instance
             val drBinder = service as DeadReckoningService.LocalBinder
             drService = drBinder.getService()
-            drBound = true
         }
 
         override fun onServiceDisconnected(arg0: ComponentName) {
-            drBound = false
+            // Do nothing
         }
     }
 

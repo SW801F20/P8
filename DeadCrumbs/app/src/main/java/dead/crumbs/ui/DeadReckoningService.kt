@@ -22,6 +22,7 @@ class DeadReckoningService : Service(), SensorEventListener{
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         stepCounterSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
 
+        //TODO: Consider SENSOR_DELAY_FASTEST
         sensorManager.registerListener(this, stepCounterSensor, SensorManager.SENSOR_DELAY_NORMAL)
 
     }
