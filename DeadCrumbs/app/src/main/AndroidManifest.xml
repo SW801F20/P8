@@ -54,11 +54,9 @@
             android:label="@string/title_activity_maps" />
 
         <service
-            android:name=".ui.BluetoothService"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+            android:name=".ui.BluetoothService"/>
         <service
-            android:name=".ui.DeadReckoningService"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
+            android:name=".ui.DeadReckoningService"/>
     </application>
 
 </manifest>
