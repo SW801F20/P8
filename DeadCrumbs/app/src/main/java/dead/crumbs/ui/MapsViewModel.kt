@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
@@ -25,7 +26,6 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
             Log.i("MapDebug", "Setting orientation")
             Log.i("MapDebug", "Number of markers: " + markerList.size)
             markerList[0].rotation=orientation+180 //TODO find me a little smarter
-
         }
     }
 
@@ -61,12 +61,13 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
             markerList.add(marker)
         }
     }
+
     private fun newMarker(loc: LatLng, name: String, distance: Double? = null, icon: Int): MarkerOptions {
         // If no distance is given, just display name
         val title: String = if (distance != null) name + " " + distance + "m" else name
-        return MarkerOptions()
-            .position(loc)
-            .title(title)
-        //.icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(resources, icon)))
+        //return MarkerOptions()
+            //.position(loc)
+            //.title(title)
+            //.icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(resources, icon)))
     }
 }

@@ -10,6 +10,7 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -72,7 +73,7 @@ class MainActivity : AppCompatActivity() {
             val binder = service as OrientationService.LocalBinder
             orientationService = binder.getService()
             orientationService.callback = fun(orientationAngles: FloatArray) {       //callback function
-                printOrientation(orientationAngles);
+                updateOrientation(orientationAngles);
             }
         }
 
@@ -82,18 +83,11 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    //This functions is for debugging/testing
-    private fun printOrientation(orientationAngles: FloatArray){
-
-        var compasdegree : Double = 0.0
-        if (Math.toDegrees(orientationAngles[0].toDouble()) < 0)
-            compasdegree = 360 + Math.toDegrees(orientationAngles[0].toDouble())
-        else
-            compasdegree = Math.toDegrees(orientationAngles[0].toDouble()) //TODO make this entire conversion pretty
-
-
-        mapsViewModel!!.updateOrientation(compasdegree.toFloat())
-        Toast.makeText(this@MainActivity, "Value1 ${compasdegree}", Toast.LENGTH_LONG).show()
+    //Calculate orientation and update it in the viewmodel
+    private fun updateOrientation(orientationAngles: FloatArray){
+        //Calculating yaw in degrees to get orientation
+        val yaw = Math.toDegrees(orientationAngles[0].toDouble())
+        mapsViewModel!!.updateOrientation(yaw.toFloat())
     }
 
 
