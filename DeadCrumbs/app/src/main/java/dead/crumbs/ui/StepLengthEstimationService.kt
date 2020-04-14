@@ -49,24 +49,12 @@ class StepLengthEstimationService : Service(), SensorEventListener {
         super.onDestroy()
         stopSelf()
         mSensorManager.unregisterListener(this)
-        val max = acclerometerZs.max()!!.toDouble()
-        val min = acclerometerZs.min()!!.toDouble()
-        var sum : Double = 0.0
-        var temp: Double = 0.0
-
-        //scarlet
-        for(values in acclerometerZs){
-            sum += values
-        }
-        var avg = sum/acclerometerZs.size
-
-        for (vals in acclerometerZs){
-            temp += (vals - avg)
-        }
-        Toast.makeText(this, "Scarlet: " + 0.81 * Math.sqrt(((max-min) / (avg-min)) * temp), Toast.LENGTH_LONG).show()
+        val max = acclerometerZs.max()
+        val min = acclerometerZs.min()
 
         //Weinberg
-        //Toast.makeText(this, "step length: " + (nthRoot((max!!.toDouble() - min!!.toDouble()), 4) * 0.41).toString(), Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "step length: " + (nthRoot((max!!.toDouble() - min!!.toDouble()), 4) * 0.41).toString(), Toast.LENGTH_LONG).show();
+
     }
     //https://rosettacode.org/wiki/Nth_root#Kotlin
     fun nthRoot(x: Double, n: Int): Double {
