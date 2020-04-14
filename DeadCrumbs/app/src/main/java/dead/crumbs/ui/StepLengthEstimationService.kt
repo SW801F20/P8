@@ -37,7 +37,7 @@ class StepLengthEstimationService : Service(), SensorEventListener {
     }
 
     override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+
     }
 
     override fun onSensorChanged(p0: SensorEvent?) {
@@ -49,10 +49,24 @@ class StepLengthEstimationService : Service(), SensorEventListener {
         super.onDestroy()
         stopSelf()
         mSensorManager.unregisterListener(this)
-        val max = acclerometerZs.max()
-        val min = acclerometerZs.min()
+        val max = acclerometerZs.max()!!.toDouble()
+        val min = acclerometerZs.min()!!.toDouble()
+        var sum : Double = 0.0
+        var temp: Double = 0.0
 
-        Toast.makeText(this, "step length: " + nthRoot((max!!.toDouble() - min!!.toDouble()), 4).toString(), Toast.LENGTH_LONG).show();
+        //scarlet
+        for(values in acclerometerZs){
+            sum += values
+        }
+        var avg = sum/acclerometerZs.size
+
+        for (vals in acclerometerZs){
+            temp += (vals - avg)
+        }
+        Toast.makeText(this, "Scarlet: " + 0.81 * Math.sqrt(((max-min) / (avg-min)) * temp), Toast.LENGTH_LONG).show()
+
+        //Weinberg
+        //Toast.makeText(this, "step length: " + (nthRoot((max!!.toDouble() - min!!.toDouble()), 4) * 0.41).toString(), Toast.LENGTH_LONG).show();
     }
     //https://rosettacode.org/wiki/Nth_root#Kotlin
     fun nthRoot(x: Double, n: Int): Double {
