@@ -10,14 +10,12 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import dead.crumbs.R
 import dead.crumbs.data.BluetoothRSSI
 import dead.crumbs.utilities.InjectorUtils
-import dead.crumbs.data.RSSI
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -26,14 +24,15 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        initializeUi()
-        //initializeBluetoothScan()
-        initializeMapsViewModel() //Must be called before "initializeOrientationService()"
-        initializeOrientationService()
+
+        //Checks locations permissions, which are necessary for
+        checkLocationPermissions()
+
+        initializeBluetoothScan()
+        initializeMapsViewModel() //Must be called before "startDeadReckoning()"
 
         // Dead Reckoning
         startDeadReckoning()
-
 
         // Button for viewing Map (ui/MapsActivity)
         button_map.setOnClickListener{
@@ -52,11 +51,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        orientationService.onDestroy()
-        //bluetoothService.onDestroy() //TODO commented out due to bluetootservice currently never started
+        drService.onDestroy()
+        bluetoothService.onDestroy()
     }
 
-    //----------Maps---------------------------------------//
+
+
+    //-------------Maps-----------------------//
     var mapsViewModel: MapsViewModel? = null
     fun initializeMapsViewModel(){
         val factory = InjectorUtils.singletonProvideMapsViewModelFactory()
@@ -66,78 +67,7 @@ class MainActivity : AppCompatActivity() {
             .get(MapsViewModel::class.java)
     }
 
-    //----------Orientation--------------------------------//
-    private fun initializeOrientationService(){
-        checkBTPermissions() //We need same location permission //TODO this may need change in future
-        val intent = Intent(this, OrientationService::class.java)
-        startService(intent)
-        Intent(this, OrientationService::class.java).also { intent ->
-            bindService(intent, connectionOrientationService, Context.BIND_AUTO_CREATE)
-        }
 
-    }
-
-    private lateinit var orientationService: OrientationService
-
-    /** Defines callbacks for service binding, passed to bindService()  */
-    private val connectionOrientationService = object : ServiceConnection {
-
-        override fun onServiceConnected(className: ComponentName, service: IBinder) {
-            // We've bound to OrientationService, cast the IBinder and get LocalService instance
-            val binder = service as OrientationService.LocalBinder
-            orientationService = binder.getService()
-            orientationService.callback = fun(orientationAngles: FloatArray) {       //callback function
-                updateOrientation(orientationAngles);
-            }
-        }
-
-        override fun onServiceDisconnected(arg0: ComponentName) {
-            //Do nothing
-        }
-    }
-
-
-    //Calculate orientation and update it in the viewmodel
-    private fun updateOrientation(orientationAngles: FloatArray){
-        //Calculating yaw in degrees to get orientation
-        val yaw = Math.toDegrees(orientationAngles[0].toDouble())
-        mapsViewModel!!.updateOrientation(yaw.toFloat())
-    }
-
-
-    //----------Initialization of MainActivity UI----------//
-    var viewModel : RSSIViewModel? = null
-
-    private fun initializeUi() {
-        // Get the rssisViewModelFactory with all of it's dependencies constructed
-        val factory = InjectorUtils.provideRSSIViewModelFactory()
-        // Use ViewModelProviders class to create / get already created rssisViewModel
-        // for this view (activity)
-        viewModel = ViewModelProviders.of(this, factory)
-            .get(RSSIViewModel::class.java)
-
-        // Observing LiveData from the RSSIViewModel which in turn observes
-        // LiveData from the repository, which observes LiveData from the DAO ☺
-        viewModel!!.getRSSIs().observe(this, Observer { RSSIs ->
-            val stringBuilder = StringBuilder()
-            RSSIs.forEach { rssi ->
-                stringBuilder.append("$rssi\n\n")
-            }
-            textView.text = stringBuilder.toString()
-        })
-    }
-
-    override fun onActivityResult(
-        requestCode: Int,
-        resultCode: Int,
-        data: Intent?
-    ) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_ENABLE_BT && resultCode == RESULT_OK) {
-            var t = Toast.makeText(this@MainActivity,  "Bluetooth Enabled!", Toast.LENGTH_LONG)
-            t. show()
-        }
-    }
 
     //------------Dead Reckoning-------------//
 
@@ -151,8 +81,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
-
     /** Defines callbacks for service binding, passed to bindService()  */
     private val connectionDeadReckoningService = object : ServiceConnection {
 
@@ -160,6 +88,9 @@ class MainActivity : AppCompatActivity() {
             // We've bound to DeadReckoningService, cast the IBinder and get LocalService instance
             val drBinder = service as DeadReckoningService.LocalBinder
             drService = drBinder.getService()
+            drService.orientationCallback = fun(orientationAngles: FloatArray) {       //callback function
+                updateOrientation(orientationAngles);
+            }
         }
 
         override fun onServiceDisconnected(arg0: ComponentName) {
@@ -167,12 +98,26 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    //Calculate orientation and update it in the viewmodel
+    private fun updateOrientation(orientationAngles: FloatArray){
+        //Calculating yaw in degrees to get orientation
+        val yaw = Math.toDegrees(orientationAngles[0].toDouble())
+        mapsViewModel!!.updateOrientation(yaw.toFloat())
+    }
 
 
     //------------Bluetooth Part-------------//
+    var viewModel : RSSIViewModel? = null
+
     private fun initializeBluetoothScan() {
-        //Checks locations permissions, which are necessary for
-        checkBTPermissions()
+        // Get the rssisViewModelFactory with all of it's dependencies constructed
+        val factory = InjectorUtils.provideRSSIViewModelFactory()
+        // Use ViewModelProviders class to create / get already created rssisViewModel
+        // for this view (activity)
+        viewModel = ViewModelProviders.of(this, factory)
+            .get(RSSIViewModel::class.java)
+
+        //showBluetoothRSSIList() //include for debugging/testing of rssi
 
         //Enables bluetooth
         enableBluetooth()
@@ -184,6 +129,20 @@ class MainActivity : AppCompatActivity() {
         startBluetoothScan()
     }
 
+    //Function for making list displaying measured rssi values - used for debugging/testing
+    /*
+    private fun showBluetoothRSSIList(){
+        // Observing LiveData from the RSSIViewModel which in turn observes
+        // LiveData from the repository, which observes LiveData from the DAO ☺
+        viewModel!!.getRSSIs().observe(this, Observer { RSSIs ->
+            val stringBuilder = StringBuilder()
+            RSSIs.forEach { rssi ->
+                stringBuilder.append("$rssi\n\n")
+            }
+            textView.text = stringBuilder.toString()
+        })
+    }
+    */
 
     private fun enableBluetoothDiscoverability() {
         val discoverableIntent: Intent = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE).apply {
@@ -192,7 +151,7 @@ class MainActivity : AppCompatActivity() {
         startActivity(discoverableIntent)
     }
 
-    private fun checkBTPermissions() {
+    private fun checkLocationPermissions() {
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
             var permissionCheck =
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -245,7 +204,7 @@ class MainActivity : AppCompatActivity() {
             bluetoothService = binder.getService()
             bluetoothService.callback = fun(rssi:BluetoothRSSI) {       //callback function
                 viewModel!!.addRSSI(rssi);
-                printDeviceDistance(rssi, rssiProximity.getNewAverageDist(rssi));
+                //printDeviceDistance(rssi, rssiProximity.getNewAverageDist(rssi)); //for debugging
             }
 
             boundBluetoothService = true
@@ -256,9 +215,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    //This functions is for debugging/testing
+    //printDeviceDistance is for debugging/testing rssi distance calculations
+    /*
     private fun printDeviceDistance(rssi: BluetoothRSSI, dist: Double){
         Toast.makeText(this@MainActivity, "${rssi.target_mac_address}'s distance is\n $dist m", Toast.LENGTH_LONG).show()
     }
+    */
 
 }
