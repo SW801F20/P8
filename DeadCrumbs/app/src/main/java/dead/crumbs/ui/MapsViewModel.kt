@@ -4,10 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import dead.crumbs.R
 import dead.crumbs.data.MapsRepository
 
@@ -20,14 +17,18 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
 
     var mapIsInitialized = false
 
-    fun updateOrientation(orientation: Float){
+    fun updateOrientation(degrees: Float){
         if(markerList.size != 0)
         {
             Log.i("MapDebug", "Setting orientation")
             Log.i("MapDebug", "Number of markers: " + markerList.size)
-            markerList[0].rotation=orientation+180 //TODO find me a little smarter
+
+            meMarker!!.rotation=degrees + 180 //+ 180 degrees to flip the map icon to point in direction
+            // note that this is a hack and actually makes it point in the opposite direction
         }
     }
+
+    private var meMarker: Marker? = null
 
     fun setupMap(googleMap: GoogleMap){
         if (!mapIsInitialized)
@@ -39,14 +40,16 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
             map.uiSettings.isZoomControlsEnabled = true
             mapIsInitialized = true
         }
-
     }
 
-
+    //Fills in dummy data
     private fun addMarkers()
     {
         var marker = map.addMarker(newMarker( loc = LatLng(57.041480, 9.935950), name = "Me", icon = R.mipmap.my_picture))
         markerList.add(marker)
+
+        //Assign "Me marker" for easier update of orientation
+        meMarker = marker
 
         val locations = arrayOf(
             LatLng(57.030972, 9.933032),
@@ -65,9 +68,9 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
     private fun newMarker(loc: LatLng, name: String, distance: Double? = null, icon: Int): MarkerOptions {
         // If no distance is given, just display name
         val title: String = if (distance != null) name + " " + distance + "m" else name
-        //return MarkerOptions()
-            //.position(loc)
-            //.title(title)
-            //.icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(resources, icon)))
+        val marker = MarkerOptions()
+            .position(loc)
+            .title(title)
+        return marker
     }
 }

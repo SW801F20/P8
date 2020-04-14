@@ -29,11 +29,20 @@ class MainActivity : AppCompatActivity() {
         //initializeBluetoothScan()
         initializeMapsViewModel() //Must be called before "initializeOrientationService()"
         initializeOrientationService()
+
         // Button for viewing Map (ui/MapsActivity)
         button_map.setOnClickListener{
-        val intent = Intent(this,MapsActivity::class.java)
+            button_map.isClickable = false
+            val intent = Intent(this,MapsActivity::class.java)
             startActivity(intent)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        // Button clickable for viewing Map (ui/MapsActivity) - onResume is called when closing map
+        button_map.isClickable = true
     }
 
     override fun onDestroy() {
