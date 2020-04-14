@@ -17,6 +17,7 @@ import androidx.lifecycle.ViewModelProviders
 import dead.crumbs.R
 import dead.crumbs.data.BluetoothRSSI
 import dead.crumbs.utilities.InjectorUtils
+import dead.crumbs.data.RSSI
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -29,6 +30,10 @@ class MainActivity : AppCompatActivity() {
         //initializeBluetoothScan()
         initializeMapsViewModel() //Must be called before "initializeOrientationService()"
         initializeOrientationService()
+
+        // Dead Reckoning
+        startDeadReckoning()
+
 
         // Button for viewing Map (ui/MapsActivity)
         button_map.setOnClickListener{
@@ -134,6 +139,34 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    //------------Dead Reckoning-------------//
+
+    private lateinit var drService: DeadReckoningService
+
+    private fun startDeadReckoning(){
+        val intent = Intent(this, DeadReckoningService::class.java)
+        startService(intent)
+        Intent(this, DeadReckoningService::class.java).also { intent ->
+            bindService(intent, connectionDeadReckoningService, Context.BIND_AUTO_CREATE)
+        }
+    }
+
+
+
+    /** Defines callbacks for service binding, passed to bindService()  */
+    private val connectionDeadReckoningService = object : ServiceConnection {
+
+        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            // We've bound to DeadReckoningService, cast the IBinder and get LocalService instance
+            val drBinder = service as DeadReckoningService.LocalBinder
+            drService = drBinder.getService()
+        }
+
+        override fun onServiceDisconnected(arg0: ComponentName) {
+            // Do nothing
+        }
+    }
+
 
 
     //------------Bluetooth Part-------------//
@@ -213,7 +246,7 @@ class MainActivity : AppCompatActivity() {
             bluetoothService.callback = fun(rssi:BluetoothRSSI) {       //callback function
                 viewModel!!.addRSSI(rssi);
                 printDeviceDistance(rssi, rssiProximity.getNewAverageDist(rssi));
-            } 
+            }
 
             boundBluetoothService = true
         }
