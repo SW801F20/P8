@@ -14,8 +14,6 @@ import android.os.IBinder
 class DeadReckoningService : Service(), SensorEventListener{
 
     private lateinit var sensorManager: SensorManager
-    private var stepCounterSensor: Sensor? = null
-
     var orientationCallback: ((FloatArray) -> Unit)? = null
 
 
@@ -39,7 +37,7 @@ class DeadReckoningService : Service(), SensorEventListener{
             SensorManager.SENSOR_DELAY_FASTEST, SensorManager.SENSOR_DELAY_UI)
 
         //Step counter
-        stepCounterSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+        var stepCounterSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
 
         //TODO: Consider SENSOR_DELAY_FASTEST
         sensorManager.registerListener(this, stepCounterSensor, SensorManager.SENSOR_DELAY_NORMAL)
