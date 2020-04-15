@@ -9,22 +9,25 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.hardware.SensorManager.SENSOR_DELAY_NORMAL
 import android.os.Binder
-import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
-import android.widget.TextView
 import android.widget.Toast
-import kotlin.math.pow
+import kotlin.math.min
 
 class StepLengthEstimationService : Service(), SensorEventListener {
     private lateinit var mSensorManager: SensorManager
     private var mAcclerometer : Sensor? = null
-    val acclerometerZs = mutableListOf<Float>()
+    private var mStepCounter : Sensor? = null
+    private var prevTimeStamp : Long? = null
+    var acclerometerZs = mutableListOf<Pair<Float, Long>>()
+
     override fun onCreate() {
         super.onCreate()
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        mAcclerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mAcclerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        mStepCounter = mSensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
         mSensorManager.registerListener(this, mAcclerometer, SENSOR_DELAY_NORMAL)
+        mSensorManager.registerListener(this, mStepCounter, SENSOR_DELAY_NORMAL)
     }
 
     private val binder = LocalBinder()
@@ -41,19 +44,44 @@ class StepLengthEstimationService : Service(), SensorEventListener {
     }
 
     override fun onSensorChanged(p0: SensorEvent?) {
-        Log.v("Z-axis new value: ", p0!!.values[2].toString())
-        acclerometerZs += listOf<Float>(p0!!.values[2])
+
+        if(p0!!.sensor.type == Sensor.TYPE_STEP_COUNTER){
+            val newTimeStamp = p0.timestamp
+            var maxAcc : Float? = null
+            var minAcc : Float? = null
+            if(prevTimeStamp != null){
+                for (vals in acclerometerZs){
+                    if(vals.second >= prevTimeStamp!! || vals.second <= newTimeStamp){
+                        if(maxAcc == null || vals.first >= maxAcc)
+                            maxAcc = vals.first
+                        else if(minAcc == null || vals.first <= minAcc)
+                            minAcc = vals.first
+                    }
+                }
+                acclerometerZs.clear()
+                Toast.makeText(this, "step length: " + (nthRoot((maxAcc!!.toDouble() - minAcc!!.toDouble()), 4) * 0.41).toString(), Toast.LENGTH_LONG).show();
+            }
+            prevTimeStamp = newTimeStamp
+
+
+        }
+
+        else if(p0.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+            val tempPair : Pair<Float, Long> = Pair(p0.values[2], p0.timestamp)
+            Log.v("Z-axis new value: ", p0.values[2].toString())
+            acclerometerZs.add(tempPair)
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        stopSelf()
-        mSensorManager.unregisterListener(this)
-        val max = acclerometerZs.max()
-        val min = acclerometerZs.min()
+        //stopSelf()
+        //mSensorManager.unregisterListener(this)
+        //val max = acclerometerZs.maxBy{it.first}
+        //val min = acclerometerZs.minBy{it.first}
 
         //Weinberg
-        Toast.makeText(this, "step length: " + (nthRoot((max!!.toDouble() - min!!.toDouble()), 4) * 0.41).toString(), Toast.LENGTH_LONG).show();
+        //Toast.makeText(this, "step length: " + (nthRoot((max!!.toDouble() - min!!.toDouble()), 4) * 0.41).toString(), Toast.LENGTH_LONG).show();
 
     }
     //https://rosettacode.org/wiki/Nth_root#Kotlin

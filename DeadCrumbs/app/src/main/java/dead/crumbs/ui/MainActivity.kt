@@ -29,9 +29,9 @@ class MainActivity : AppCompatActivity() {
         //initializeUi()
         //initializeBluetoothScan()
 
-        stepRegister.setOnClickListener{
-            startStepLengthEstimation(isBoundStepDection)
-        }
+
+        startStepLengthEstimation(isBoundStepDection)
+
 
 
     }
