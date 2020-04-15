@@ -26,7 +26,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        initializeUi()
+        initializeViewModel()
     }
 
     override fun onDestroy() {
@@ -38,29 +38,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         viewModel?.markerList = mutableListOf<Marker>()
     }
 
-
-
     var viewModel : MapsViewModel? = null
 
-    private fun initializeUi() {
+    private fun initializeViewModel() {
         // Get the rssisViewModelFactory with all of it's dependencies constructed
         val factory = InjectorUtils.singletonProvideMapsViewModelFactory()
         // Use ViewModelProviders class to create / get already created rssisViewModel
         // for this view (activity)
         viewModel = ViewModelProviders.of(this, factory)
             .get(MapsViewModel::class.java)
-
-        // Observing LiveData from the RSSIViewModel which in turn observes
-        // LiveData from the repository, which observes LiveData from the DAO ☺
-        /*viewModel!!.getRSSIs().observe(this, Observer { RSSIs -> //TODO liveupdate here
-            val stringBuilder = StringBuilder()
-            RSSIs.forEach { rssi ->
-                stringBuilder.append("$rssi\n\n")
-            }
-            textView.text = stringBuilder.toString()
-        })*/
     }
-
 
     /**
      * Manipulates the map once available.
@@ -78,6 +65,4 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         p0?.showInfoWindow()
         return true
     }
-
-
 }

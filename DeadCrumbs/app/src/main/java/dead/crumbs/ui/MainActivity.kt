@@ -215,10 +215,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     //printDeviceDistance is for debugging/testing rssi distance calculations
-    /*
     private fun printDeviceDistance(rssi: BluetoothRSSI, dist: Double){
         Toast.makeText(this@MainActivity, "${rssi.target_mac_address}'s distance is\n $dist m", Toast.LENGTH_LONG).show()
     }
-    */
+
 
 }
