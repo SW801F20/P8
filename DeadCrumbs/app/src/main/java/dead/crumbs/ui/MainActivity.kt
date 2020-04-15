@@ -130,7 +130,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     //Function for making list displaying measured rssi values - used for debugging/testing
-    /*
     private fun showBluetoothRSSIList(){
         // Observing LiveData from the RSSIViewModel which in turn observes
         // LiveData from the repository, which observes LiveData from the DAO ☺
@@ -142,7 +141,7 @@ class MainActivity : AppCompatActivity() {
             textView.text = stringBuilder.toString()
         })
     }
-    */
+
 
     private fun enableBluetoothDiscoverability() {
         val discoverableIntent: Intent = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE).apply {

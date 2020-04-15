@@ -18,7 +18,7 @@ object InjectorUtils {
 
     var singletonMapsViewModelFactory: SingletonMapsViewModelFactory? = null
 
-    // This will be called from ?
+    // This provides the same instance of MapsViewModelFactory each time.
     fun singletonProvideMapsViewModelFactory(): SingletonMapsViewModelFactory {
         if (singletonMapsViewModelFactory == null)
         {
