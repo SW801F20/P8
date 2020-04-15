@@ -29,23 +29,14 @@ class DeadReckoningService : Service(), SensorEventListener{
     private fun setupService() {
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
-        //Orientation
-        sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.also { accelerometer ->
-            sensorManager.registerListener(
-                this,
-                accelerometer,
-                SensorManager.SENSOR_DELAY_FASTEST,
-                SensorManager.SENSOR_DELAY_UI
-            )
-        }
-        sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)?.also { magneticField ->
-            sensorManager.registerListener(
-                this,
-                magneticField,
-                SensorManager.SENSOR_DELAY_FASTEST,
-                SensorManager.SENSOR_DELAY_UI
-            )
-        }
+        //Accelerometer
+       var  accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        sensorManager.registerListener(this, accelerometerSensor,
+                                SensorManager.SENSOR_DELAY_FASTEST, SensorManager.SENSOR_DELAY_UI)
+        //Magnetometer
+        var  magneticFieldSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
+        sensorManager.registerListener(this, magneticFieldSensor,
+            SensorManager.SENSOR_DELAY_FASTEST, SensorManager.SENSOR_DELAY_UI)
 
         //Step counter
         stepCounterSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
@@ -97,11 +88,10 @@ class DeadReckoningService : Service(), SensorEventListener{
             accelerometerReading,
             magnetometerReading
         )
-
-        // "mRotationMatrix" now has up-to-date information.
+        // "rotationMatrix" now has up-to-date information.
 
         SensorManager.getOrientation(rotationMatrix, orientationAngles)
-        // "mOrientationAngles" now has up-to-date information, note that the data is in radians.
+        // "orientationAngles" now has up-to-date information, note that the data is in radians.
 
         orientationCallback?.let { it(orientationAngles) }
     }
