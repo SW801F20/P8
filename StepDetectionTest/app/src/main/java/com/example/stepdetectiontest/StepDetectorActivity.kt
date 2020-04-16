@@ -45,7 +45,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
 
         sensorManager.registerListener(this, stepDetectorSensor, SensorManager.SENSOR_DELAY_NORMAL)
         sensorManager.registerListener(this, stepCounterSensor, SensorManager.SENSOR_DELAY_NORMAL)
-        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
+        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_FASTEST)
 
 
     }
@@ -83,8 +83,9 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
                 // TODO: Make sure we extract the right values
                 // TODO: Research around which time in the step the STEP_COUNTER detects a step
                 for (value in accelerometerZs) {
-                    // Take all accel values before current step timestamp unless they are more than a second old
-                    if (value.first < event.timestamp && event.timestamp - value.first < 1000000000) {
+                    // Take all accel values before current step timestamp unless they are more than 'interval' old
+                    val interval = 0.4 * 1000000000 // 400 ms
+                    if (value.first < event.timestamp && event.timestamp - value.first < interval) {
                         accelerometerValues.add(value.second)
                     }
                 }
@@ -105,6 +106,8 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
                 text_SimpleDist.text = "SimpleDist: $simpleDist"
                 text_SimpleDistSum.text = "SimpleDistSum: ${sdViewModel!!.simpleDistSum}"
 
+                text_AccelSize.text = "SizeOfAccel: ${accelerometerValues.size}"
+
                 // Clear old accel readings
                 // TODO: Make sure what we're doing makes sense
                 accelerometerZs = accelerometerZs.filter { it.first >= event.timestamp } as MutableList<Pair<Long, Float>>
@@ -114,8 +117,10 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
 
     // TODO: Test if works
     private fun scarletEstimation(accelerometerValues: MutableList<Float>): Double {
-        // walkfudge from Jim Scarlet's code
-        val k = 0.0249
+        // walkfudge from J. Scarlet's code
+//        val k = 0.0249
+        // Constant from https://www.researchgate.net/publication/261381305_Smartphone-based_Pedestrian_Dead_Reckoning_as_an_Indoor_Positioning_System
+        val k = 0.81
 
         val min = accelerometerValues.min()
         val max = accelerometerValues.max()
