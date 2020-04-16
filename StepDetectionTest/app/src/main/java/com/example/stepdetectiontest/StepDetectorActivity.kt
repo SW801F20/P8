@@ -21,7 +21,9 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
     private var stepDetectorSensor: Sensor? = null
     private var stepCounterSensor: Sensor? = null
     private var accelerometer: Sensor? = null
-    var accelerometerZs = mutableListOf<Pair<Long, Float>>()
+    private val accArraySize : Int = 1000
+    var accelerometerZs = arrayOfNulls<Pair<Float, Long>>(accArraySize)
+    var accBufferIndex : Int = 0
 
     var sdViewModel: StepDetectorViewModel? = null
 
@@ -59,7 +61,11 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
                     "Z-axis new value: " + event.timestamp.toString() + " ",
                     event.values[2].toString()
                 )
-                accelerometerZs.add(Pair(event.timestamp, event.values[2]))
+                if(accBufferIndex > accArraySize - 1)
+                    accBufferIndex = 0
+
+                accelerometerZs[accBufferIndex] = Pair(event.values[2], event.timestamp)
+                accBufferIndex++
             }
             Sensor.TYPE_STEP_DETECTOR -> {
                 sdViewModel!!.stepDetectorCount += 1
@@ -82,35 +88,40 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
                 // Extract relevant accelerometer values
                 // TODO: Make sure we extract the right values
                 // TODO: Research around which time in the step the STEP_COUNTER detects a step
-                for (value in accelerometerZs) {
+                for (readingPair in accelerometerZs) {
+                    if (readingPair == null) break
                     // Take all accel values before current step timestamp unless they are more than 'interval' old
                     val interval = 0.4 * 1000000000 // 400 ms
-                    if (value.first < event.timestamp && event.timestamp - value.first < interval) {
-                        accelerometerValues.add(value.second)
+                    if (readingPair!!.second < event.timestamp && event.timestamp - readingPair!!.second < interval) {
+                        accelerometerValues.add(readingPair!!.first)
                     }
                 }
+                if (accelerometerZs[0] != null) {
 
-                // Estimate step length using Scarlet approach
-                val simpleDist = simpleScarletEstimation(accelerometerValues)
-                val scarletDist = scarletEstimation(accelerometerValues)
+                    // Estimate step length using Scarlet approach
+                    val simpleDist = simpleScarletEstimation(accelerometerValues)
+                    val scarletDist = scarletEstimation(accelerometerValues)
 
-                // Update total distances
-                if (!scarletDist.isNaN()) sdViewModel!!.scarletDistSum += scarletDist
-                if (!simpleDist.isNaN()) sdViewModel!!.simpleDistSum += simpleDist
+                    // Update total distances
+                    if (!scarletDist.isNaN()) sdViewModel!!.scarletDistSum += scarletDist
+                    if (!simpleDist.isNaN()) sdViewModel!!.simpleDistSum += simpleDist
 
 
-                // Update view
-                text_ScarletDist.text = "ScarletDist: $scarletDist"
-                text_ScarletDistSum.text = "ScarletDistSum: ${sdViewModel!!.scarletDistSum}"
+                    // Update view
+                    text_ScarletDist.text = "ScarletDist: $scarletDist"
+                    text_ScarletDistSum.text = "ScarletDistSum: ${sdViewModel!!.scarletDistSum}"
 
-                text_SimpleDist.text = "SimpleDist: $simpleDist"
-                text_SimpleDistSum.text = "SimpleDistSum: ${sdViewModel!!.simpleDistSum}"
+                    text_SimpleDist.text = "SimpleDist: $simpleDist"
+                    text_SimpleDistSum.text = "SimpleDistSum: ${sdViewModel!!.simpleDistSum}"
 
-                text_AccelSize.text = "SizeOfAccel: ${accelerometerValues.size}"
+                    text_AccelSize.text = "SizeOfAccel: ${accelerometerValues.size}"
 
-                // Clear old accel readings
-                // TODO: Make sure what we're doing makes sense
-                accelerometerZs = accelerometerZs.filter { it.first >= event.timestamp } as MutableList<Pair<Long, Float>>
+                    // Clear old accel readings
+                    // TODO: Make sure what we're doing makes sense
+//                accelerometerZs = accelerometerZs.filter { it!!.second >= event.timestamp }.toTypedArray()
+                    accelerometerZs = arrayOfNulls(accArraySize)
+                    accBufferIndex = 0
+                }
             }
         }
     }
@@ -118,9 +129,10 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
     // TODO: Test if works
     private fun scarletEstimation(accelerometerValues: MutableList<Float>): Double {
         // walkfudge from J. Scarlet's code
-//        val k = 0.0249
-        // Constant from https://www.researchgate.net/publication/261381305_Smartphone-based_Pedestrian_Dead_Reckoning_as_an_Indoor_Positioning_System
-        val k = 0.81
+        val k = 0.0249
+        // Constant from Indonesian paper
+        // https://www.researchgate.net/publication/261381305_Smartphone-based_Pedestrian_Dead_Reckoning_as_an_Indoor_Positioning_System
+//        val k = 0.81
 
         val min = accelerometerValues.min()
         val max = accelerometerValues.max()
