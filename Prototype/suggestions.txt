@@ -1,0 +1,4 @@
+- Markers er måske lidt misledende på kortet, troede jeg bare at personen står lige ved spidsen, og ikke at det er den retning personen kigger
+- Lidt for meget hvid
+- Login skærm har to ting der er meget ens, der står "login" i den ene og "log in" i den anden. Ville foreslå at der stod app navn i den øverste
+- Suggestions til at tilføje en person til en allerede eksitsterende gruppe er bare ens egne venner
