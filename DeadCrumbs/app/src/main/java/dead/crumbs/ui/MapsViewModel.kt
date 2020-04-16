@@ -28,10 +28,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
             Log.i("MapDebug", "Setting orientation")
             Log.i("MapDebug", "Number of markers: " + markerList.size)
 
-            moveMarker(meMarker!!,1.0,degrees)
-
-            meMarker!!.rotation=Math.toDegrees(degrees).toFloat() + 180 //+ 180 degrees to flip the map icon to point in direction
-            // note that this is a hack and actually makes it point in the opposite direction
+            meMarker!!.rotation=Math.toDegrees(degrees).toFloat()
         }
     }
 
@@ -78,15 +75,27 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         val marker = MarkerOptions()
             .position(loc)
             .title(title)
+        if(marker.title == "Me")
+            marker.icon(BitmapDescriptorFactory.fromResource(R.mipmap.arrow))
+
         return marker
     }
 
+
+    //Moves in markers current heading/direction
+    fun moveMeMarker(distance: Double){
+        moveMarker(meMarker!!, distance)
+    }
+
+
+    //Meters per km
     private val METERS = 1000.0
 
     //Expects heading in radians
-    private fun moveMarker(marker: Marker, distance: Double, heading: Double){
+    private fun moveMarker(marker: Marker, mDist: Double){
+        val heading = Math.toRadians(marker.rotation.toDouble())
         val R = 6378.1 //Radius of the Earth
-        val distance= 1.0 / METERS //Distance in km 0
+        val kmDist= mDist / METERS //Distance in km 0
 
         var lat1 = Math.toRadians(marker.position.latitude) //Current lat point converted to radians
         var lng1 = Math.toRadians(marker.position.longitude) //Current lat point converted to radians
@@ -94,12 +103,12 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
 
         //Formula from
         //https://www.movable-type.co.uk/scripts/latlong.html "Destination point given distance and bearing from start point"
-        var lat2 = asin( sin(lat1) * cos(distance/R) +
-                cos(lat1) * sin(distance/R) * cos(heading))
+        var lat2 = asin( sin(lat1) * cos(kmDist/R) +
+                cos(lat1) * sin(kmDist/R) * cos(heading))
 
         var lng2 = lng1 + atan2(
-            sin(heading) * sin(distance/R) * cos(lat1),
-            cos(distance/R) - sin(lat1) * sin(lat2))
+            sin(heading) * sin(kmDist/R) * cos(lat1),
+            cos(kmDist/R) - sin(lat1) * sin(lat2))
 
         lat2 = Math.toDegrees(lat2)
         lng2 = Math.toDegrees(lng2)

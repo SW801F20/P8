@@ -89,13 +89,20 @@ class MainActivity : AppCompatActivity() {
             val drBinder = service as DeadReckoningService.LocalBinder
             drService = drBinder.getService()
             drService.orientationCallback = fun(orientationAngles: FloatArray) {       //callback function
-                updateOrientation(orientationAngles);
+                updateOrientation(orientationAngles)
+            }
+            drService.stepCallback = fun(stepLength: Double) {       //callback function
+                updatePostition(stepLength)
             }
         }
 
         override fun onServiceDisconnected(arg0: ComponentName) {
             // Do nothing
         }
+    }
+
+    private fun updatePostition(stepLength: Double){
+        mapsViewModel!!.moveMeMarker(stepLength)
     }
 
     //Calculate orientation and update it in the viewmodel
