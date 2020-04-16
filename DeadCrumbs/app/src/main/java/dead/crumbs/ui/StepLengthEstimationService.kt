@@ -11,6 +11,7 @@ import android.hardware.SensorManager.SENSOR_DELAY_NORMAL
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
+import android.widget.TextView
 import android.widget.Toast
 import kotlin.math.min
 
@@ -19,7 +20,10 @@ class StepLengthEstimationService : Service(), SensorEventListener {
     private var mAcclerometer : Sensor? = null
     private var mStepCounter : Sensor? = null
     private var prevTimeStamp : Long? = null
-    var acclerometerZs = mutableListOf<Pair<Float, Long>>()
+    private val accArraySize : Int = 1000
+    var acclerometerZs = arrayOfNulls<Pair<Float, Long>>(accArraySize)
+    var accBufferIndex : Int = 0
+    var stepCount : Int = 0
 
     override fun onCreate() {
         super.onCreate()
@@ -46,31 +50,48 @@ class StepLengthEstimationService : Service(), SensorEventListener {
     override fun onSensorChanged(p0: SensorEvent?) {
 
         if(p0!!.sensor.type == Sensor.TYPE_STEP_COUNTER){
-            val newTimeStamp = p0.timestamp
-            var maxAcc : Float? = null
-            var minAcc : Float? = null
-            if(prevTimeStamp != null){
-                for (vals in acclerometerZs){
-                    if(vals.second >= prevTimeStamp!! || vals.second <= newTimeStamp){
-                        if(maxAcc == null || vals.first >= maxAcc)
-                            maxAcc = vals.first
-                        else if(minAcc == null || vals.first <= minAcc)
-                            minAcc = vals.first
-                    }
-                }
-                acclerometerZs.clear()
-                Toast.makeText(this, "step length: " + (nthRoot((maxAcc!!.toDouble() - minAcc!!.toDouble()), 4) * 0.41).toString(), Toast.LENGTH_LONG).show();
-            }
-            prevTimeStamp = newTimeStamp
-
-
+           stepLengthEstimation(p0)
         }
 
         else if(p0.sensor.type == Sensor.TYPE_ACCELEROMETER) {
             val tempPair : Pair<Float, Long> = Pair(p0.values[2], p0.timestamp)
             Log.v("Z-axis new value: ", p0.values[2].toString())
-            acclerometerZs.add(tempPair)
+
+            if(accBufferIndex > accArraySize - 1)
+                accBufferIndex = 0
+
+            acclerometerZs[accBufferIndex] = tempPair
+            accBufferIndex++
+
+
         }
+    }
+
+    private fun stepLengthEstimation(p0: SensorEvent?){
+        val newTimeStamp = p0!!.timestamp
+        var maxAcc : Float? = null
+        var minAcc : Float? = null
+        //stepCount++
+        if(prevTimeStamp != null){
+            for (vals in acclerometerZs){
+                if(vals == null)
+                    break
+                else if(vals.second >= prevTimeStamp!! || vals.second <= newTimeStamp){
+                    if(maxAcc == null || vals.first >= maxAcc)
+                        maxAcc = vals.first
+                    else if(minAcc == null || vals.first <= minAcc)
+                        minAcc = vals.first
+                }
+            }
+            acclerometerZs = arrayOfNulls(accArraySize)
+            accBufferIndex = 0
+            if(maxAcc != null && minAcc != null)
+                Toast.makeText(this, "step length: " + (nthRoot((maxAcc.toDouble() - minAcc.toDouble()), 4) * 0.41).toString(), Toast.LENGTH_LONG).show()
+                //Toast.makeText(this, "Number of steps: $stepCount", Toast.LENGTH_LONG).show()
+        }
+
+        prevTimeStamp = newTimeStamp
+
     }
 
     override fun onDestroy() {
