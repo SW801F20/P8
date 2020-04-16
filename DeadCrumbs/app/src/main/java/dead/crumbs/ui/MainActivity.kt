@@ -101,8 +101,8 @@ class MainActivity : AppCompatActivity() {
     //Calculate orientation and update it in the viewmodel
     private fun updateOrientation(orientationAngles: FloatArray){
         //Calculating yaw in degrees to get orientation
-        val yaw = Math.toDegrees(orientationAngles[0].toDouble())
-        mapsViewModel!!.updateOrientation(yaw.toFloat())
+        //val yaw = Math.toDegrees(orientationAngles[0].toDouble())
+        mapsViewModel!!.updateOrientation(orientationAngles[0].toDouble())
     }
 
 
