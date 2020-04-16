@@ -1,6 +1,5 @@
 package dead.crumbs.ui
 
-import android.hardware.SensorManager
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -17,7 +16,6 @@ import kotlin.math.sin
 class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
     lateinit var map: GoogleMap
 
-    private lateinit var sensorManager: SensorManager
     var markerList = mutableListOf<Marker>()
 
     var mapIsInitialized = false
@@ -25,9 +23,6 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
     fun updateOrientation(degrees: Double){
         if(markerList.size != 0)
         {
-            Log.i("MapDebug", "Setting orientation")
-            Log.i("MapDebug", "Number of markers: " + markerList.size)
-
             meMarker!!.rotation=Math.toDegrees(degrees).toFloat()
         }
     }
@@ -81,25 +76,21 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         return marker
     }
 
-
     //Moves in markers current heading/direction
     fun moveMeMarker(distance: Double){
         moveMarker(meMarker!!, distance)
     }
 
-
-    //Meters per km
-    private val METERS = 1000.0
-
-    //Expects heading in radians
+    //Updates the location of a marker based on the length of
+    //the newest detected step and the current orientation of the marker.
+    //Expects length to be in meters.
     private fun moveMarker(marker: Marker, mDist: Double){
         val heading = Math.toRadians(marker.rotation.toDouble())
         val R = 6378.1 //Radius of the Earth
-        val kmDist= mDist / METERS //Distance in km 0
+        val kmDist= mDist / 1000 //Convert distance from meters to km
 
-        var lat1 = Math.toRadians(marker.position.latitude) //Current lat point converted to radians
-        var lng1 = Math.toRadians(marker.position.longitude) //Current lat point converted to radians
-
+        val lat1 = Math.toRadians(marker.position.latitude) //Current lat point converted to radians
+        val lng1 = Math.toRadians(marker.position.longitude) //Current lat point converted to radians
 
         //Formula from
         //https://www.movable-type.co.uk/scripts/latlong.html "Destination point given distance and bearing from start point"
@@ -113,6 +104,6 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         lat2 = Math.toDegrees(lat2)
         lng2 = Math.toDegrees(lng2)
 
-        marker.position = LatLng(lat2,lng2)
+        marker.position = LatLng(lat2, lng2)
     }
 }

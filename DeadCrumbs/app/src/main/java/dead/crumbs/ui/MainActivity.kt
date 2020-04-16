@@ -105,10 +105,10 @@ class MainActivity : AppCompatActivity() {
         mapsViewModel!!.moveMeMarker(stepLength)
     }
 
-    //Calculate orientation and update it in the viewmodel
+    //Call the function in the viewmodel to update the orientation
+    //of the meMarker.
     private fun updateOrientation(orientationAngles: FloatArray){
-        //Calculating yaw in degrees to get orientation
-        //val yaw = Math.toDegrees(orientationAngles[0].toDouble())
+        //Parsing the yaw value on to the function in the viewmodel
         mapsViewModel!!.updateOrientation(orientationAngles[0].toDouble())
     }
 
