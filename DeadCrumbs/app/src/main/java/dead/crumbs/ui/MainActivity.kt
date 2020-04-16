@@ -24,14 +24,92 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        initializeUi()
+
+        //Checks locations permissions, which are necessary for
+        checkLocationPermissions()
+
         initializeBluetoothScan()
+        initializeMapsViewModel() //Must be called before "startDeadReckoning()"
+
+        // Dead Reckoning
+        startDeadReckoning()
+
+        // Button for viewing Map (ui/MapsActivity)
+        button_map.setOnClickListener{
+            button_map.isClickable = false
+            val intent = Intent(this,MapsActivity::class.java)
+            startActivity(intent)
+        }
     }
 
-    //----------Initialization of MainActivity UI----------//
+    override fun onResume() {
+        super.onResume()
+
+        // Button clickable for viewing Map (ui/MapsActivity) - onResume is called when closing map
+        button_map.isClickable = true
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        drService.onDestroy()
+        bluetoothService.onDestroy()
+    }
+
+
+
+    //-------------Maps-----------------------//
+    var mapsViewModel: MapsViewModel? = null
+    fun initializeMapsViewModel(){
+        val factory = InjectorUtils.singletonProvideMapsViewModelFactory()
+        // Use ViewModelProviders class to create / get already created rssisViewModel
+        // for this view (activity)
+        mapsViewModel = ViewModelProviders.of(this, factory)
+            .get(MapsViewModel::class.java)
+    }
+
+
+
+    //------------Dead Reckoning-------------//
+
+    private lateinit var drService: DeadReckoningService
+
+    private fun startDeadReckoning(){
+        val intent = Intent(this, DeadReckoningService::class.java)
+        startService(intent)
+        Intent(this, DeadReckoningService::class.java).also { intent ->
+            bindService(intent, connectionDeadReckoningService, Context.BIND_AUTO_CREATE)
+        }
+    }
+
+    /** Defines callbacks for service binding, passed to bindService()  */
+    private val connectionDeadReckoningService = object : ServiceConnection {
+
+        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            // We've bound to DeadReckoningService, cast the IBinder and get LocalService instance
+            val drBinder = service as DeadReckoningService.LocalBinder
+            drService = drBinder.getService()
+            drService.orientationCallback = fun(orientationAngles: FloatArray) {       //callback function
+                updateOrientation(orientationAngles);
+            }
+        }
+
+        override fun onServiceDisconnected(arg0: ComponentName) {
+            // Do nothing
+        }
+    }
+
+    //Calculate orientation and update it in the viewmodel
+    private fun updateOrientation(orientationAngles: FloatArray){
+        //Calculating yaw in degrees to get orientation
+        val yaw = Math.toDegrees(orientationAngles[0].toDouble())
+        mapsViewModel!!.updateOrientation(yaw.toFloat())
+    }
+
+
+    //------------Bluetooth Part-------------//
     var viewModel : RSSIViewModel? = null
 
-    private fun initializeUi() {
+    private fun initializeBluetoothScan() {
         // Get the rssisViewModelFactory with all of it's dependencies constructed
         val factory = InjectorUtils.provideRSSIViewModelFactory()
         // Use ViewModelProviders class to create / get already created rssisViewModel
@@ -39,34 +117,7 @@ class MainActivity : AppCompatActivity() {
         viewModel = ViewModelProviders.of(this, factory)
             .get(RSSIViewModel::class.java)
 
-        // Observing LiveData from the RSSIViewModel which in turn observes
-        // LiveData from the repository, which observes LiveData from the DAO ☺
-        viewModel!!.getRSSIs().observe(this, Observer { RSSIs ->
-            val stringBuilder = StringBuilder()
-            RSSIs.forEach { rssi ->
-                stringBuilder.append("$rssi\n\n")
-            }
-            textView.text = stringBuilder.toString()
-        })
-    }
-
-    override fun onActivityResult(
-        requestCode: Int,
-        resultCode: Int,
-        data: Intent?
-    ) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_ENABLE_BT && resultCode == RESULT_OK) {
-            var t = Toast.makeText(this@MainActivity,  "Bluetooth Enabled!", Toast.LENGTH_LONG)
-            t. show()
-        }
-    }
-
-
-    //------------Bluetooth Part-------------//
-    private fun initializeBluetoothScan() {
-        //Checks locations permissions, which are necessary for
-        checkBTPermissions()
+        //showBluetoothRSSIList() //include for debugging/testing of rssi
 
         //Enables bluetooth
         enableBluetooth()
@@ -78,6 +129,19 @@ class MainActivity : AppCompatActivity() {
         startBluetoothScan()
     }
 
+    //Function for making list displaying measured rssi values - used for debugging/testing
+    private fun showBluetoothRSSIList(){
+        // Observing LiveData from the RSSIViewModel which in turn observes
+        // LiveData from the repository, which observes LiveData from the DAO ☺
+        viewModel!!.getRSSIs().observe(this, Observer { RSSIs ->
+            val stringBuilder = StringBuilder()
+            RSSIs.forEach { rssi ->
+                stringBuilder.append("$rssi\n\n")
+            }
+            textView.text = stringBuilder.toString()
+        })
+    }
+
 
     private fun enableBluetoothDiscoverability() {
         val discoverableIntent: Intent = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE).apply {
@@ -86,7 +150,7 @@ class MainActivity : AppCompatActivity() {
         startActivity(discoverableIntent)
     }
 
-    private fun checkBTPermissions() {
+    private fun checkLocationPermissions() {
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
             var permissionCheck =
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -121,30 +185,39 @@ class MainActivity : AppCompatActivity() {
         val intent = Intent(this, BluetoothService::class.java)
         startService(intent)
         Intent(this, BluetoothService::class.java).also { intent ->
-            bindService(intent, connection, Context.BIND_AUTO_CREATE)
+            bindService(intent, connectionBluetoothService, Context.BIND_AUTO_CREATE)
         }
     }
 
 
-    private lateinit var mService: BluetoothService
-    private var mBound: Boolean = false
+    private val rssiProximity: RSSIProximity = RSSIProximity();
+    private lateinit var bluetoothService: BluetoothService
+    private var boundBluetoothService: Boolean = false
 
     /** Defines callbacks for service binding, passed to bindService()  */
-    private val connection = object : ServiceConnection {
+    private val connectionBluetoothService = object : ServiceConnection {
 
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             // We've bound to BluetoothService, cast the IBinder and get LocalService instance
             val binder = service as BluetoothService.LocalBinder
-            mService = binder.getService()
-            mService.callback = fun(rssi:BluetoothRSSI) { viewModel!!.addRSSI(rssi) }
-            mBound = true
+            bluetoothService = binder.getService()
+            bluetoothService.callback = fun(rssi:BluetoothRSSI) {       //callback function
+                viewModel!!.addRSSI(rssi);
+                //printDeviceDistance(rssi, rssiProximity.getNewAverageDist(rssi)); //for debugging
+            }
+
+            boundBluetoothService = true
         }
 
         override fun onServiceDisconnected(arg0: ComponentName) {
-            mBound = false
+            boundBluetoothService = false
         }
     }
 
+    //printDeviceDistance is for debugging/testing rssi distance calculations
+    private fun printDeviceDistance(rssi: BluetoothRSSI, dist: Double){
+        Toast.makeText(this@MainActivity, "${rssi.target_mac_address}'s distance is\n $dist m", Toast.LENGTH_LONG).show()
+    }
 
 
 }

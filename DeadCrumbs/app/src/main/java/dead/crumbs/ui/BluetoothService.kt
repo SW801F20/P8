@@ -1,25 +1,19 @@
 package dead.crumbs.ui
 
-import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.Build
 import dead.crumbs.data.BluetoothRSSI
 import android.app.Service
 import android.os.Binder
 import android.os.IBinder
 
-
 //factory: RSSIViewModelFactory, viewModel: RSSIViewModel
 class BluetoothService() : Service(){
-    private var factory: RSSIViewModelFactory? = null
-    private var viewModel: RSSIViewModel? = null
-
-    public var callback: ((BluetoothRSSI) -> Unit)? = null
+    var callback: ((BluetoothRSSI) -> Unit)? = null
 
     //Called on creation of BluetoothService
     override fun onCreate() {
@@ -45,6 +39,8 @@ class BluetoothService() : Service(){
     }
 
 
+
+
     //----------ScanBluetooth-------------
     private val bluetoothAdapter : BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
     // Create a BroadcastReceiver for ACTION_FOUND.
@@ -58,14 +54,20 @@ class BluetoothService() : Service(){
                     // object and its info from the Intent.
                     val device: BluetoothDevice? =
                         intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-                    var bluetooth_rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE) // rssi
 
-                    //Add to RSSIViewModel
-                    callback?.let { it(BluetoothRSSI(bluetooth_rssi, device!!.address)) }
+                    var rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE).toDouble() // retrieve rssi
+                    var mac_address: String = device!!.address         //Note Bluetooth mac address != WiFi mac address
+                    var bluetoothRSSI = BluetoothRSSI(rssi, mac_address);
+
+                    //Add to RSSIViewModel through callback
+                    callback?.let { it(bluetoothRSSI) }
                 }
             }
         }
     }
+
+
+
     private val bluetoothScanEndReceiver = object : BroadcastReceiver() {
 
         override fun onReceive(context: Context, intent: Intent) {
@@ -86,11 +88,9 @@ class BluetoothService() : Service(){
         }
 
         val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
-        //val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
         registerReceiver(bluetoothScanReceiver, filter)
 
         val filter2 = IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
-        //val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
         registerReceiver(bluetoothScanEndReceiver, filter2)
 
         discover()
