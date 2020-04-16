@@ -14,18 +14,36 @@ import android.os.IBinder
 class DeadReckoningService : Service(), SensorEventListener{
 
     private lateinit var sensorManager: SensorManager
-    private var stepCounterSensor: Sensor? = null
+    var orientationCallback: ((FloatArray) -> Unit)? = null
+
+
 
     override fun onCreate() {
         super.onCreate()
 
+        setupService()
+    }
+
+    private fun setupService() {
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        stepCounterSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+
+        //Accelerometer
+       var  accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        sensorManager.registerListener(this, accelerometerSensor,
+                                SensorManager.SENSOR_DELAY_FASTEST, SensorManager.SENSOR_DELAY_UI)
+        //Magnetometer
+        var  magneticFieldSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
+        sensorManager.registerListener(this, magneticFieldSensor,
+            SensorManager.SENSOR_DELAY_FASTEST, SensorManager.SENSOR_DELAY_UI)
+
+        //Step counter
+        var stepCounterSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
 
         //TODO: Consider SENSOR_DELAY_FASTEST
         sensorManager.registerListener(this, stepCounterSensor, SensorManager.SENSOR_DELAY_NORMAL)
 
     }
+
 
     //----------Binding--------------
     // Binder given to clients
@@ -43,6 +61,37 @@ class DeadReckoningService : Service(), SensorEventListener{
 
     override fun onBind(intent: Intent?): IBinder? {
         return binder
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        // Don't receive any more updates from either sensor.
+        sensorManager.unregisterListener(this)
+    }
+
+    //Orientation values
+    private val accelerometerReading = FloatArray(3)
+    private val magnetometerReading = FloatArray(3)
+    private val rotationMatrix = FloatArray(9)
+    private val orientationAngles = FloatArray(3)
+
+    // Compute the three orientation angles based on the most recent readings from
+    // the device's accelerometer and magnetometer.
+    fun updateOrientationAngles() {
+        // Update rotation matrix, which is needed to update orientation angles.
+        SensorManager.getRotationMatrix(
+            rotationMatrix,
+            null,
+            accelerometerReading,
+            magnetometerReading
+        )
+        // "rotationMatrix" now has up-to-date information.
+
+        SensorManager.getOrientation(rotationMatrix, orientationAngles)
+        // "orientationAngles" now has up-to-date information, note that the data is in radians.
+
+        orientationCallback?.let { it(orientationAngles) }
     }
 
     private var stepCounterInitial : Int = 0
@@ -64,6 +113,13 @@ class DeadReckoningService : Service(), SensorEventListener{
             // See LogCat in Android Studio, make sure Verbose is selected
             // and then search for stepCounter
             Log.d("stepCounter: ", stepCounter.toString())
+        }
+        else  if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+            System.arraycopy(event.values, 0, accelerometerReading, 0, accelerometerReading.size)
+            updateOrientationAngles()
+        } else if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
+            System.arraycopy(event.values, 0, magnetometerReading, 0, magnetometerReading.size)
+            updateOrientationAngles()
         }
     }
 
