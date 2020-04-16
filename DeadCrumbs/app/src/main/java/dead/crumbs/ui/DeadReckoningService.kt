@@ -10,6 +10,8 @@ import android.app.Service
 import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
+import kotlin.math.abs
+import kotlin.math.sqrt
 
 class DeadReckoningService : Service(), SensorEventListener{
 
@@ -94,37 +96,113 @@ class DeadReckoningService : Service(), SensorEventListener{
         orientationCallback?.let { it(orientationAngles) }
     }
 
+
+    // Step detection fields
     private var stepCounterInitial : Int = 0
     private var stepCounter : Int = 0
+
+    // Step length estimation fields
+    private var accelerometerZReadings = mutableListOf<Pair<Long, Float>>()
 
     /* This is called whenever this class (SensorEventListener) detects a new sensor value
      * from a sensor it is listening to (registerListener) */
     override fun onSensorChanged(event: SensorEvent) {
-        if (event.sensor.type == Sensor.TYPE_STEP_COUNTER){
-            val sensorValue = event.values[0]
-            // Set initial count value upon first reading
-            if (stepCounterInitial < 1)
-                stepCounterInitial = sensorValue.toInt()
-            // Update counter with #steps taken since initial value
-            stepCounter = sensorValue.toInt() - stepCounterInitial
+        when (event.sensor.type) {
+            Sensor.TYPE_STEP_COUNTER -> {
+                val sensorValue = event.values[0]
+                // Set initial count value upon first reading
+                if (stepCounterInitial < 1)
+                    stepCounterInitial = sensorValue.toInt()
+                // Update counter with #steps taken since initial value
+                stepCounter = sensorValue.toInt() - stepCounterInitial
 
-            //TODO: Find out how and where to pass value on to
+                //TODO: Find out how and where to pass value on to
+                // See LogCat in Android Studio, make sure Verbose is selected
+                // and then search for stepCounter
+                Log.d("stepCounter: ", stepCounter.toString())
 
-            // See LogCat in Android Studio, make sure Verbose is selected
-            // and then search for stepCounter
-            Log.d("stepCounter: ", stepCounter.toString())
-        }
-        else  if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-            System.arraycopy(event.values, 0, accelerometerReading, 0, accelerometerReading.size)
-            updateOrientationAngles()
-        } else if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
-            System.arraycopy(event.values, 0, magnetometerReading, 0, magnetometerReading.size)
-            updateOrientationAngles()
+                //TODO: Find out how and where to pass value on to
+                // Step length estimation
+                val stepLength = estimateStepLength(event.timestamp)
+                // See LogCat in Android Studio, make sure Verbose is selected
+                // and then search for stepLength
+                Log.d("stepLength: ", stepLength.toString())
+            }
+            Sensor.TYPE_ACCELEROMETER -> {
+                // For orientation
+                System.arraycopy(event.values, 0, accelerometerReading, 0, accelerometerReading.size)
+                updateOrientationAngles()
+
+                // For step length estimation
+                accelerometerZReadings.add(Pair(event.timestamp, event.values[2]))
+            }
+            Sensor.TYPE_MAGNETIC_FIELD -> {
+                System.arraycopy(event.values, 0, magnetometerReading, 0, magnetometerReading.size)
+                updateOrientationAngles()
+            }
         }
     }
 
     override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
         // Do nothing
     }
+
+    private fun estimateStepLength(stepTimestamp: Long): Double {
+        val accelerometerValues = mutableListOf<Float>()
+        // Extract relevant accelerometer values
+        // TODO: Make sure we extract the right values
+        // TODO: Research around which time in the step the STEP_COUNTER detects a step
+        for (value in accelerometerZReadings) {
+            // Take all accel values before current step timestamp unless they are more than a second old
+            if (value.first < stepTimestamp && stepTimestamp - value.first < 1000000000) {
+                accelerometerValues.add(value.second)
+            }
+        }
+
+        // Estimate step length using Scarlet approach
+        val simpleDist = simpleScarletEstimation(accelerometerValues)
+        val scarletDist = scarletEstimation(accelerometerValues)
+
+        // Clear old accelerometer readings
+        // TODO: Make sure we're removing the right values
+        accelerometerZReadings = accelerometerZReadings.filter { it.first >= stepTimestamp } as MutableList<Pair<Long, Float>>
+
+        return scarletDist
+    }
+
+    // TODO: Doesn't provide accurate distances at the moment
+    private fun simpleScarletEstimation(accelerometerValues: MutableList<Float>): Double {
+        // walkfudge from Jim Scarlet's code
+        val k = 0.0249
+
+        val min = accelerometerValues.min()
+        val max = accelerometerValues.max()
+        val avg = accelerometerValues.average()
+
+        return k * ((avg - min!!) / (max!! - min))
+    }
+
+    // TODO: Doesn't provide accurate distances at the moment
+    private fun scarletEstimation(accelerometerValues: MutableList<Float>): Double {
+        // walkfudge from Jim Scarlet's code
+        val k = 0.0249
+
+        val min = accelerometerValues.min()
+        val max = accelerometerValues.max()
+        val avg = accelerometerValues.average().toFloat()
+
+        var velocity = 0.0F
+        var displace = 0.0F
+
+        // Calculate the double summation and place result in 'displace'
+        for (value in accelerometerValues) {
+            velocity += value - avg
+            displace += velocity
+        }
+
+        return k * sqrt(abs(((max!! - min!!) / (avg - min)) * displace))
+    }
+
+
 
 }
