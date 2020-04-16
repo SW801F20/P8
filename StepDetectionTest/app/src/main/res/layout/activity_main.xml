@@ -47,12 +47,47 @@
 
     <TextView
         android:id="@+id/text_ScarletDist"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="294dp"
+        android:layout_height="21dp"
+        android:layout_marginTop="24dp"
         android:text="ScarletDist: 0"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.452"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/text_SimpleDistSum" />
+
+    <TextView
+        android:id="@+id/text_ScarletDistSum"
+        android:layout_width="305dp"
+        android:layout_height="20dp"
+        android:text="ScarletDistSum: 0"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/text_ScarletDist"
+        app:layout_constraintVertical_bias="0.036" />
+
+    <TextView
+        android:id="@+id/text_SimpleDist"
+        android:layout_width="293dp"
+        android:layout_height="23dp"
+        android:layout_marginTop="85dp"
+        android:text="SimpleDist: 0"
+        app:layout_constraintBottom_toTopOf="@+id/text_SimpleDistSum"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.449"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/text_StepCounterTotal" />
+
+    <TextView
+        android:id="@+id/text_SimpleDistSum"
+        android:layout_width="291dp"
+        android:layout_height="26dp"
+        android:layout_marginTop="28dp"
+        android:text="SimpleDistSum: 0"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.441"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/text_SimpleDist" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

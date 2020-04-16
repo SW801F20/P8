@@ -21,7 +21,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
     private var stepDetectorSensor: Sensor? = null
     private var stepCounterSensor: Sensor? = null
     private var accelerometer: Sensor? = null
-    val accelerometerZs = mutableListOf<Pair<Long, Float>>()
+    var accelerometerZs = mutableListOf<Pair<Long, Float>>()
 
     var sdViewModel: StepDetectorViewModel? = null
 
@@ -91,15 +91,23 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
 
                 // Estimate step length using Scarlet approach
                 val simpleDist = simpleScarletEstimation(accelerometerValues)
-                val dist = scarletEstimation(accelerometerValues)
+                val scarletDist = scarletEstimation(accelerometerValues)
 
-                text_ScarletDist.text = "ScarletDist: $dist"
+                // Update total distances
+                if (!scarletDist.isNaN()) sdViewModel!!.scarletDistSum += scarletDist
+                if (!simpleDist.isNaN()) sdViewModel!!.simpleDistSum += simpleDist
+
+
+                // Update view
+                text_ScarletDist.text = "ScarletDist: $scarletDist"
+                text_ScarletDistSum.text = "ScarletDistSum: ${sdViewModel!!.scarletDistSum}"
+
+                text_SimpleDist.text = "SimpleDist: $simpleDist"
+                text_SimpleDistSum.text = "SimpleDistSum: ${sdViewModel!!.simpleDistSum}"
 
                 // Clear old accel readings
-                // TODO: Check if works
-                for (value in accelerometerValues) {
-                    accelerometerZs.filter { it.second != value }
-                }
+                // TODO: Make sure what we're doing makes sense
+                accelerometerZs = accelerometerZs.filter { it.first >= event.timestamp } as MutableList<Pair<Long, Float>>
             }
         }
     }
