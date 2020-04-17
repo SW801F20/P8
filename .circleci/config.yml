@@ -31,7 +31,7 @@ jobs:
 workflows:
   build_API_and_APP:
     jobs:
-      - build_API:
+      - build_API
       - build_APP:
           requires:
             - build_API
