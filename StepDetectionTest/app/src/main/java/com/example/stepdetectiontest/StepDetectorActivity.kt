@@ -88,12 +88,13 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
                 // Extract relevant accelerometer values
                 // TODO: Make sure we extract the right values
                 // TODO: Research around which time in the step the STEP_COUNTER detects a step
+                val interval = 0.4 * 1000000000
                 for (readingPair in accelerometerZs) {
                     if (readingPair == null) break
                     // Take all accel values before current step timestamp unless they are more than 'interval' old
-                    val interval = 0.4 * 1000000000 // 400 ms
-                    if (readingPair!!.second < event.timestamp && event.timestamp - readingPair!!.second < interval) {
-                        accelerometerValues.add(readingPair!!.first)
+                     // 400 ms
+                    if (readingPair.second < event.timestamp && event.timestamp - readingPair.second < interval) {
+                        accelerometerValues.add(readingPair.first)
                     }
                 }
                 if (accelerometerZs[0] != null) {
@@ -101,10 +102,12 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
                     // Estimate step length using Scarlet approach
                     val simpleDist = simpleScarletEstimation(accelerometerValues)
                     val scarletDist = scarletEstimation(accelerometerValues)
+                    val weinbergDist = weinbergEstimation(accelerometerValues)
 
                     // Update total distances
                     if (!scarletDist.isNaN()) sdViewModel!!.scarletDistSum += scarletDist
                     if (!simpleDist.isNaN()) sdViewModel!!.simpleDistSum += simpleDist
+                    if (!weinbergDist.isNaN()) sdViewModel!!.weinbergDistSum += weinbergDist
 
 
                     // Update view
@@ -113,6 +116,9 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
 
                     text_SimpleDist.text = "SimpleDist: $simpleDist"
                     text_SimpleDistSum.text = "SimpleDistSum: ${sdViewModel!!.simpleDistSum}"
+
+                    text_weinbergDist.text = "WeinbergDist: $weinbergDist"
+                    text_weinbergDistSum.text = "WeinbergDistSum: ${sdViewModel!!.weinbergDistSum}"
 
                     text_AccelSize.text = "SizeOfAccel: ${accelerometerValues.size}"
 
@@ -165,5 +171,30 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
         val avg = accelerometerValues.average()
 
         return k * ((avg - min!!) / (max!! - min))
+    }
+
+    private fun weinbergEstimation(accelerometerValues: MutableList<Float>): Double {
+        val k = 0.41
+
+        val min = accelerometerValues.min()
+        val max = accelerometerValues.max()
+        return (nthRoot((max!!.toDouble() - min!!.toDouble()), 4) * k)
+        //Toast.makeText(this, "step length: " + (nthRoot((maxAcc.toDouble() - minAcc.toDouble()), 4) * 0.41).toString(), Toast.LENGTH_LONG).show()
+        //Toast.makeText(this, "Number of steps: $stepCount", Toast.LENGTH_LONG).show()
+    }
+
+    //https://rosettacode.org/wiki/Nth_root#Kotlin
+    fun nthRoot(x: Double, n: Int): Double {
+        if (n < 2) throw IllegalArgumentException("n must be more than 1")
+        if (x <= 0.0) throw IllegalArgumentException("x must be positive")
+        val np = n - 1
+        fun iter(g: Double) = (np * g + x / Math.pow(g, np.toDouble())) / n
+        var g1 = x
+        var g2 = iter(g1)
+        while (g1 != g2) {
+            g1 = iter(g1)
+            g2 = iter(iter(g2))
+        }
+        return g1
     }
 }

@@ -49,10 +49,9 @@
         android:id="@+id/text_ScarletDist"
         android:layout_width="294dp"
         android:layout_height="21dp"
-        android:layout_marginTop="24dp"
         android:text="ScarletDist: 0"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.452"
+        app:layout_constraintHorizontal_bias="0.478"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/text_SimpleDistSum" />
 
@@ -63,9 +62,10 @@
         android:text="ScarletDistSum: 0"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.528"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/text_ScarletDist"
-        app:layout_constraintVertical_bias="0.036" />
+        app:layout_constraintVertical_bias="0.0" />
 
     <TextView
         android:id="@+id/text_SimpleDist"
@@ -75,31 +75,53 @@
         android:text="SimpleDist: 0"
         app:layout_constraintBottom_toTopOf="@+id/text_SimpleDistSum"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.449"
+        app:layout_constraintHorizontal_bias="0.474"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/text_StepCounterTotal" />
+
 
     <TextView
         android:id="@+id/text_SimpleDistSum"
         android:layout_width="291dp"
         android:layout_height="26dp"
-        android:layout_marginTop="28dp"
         android:text="SimpleDistSum: 0"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.441"
+        app:layout_constraintHorizontal_bias="0.466"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/text_SimpleDist" />
+
+    <TextView
+        android:id="@+id/text_weinbergDist"
+        android:layout_width="293dp"
+        android:layout_height="23dp"
+        android:text="WeinbergDist: 0"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.474"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/text_ScarletDistSum" />
 
     <TextView
         android:id="@+id/text_AccelSize"
         android:layout_width="301dp"
         android:layout_height="20dp"
+        android:layout_marginBottom="16dp"
         android:text="SizeOfAccel:"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.481"
+
+        app:layout_constraintHorizontal_bias="0.509"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text_ScarletDistSum"
-        app:layout_constraintVertical_bias="0.339" />
+        app:layout_constraintTop_toBottomOf="@+id/text_weinbergDistSum"
+        app:layout_constraintVertical_bias="0.365" />
+
+    <TextView
+        android:id="@+id/text_weinbergDistSum"
+        android:layout_width="293dp"
+        android:layout_height="21dp"
+        android:text="WeinbergDistSum: 0"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.474"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/text_weinbergDist" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

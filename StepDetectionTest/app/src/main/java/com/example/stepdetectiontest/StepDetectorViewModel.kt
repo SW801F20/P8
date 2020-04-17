@@ -11,6 +11,7 @@ class StepDetectorViewModel : ViewModel() {
     public var stepCounterInitial : Int = 0
     public var scarletDistSum : Double = 0.0
     public var simpleDistSum : Double = 0.0
+    public var weinbergDistSum : Double = 0.0
 
     override fun onCleared() {
         super.onCleared()
