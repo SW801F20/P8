@@ -204,7 +204,7 @@ class DeadReckoningService : Service(), SensorEventListener {
         return k * sqrt(abs(((max!! - min!!) / (avg - min)) * displace))
     }
 
-    fun updateYawRotationVector(event: SensorEvent) {
+    private fun updateYawRotationVector(event: SensorEvent) {
         val orientation = FloatArray(3)
 
         // Smooth values
@@ -220,12 +220,12 @@ class DeadReckoningService : Service(), SensorEventListener {
         // Calculate the orientation
         SensorManager.getOrientation(rotationMatrix, orientation)
 
-        var yawDegrees = getYawDegrees(orientation)
+        val yawDegrees = getYawDegrees(orientation)
         orientationCallback?.let { it(yawDegrees) }
     }
 
     //Computes new yaw based on magnetometer and accelerometer
-    fun updateYawMagAcc(event: SensorEvent) {
+    private fun updateYawMagAcc(event: SensorEvent) {
         // Get the orientation array with Sensor.TYPE_ROTATION_VECTOR if possible (more precise), otherwise with Sensor.TYPE_MAGNETIC_FIELD and Sensor.TYPE_ACCELEROMETER combined
         val orientation = FloatArray(3)
 
@@ -248,11 +248,11 @@ class DeadReckoningService : Service(), SensorEventListener {
         // Calculate the orientation
         SensorManager.getOrientation(rotationMatrix, orientation)
 
-        var yawDegrees = getYawDegrees(orientation)
+        val yawDegrees = getYawDegrees(orientation)
         orientationCallback?.let { it(yawDegrees) }
     }
 
-    fun getYawDegrees(orientation: FloatArray): Float {
+    private fun getYawDegrees(orientation: FloatArray): Float {
         // Calculate yaw, pitch and roll values from the orientation[] array
         // Correct values depending on the screen rotation
         val screenRotation =
