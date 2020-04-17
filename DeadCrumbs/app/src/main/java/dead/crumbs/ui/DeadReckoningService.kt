@@ -276,11 +276,8 @@ class DeadReckoningService : Service(), SensorEventListener {
         // Force yaw value between 0° and 360°.
         yawDegrees = (yawDegrees + 360) % 360
 
-        // Notify the compass listener if needed
-        if (Math.abs(yawDegrees - lastYawDegrees) >= 0 || lastYawDegrees == 0f) {
-            lastYawDegrees = yawDegrees
-            orientationCallback?.let { it(yawDegrees) }
-        }
+        lastYawDegrees = yawDegrees
+        orientationCallback?.let { it(yawDegrees) }
     }
 
 
