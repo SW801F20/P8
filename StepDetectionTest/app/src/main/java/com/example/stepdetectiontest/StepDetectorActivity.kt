@@ -1,6 +1,7 @@
 package com.example.stepdetectiontest
 
 import android.content.Context
+import android.content.Intent
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -21,9 +22,10 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
     private var stepDetectorSensor: Sensor? = null
     private var stepCounterSensor: Sensor? = null
     private var accelerometer: Sensor? = null
-    private val accArraySize : Int = 1000
+    private val accArraySize : Int = 10000
     var accelerometerZs = arrayOfNulls<Pair<Float, Long>>(accArraySize)
     var accBufferIndex : Int = 0
+    val gravitationalAccel : Float = 9.72F
 
     var sdViewModel: StepDetectorViewModel? = null
 
@@ -47,8 +49,26 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
 
         sensorManager.registerListener(this, stepDetectorSensor, SensorManager.SENSOR_DELAY_NORMAL)
         sensorManager.registerListener(this, stepCounterSensor, SensorManager.SENSOR_DELAY_NORMAL)
-        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_FASTEST)
+        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
 
+        button_AnyChart.setOnClickListener{
+            button_AnyChart.isClickable = false
+            val intent = Intent(this, LineChartActivity::class.java)
+            val accelReadings = FloatArray(accArraySize)
+            val accelTimestamps = LongArray(accArraySize)
+
+            for ((i, readingPair) in accelerometerZs.withIndex()) {
+                if (readingPair != null) {
+                    accelReadings[i] = readingPair!!.first
+                    accelTimestamps[i] = readingPair!!.second
+                }
+            }
+
+            intent.putExtra("ACCEL_READINGS", accelReadings)
+            intent.putExtra("ACCEL_TIMESTAMPS", accelTimestamps)
+
+            startActivity(intent)
+        }
 
     }
 
@@ -59,12 +79,12 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
             Sensor.TYPE_ACCELEROMETER -> {
                 Log.v(
                     "Z-axis new value: " + event.timestamp.toString() + " ",
-                    event.values[2].toString()
+                    (event.values[2] - gravitationalAccel).toString()
                 )
                 if(accBufferIndex > accArraySize - 1)
                     accBufferIndex = 0
-
-                accelerometerZs[accBufferIndex] = Pair(event.values[2], event.timestamp)
+                // Subtract acceleration from Earth's gravity
+                accelerometerZs[accBufferIndex] = Pair(event.values[2] - gravitationalAccel, event.timestamp)
                 accBufferIndex++
             }
             Sensor.TYPE_STEP_DETECTOR -> {
@@ -125,8 +145,8 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
                     // Clear old accel readings
                     // TODO: Make sure what we're doing makes sense
 //                accelerometerZs = accelerometerZs.filter { it!!.second >= event.timestamp }.toTypedArray()
-                    accelerometerZs = arrayOfNulls(accArraySize)
-                    accBufferIndex = 0
+//                    accelerometerZs = arrayOfNulls(accArraySize)
+//                    accBufferIndex = 0
                 }
             }
         }
