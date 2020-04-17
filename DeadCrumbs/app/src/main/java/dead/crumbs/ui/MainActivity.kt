@@ -110,7 +110,6 @@ class MainActivity : AppCompatActivity() {
     private fun updateOrientation(yaw : Float){
         //Parsing the yaw value on to the function in the viewmodel
         mapsViewModel!!.updateOrientation(yaw)
-
     }
 
 

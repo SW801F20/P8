@@ -20,7 +20,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
 
     var mapIsInitialized = false
 
-    fun updateOrientation(degrees: Double){
+    fun updateOrientation(degrees: Float){
         if(markerList.size != 0)
         {
             meMarker!!.rotation=degrees
