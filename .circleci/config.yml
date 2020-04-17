@@ -27,7 +27,7 @@ jobs:
       - checkout
       - run:
           name: "Build API"
-          command: cd aspnet-server-1/ && build.bat && start dotnet run -p src/IO.Swagger/IO.Swagger.csproj --launch-profile web
+          command: cd aspnet-server-1/ && build.bat && start /b dotnet run -p src/IO.Swagger/IO.Swagger.csproj --launch-profile web
 
 workflows:
   build_API_and_APP:
