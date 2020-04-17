@@ -89,7 +89,10 @@ class MainActivity : AppCompatActivity() {
             val drBinder = service as DeadReckoningService.LocalBinder
             drService = drBinder.getService()
             drService.orientationCallback = fun(orientationAngles: FloatArray) {       //callback function
-                updateOrientation(orientationAngles);
+                updateOrientation(orientationAngles)
+            }
+            drService.stepCallback = fun(stepLength: Double) {       //callback function
+                updatePostition(stepLength)
             }
         }
 
@@ -98,11 +101,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    //Calculate orientation and update it in the viewmodel
+    private fun updatePostition(stepLength: Double){
+        mapsViewModel!!.moveMeMarker(stepLength)
+    }
+
+    //Call the function in the viewmodel to update the orientation
+    //of the meMarker.
     private fun updateOrientation(orientationAngles: FloatArray){
-        //Calculating yaw in degrees to get orientation
-        val yaw = Math.toDegrees(orientationAngles[0].toDouble())
-        mapsViewModel!!.updateOrientation(yaw.toFloat())
+        //Parsing the yaw value on to the function in the viewmodel
+        mapsViewModel!!.updateOrientation(orientationAngles[0].toDouble())
     }
 
 

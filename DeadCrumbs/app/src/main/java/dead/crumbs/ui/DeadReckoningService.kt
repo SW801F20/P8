@@ -18,6 +18,7 @@ class DeadReckoningService : Service(), SensorEventListener{
     private lateinit var sensorManager: SensorManager
     var orientationCallback: ((FloatArray) -> Unit)? = null
 
+    var stepCallback: ((Double) -> Unit)? = null
 
 
     override fun onCreate() {
@@ -127,6 +128,7 @@ class DeadReckoningService : Service(), SensorEventListener{
                 // See LogCat in Android Studio, make sure Verbose is selected
                 // and then search for stepLength
                 Log.d("stepLength: ", stepLength.toString())
+                stepCallback?.let { it(stepLength) }
             }
             Sensor.TYPE_ACCELEROMETER -> {
                 // For orientation
