@@ -220,7 +220,8 @@ class DeadReckoningService : Service(), SensorEventListener {
         // Calculate the orientation
         SensorManager.getOrientation(rotationMatrix, orientation)
 
-        convertToDegreesAndCallback(orientation)
+        var yawDegrees = getYawDegrees(orientation)
+        orientationCallback?.let { it(yawDegrees) }
     }
 
     //Computes new yaw based on magnetometer and accelerometer
@@ -247,26 +248,27 @@ class DeadReckoningService : Service(), SensorEventListener {
         // Calculate the orientation
         SensorManager.getOrientation(rotationMatrix, orientation)
 
-        convertToDegreesAndCallback(orientation)
+        var yawDegrees = getYawDegrees(orientation)
+        orientationCallback?.let { it(yawDegrees) }
     }
 
-    fun convertToDegreesAndCallback(orientation: FloatArray) {
+    fun getYawDegrees(orientation: FloatArray): Float {
         // Calculate yaw, pitch and roll values from the orientation[] array
         // Correct values depending on the screen rotation
         val screenRotation =
             (this@DeadReckoningService.getSystemService(WINDOW_SERVICE) as WindowManager).defaultDisplay.rotation
         var yawDegrees = Math.toDegrees(orientation[0].toDouble()).toFloat()
         if (screenRotation == ROTATION_0) {
-            val mRollDegrees = Math.toDegrees(orientation[2].toDouble()).toFloat()
-            if (mRollDegrees >= 90 || mRollDegrees <= -90) {
+            val rollDegrees = Math.toDegrees(orientation[2].toDouble()).toFloat()
+            if (rollDegrees >= 90 || rollDegrees <= -90) {
                 yawDegrees += 180f
             }
         } else if (screenRotation == ROTATION_90) {
             yawDegrees += 90f
         } else if (screenRotation == ROTATION_180) {
             yawDegrees += 180f
-            val mRollDegrees = (-Math.toDegrees(orientation[2].toDouble())).toFloat()
-            if (mRollDegrees >= 90 || mRollDegrees <= -90) {
+            val rollDegrees = (-Math.toDegrees(orientation[2].toDouble())).toFloat()
+            if (rollDegrees >= 90 || rollDegrees <= -90) {
                 yawDegrees += 180f
             }
         } else if (screenRotation == ROTATION_270) {
@@ -277,7 +279,8 @@ class DeadReckoningService : Service(), SensorEventListener {
         yawDegrees = (yawDegrees + 360) % 360
 
         lastYawDegrees = yawDegrees
-        orientationCallback?.let { it(yawDegrees) }
+
+        return yawDegrees
     }
 
 
