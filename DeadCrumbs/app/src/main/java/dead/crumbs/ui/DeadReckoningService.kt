@@ -204,6 +204,34 @@ class DeadReckoningService : Service(), SensorEventListener {
         return k * sqrt(abs(((max!! - min!!) / (avg - min)) * displace))
     }
 
+
+    //This function calculates the distance of a step with the Weinberg method
+    private fun weinbergEstimation(accelerometerValues: MutableList<Float>): Double {
+        val k = 0.41 //Constant for scaling the step length, based on the Weinberg paper
+        val min = accelerometerValues.min()
+        val max = accelerometerValues.max()
+
+        return (nthRoot((max!!.toDouble() - min!!.toDouble()), 4) * k)
+    }
+
+    //Taken from
+    //https://rosettacode.org/wiki/Nth_root#Kotlin
+    fun nthRoot(x: Double, n: Int): Double {
+        if (n < 2) throw IllegalArgumentException("n must be more than 1")
+        if (x <= 0.0) throw IllegalArgumentException("x must be positive")
+        val np = n - 1
+        fun iter(g: Double) = (np * g + x / Math.pow(g, np.toDouble())) / n
+        var g1 = x
+        var g2 = iter(g1)
+        while (g1 != g2) {
+            g1 = iter(g1)
+            g2 = iter(iter(g2))
+        }
+        return g1
+    }
+
+
+
     private fun updateYawRotationVector(event: SensorEvent) {
         val orientation = FloatArray(3)
 
@@ -282,6 +310,7 @@ class DeadReckoningService : Service(), SensorEventListener {
 
         return yawDegrees
     }
+
 
 
     //NOTE: This might be unnecessary
