@@ -40,7 +40,6 @@ class DeadReckoningService : Service(), SensorEventListener {
     private var geomagnetic = FloatArray(3)
     private var gravity = FloatArray(3)
 
-    private var yawSensibility: Float = 0f
     private var lastYawDegrees: Float = 0f
 
     private val ROTATION_VECTOR_SMOOTHING_FACTOR = 1f
@@ -49,30 +48,19 @@ class DeadReckoningService : Service(), SensorEventListener {
     //---ORIENTATION-END-------//
 
     private fun setupService() {
-        yawSensibility = 1f
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         magnetometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
         accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         rotationVectorSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
 
-        sensorManager.registerListener(
-            this,
-            rotationVectorSensor,
-            SensorManager.SENSOR_DELAY_FASTEST
-        )
+        sensorManager.registerListener(this, rotationVectorSensor, SensorManager.SENSOR_DELAY_FASTEST)
         sensorManager.registerListener(this, magnetometerSensor, SensorManager.SENSOR_DELAY_FASTEST)
-        sensorManager.registerListener(
-            this,
-            accelerometerSensor,
-            SensorManager.SENSOR_DELAY_FASTEST
-        )
-
+        sensorManager.registerListener(this, accelerometerSensor, SensorManager.SENSOR_DELAY_FASTEST)
 
         //Step counter
         val stepCounterSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
         //TODO: Consider SENSOR_DELAY_FASTEST
         sensorManager.registerListener(this, stepCounterSensor, SensorManager.SENSOR_DELAY_NORMAL)
-
     }
 
 
@@ -109,8 +97,8 @@ class DeadReckoningService : Service(), SensorEventListener {
     // Step length estimation fields
     private var accelerometerZReadings = mutableListOf<Pair<Long, Float>>()
 
-    /* This is called whenever this class (SensorEventListener) detects a new sensor value
-     * from a sensor it is listening to (registerListener) */
+    // This is called whenever this class (SensorEventListener) detects a new sensor value
+    // from a sensor it is listening to (registerListener)
     override fun onSensorChanged(event: SensorEvent) {
         when (event.sensor.type) {
             Sensor.TYPE_STEP_COUNTER -> {
@@ -144,7 +132,6 @@ class DeadReckoningService : Service(), SensorEventListener {
                 if (!useRotationVectorSensor) {
                     updateYawMagAcc(event)
                 }
-
             }
             Sensor.TYPE_ROTATION_VECTOR -> {
                 // If we got here it means that rotation vector sensor is working on this device
@@ -218,7 +205,6 @@ class DeadReckoningService : Service(), SensorEventListener {
     }
 
     fun updateYawRotationVector(event: SensorEvent) {
-
         val orientation = FloatArray(3)
 
         // Smooth values
@@ -230,6 +216,7 @@ class DeadReckoningService : Service(), SensorEventListener {
         // Calculate the rotation matrix
         val rotationMatrix = FloatArray(9)
         SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
+
         // Calculate the orientation
         SensorManager.getOrientation(rotationMatrix, orientation)
 
@@ -290,7 +277,7 @@ class DeadReckoningService : Service(), SensorEventListener {
         yawDegrees = (yawDegrees + 360) % 360
 
         // Notify the compass listener if needed
-        if (Math.abs(yawDegrees - lastYawDegrees) >= yawSensibility || lastYawDegrees == 0f) {
+        if (Math.abs(yawDegrees - lastYawDegrees) >= 0 || lastYawDegrees == 0f) {
             lastYawDegrees = yawDegrees
             orientationCallback?.let { it(yawDegrees) }
         }
@@ -312,6 +299,4 @@ class DeadReckoningService : Service(), SensorEventListener {
         }
         return output
     }
-
-
 }

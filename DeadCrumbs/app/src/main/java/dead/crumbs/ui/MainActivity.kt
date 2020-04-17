@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
         //Checks locations permissions, which are necessary for
         checkLocationPermissions()
 
-        //initializeBluetoothScan()
+        initializeBluetoothScan()
         initializeMapsViewModel() //Must be called before "startDeadReckoning()"
 
         // Dead Reckoning
