@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
         //Checks locations permissions, which are necessary for
         checkLocationPermissions()
 
-        initializeBluetoothScan()
+        //initializeBluetoothScan()
         initializeMapsViewModel() //Must be called before "startDeadReckoning()"
 
         // Dead Reckoning
@@ -88,8 +88,8 @@ class MainActivity : AppCompatActivity() {
             // We've bound to DeadReckoningService, cast the IBinder and get LocalService instance
             val drBinder = service as DeadReckoningService.LocalBinder
             drService = drBinder.getService()
-            drService.orientationCallback = fun(orientationAngles: FloatArray) {       //callback function
-                updateOrientation(orientationAngles)
+            drService.orientationCallback = fun(yaw: Float) {       //callback function
+                updateOrientation(yaw)
             }
             drService.stepCallback = fun(stepLength: Double) {       //callback function
                 updatePostition(stepLength)
@@ -107,9 +107,9 @@ class MainActivity : AppCompatActivity() {
 
     //Call the function in the viewmodel to update the orientation
     //of the meMarker.
-    private fun updateOrientation(orientationAngles: FloatArray){
+    private fun updateOrientation(yaw : Float){
         //Parsing the yaw value on to the function in the viewmodel
-        mapsViewModel!!.updateOrientation(orientationAngles[0].toDouble())
+        mapsViewModel!!.updateOrientation(yaw)
     }
 
 
