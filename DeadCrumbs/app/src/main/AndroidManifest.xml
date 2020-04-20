@@ -21,6 +21,8 @@
     <uses-permission
         android:name="android.permission.WRITE_SECURE_SETTINGS"
         tools:ignore="ProtectedPermissions" />
+
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -28,7 +30,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-      
+
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -53,8 +55,9 @@
             android:label="@string/title_activity_maps" />
 
         <service
-            android:name=".ui.BluetoothService"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+            android:name=".ui.BluetoothService"/>
+        <service
+            android:name=".ui.DeadReckoningService"/>
     </application>
 
 </manifest>

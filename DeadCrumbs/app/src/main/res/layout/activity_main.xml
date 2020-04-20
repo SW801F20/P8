@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".ui.MainActivity">
 
-
     <ScrollView
 
         android:id="@+id/SCROLLER_ID"
@@ -29,7 +28,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scrollbars="vertical"
-                android:text="Hello World!"
+                android:text="Bluetooth RSSI list"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"

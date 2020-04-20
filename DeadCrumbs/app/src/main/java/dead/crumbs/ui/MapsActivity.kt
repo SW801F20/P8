@@ -1,24 +1,21 @@
 package dead.crumbs.ui
 
-import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProviders
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
 import dead.crumbs.R
+import dead.crumbs.utilities.InjectorUtils
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     GoogleMap.OnMarkerClickListener{
 
-    private lateinit var map: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,9 +26,28 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
+        initializeViewModel()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.i("MapDebug", "Destroying map")
+        viewModel?.mapIsInitialized = false
+        //either do this or only had markers if they
+        //aren't in the list
+        viewModel?.markerList = mutableListOf<Marker>()
+    }
+
+    var viewModel : MapsViewModel? = null
+
+    private fun initializeViewModel() {
+        // Get the rssisViewModelFactory with all of it's dependencies constructed
+        val factory = InjectorUtils.singletonProvideMapsViewModelFactory()
+        // Use ViewModelProviders class to create / get already created rssisViewModel
+        // for this view (activity)
+        viewModel = ViewModelProviders.of(this, factory)
+            .get(MapsViewModel::class.java)
+    }
 
     /**
      * Manipulates the map once available.
@@ -41,39 +57,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
      * installed Google Play services and returned to the app.
      */
     override fun onMapReady(googleMap: GoogleMap) {
-        map = googleMap
-
-        map.addMarker(newMarker( loc = LatLng(57.041480, 9.935950), name = "Me", icon = R.mipmap.my_picture))
-
-        val locations = arrayOf(
-            LatLng(57.030972, 9.933032),
-            LatLng(57.040919, 9.947623)
-        )
-        val titles = arrayOf("Adam", "Marie")
-        val distances = arrayOf(15.0, 20.0)
-        val pictures = arrayOf(R.mipmap.my_picture, R.mipmap.my_picture)
-
-        for (i in locations.indices) {
-            map.addMarker(newMarker(locations[i], titles[i], distances[i], pictures[i]))
-        }
-        map.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(57.041480, 9.935950), 14f))
-        map.uiSettings.isZoomControlsEnabled = true
-        map.setOnMarkerClickListener(this)
+        viewModel!!.setupMap(googleMap)
+        viewModel!!.map.setOnMarkerClickListener(this)
     }
 
     override fun onMarkerClick(p0: Marker?): Boolean {
         p0?.showInfoWindow()
         return true
     }
-
-
-    private fun newMarker(loc: LatLng, name: String, distance: Double? = null, icon: Int): MarkerOptions {
-        // If no distance is given, just display name
-        val title: String = if (distance != null) name + " " + distance + "m" else name
-        return MarkerOptions()
-            .position(loc)
-            .title(title)
-            .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(resources, icon)))
-    }
-
 }
