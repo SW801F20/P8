@@ -111,7 +111,7 @@ components:
           type: array
           items:
             type: number
-            format: float
+            format: double
             
   parameters:
     username:
