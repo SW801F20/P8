@@ -41,9 +41,8 @@ namespace IO.Swagger.Controllers
         /// returns the location associated with username
         /// </summary>
         /// <param name="username">The username of the user.</param>
-        /// <response code="200">a JSON object of a location</response>
-        /// <response code="400">retrival of location went wrong</response>
-        /// <response code="404">no device with that id</response>
+        /// <response code="200"> Succesfull request! Returns a location represented as JSON</response>
+        /// <response code="404"> No locations found!</response>
         [HttpGet]
         [Route("/Location/{username}")]
         [ValidateModelState]
@@ -57,7 +56,7 @@ namespace IO.Swagger.Controllers
             {
                 return StatusCode(404, $"No locations found!");
             }
-            locations.Sort((l1, l2) => l2.Timestamp.Value.CompareTo(l1.Timestamp.Value));
+            locations.Sort((loc1, loc2) => loc2.Timestamp.Value.CompareTo(loc1.Timestamp.Value));
             Location newestLoc = locations[0];
 
             var result = new ObjectResult(newestLoc);
@@ -68,7 +67,8 @@ namespace IO.Swagger.Controllers
         /// return the user
         /// </summary>
         /// <param name="username">The username of the user.</param>
-        /// <response code="200">a user represented as json</response>
+        /// <response code="200"> Succesfull request! Returns a user represented as JSON</response>
+        /// <response code="404"> No user found called "username"</response>
         [HttpGet]
         [Route("/User/{username}")]
         [ValidateModelState]
@@ -92,7 +92,8 @@ namespace IO.Swagger.Controllers
         /// <summary>
         /// returns all user as a list
         /// </summary>
-        /// <response code="200">a JSON array of users</response>
+        /// <response code="200">Succesfull request! Returns a JSON array of users</response>
+        /// <response code="404"> No users found</response>
         [HttpGet]
         [Route("/Users")]
         [ValidateModelState]
@@ -114,8 +115,8 @@ namespace IO.Swagger.Controllers
         /// adds a new location
         /// </summary>
         /// <param name="location">a JSON object of a location</param>
-        /// <response code="201">location added successfully</response>
-        /// <response code="400">location added unsuccessfully</response>
+        /// <response code="201">Succesfull request! Created new location</response>
+        /// <response code="400">Bad request! Location not added</response>
         [HttpPost]
         [Route("/Location")]
         [ValidateModelState]
@@ -134,7 +135,6 @@ namespace IO.Swagger.Controllers
             {
                 return StatusCode(400, e.Message);
             }
-            
            
             return StatusCode(201);
         }
@@ -144,8 +144,8 @@ namespace IO.Swagger.Controllers
         /// adds a new user
         /// </summary>
         /// <param name="user">a JSON object of a location</param>
-        /// <response code="201">user added successfully</response>
-        /// <response code="400">user added unsuccessfully</response>
+        /// <response code="201">Succesfull request! Created new user</response>
+        /// <response code="400">Bad request! User not added</response>
         [HttpPost]
         [Route("/User")]
         [ValidateModelState]
@@ -161,7 +161,6 @@ namespace IO.Swagger.Controllers
             {
                 return StatusCode(400, e.Message);
             }
-
 
             return StatusCode(201);
         }
