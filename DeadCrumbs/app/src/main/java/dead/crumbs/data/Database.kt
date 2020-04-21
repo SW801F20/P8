@@ -1,5 +1,6 @@
 package dead.crumbs.data
 
+import dead.crumbs.data.DAO.Location_DAO
 import dead.crumbs.data.DAO.Maps_DAO
 import dead.crumbs.data.DAO.RSSI_DAO
 
@@ -11,6 +12,8 @@ class FakeDatabase private constructor() {
 
     var mapsDao = Maps_DAO()
         private set
+
+    var locationDao = Location_DAO()
 
     companion object {
         // @Volatile - Writes to this property are immediately visible to other threads
