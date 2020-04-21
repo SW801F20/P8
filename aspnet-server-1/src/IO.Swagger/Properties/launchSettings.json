@@ -18,10 +18,10 @@
     },
     "web": {
       "commandName": "Project",
-      "launchBrowser": true,
-      "launchUrl": "http://localhost:5000/swagger/",
+      "launchBrowser": false,
+      "launchUrl": "http://localhost:8393/swagger/",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Release"
       }
     }
   }
