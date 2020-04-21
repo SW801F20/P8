@@ -97,9 +97,10 @@ components:
           type: string
           format: date-time
       required: 
-        - id
-        - deviceId
-        - locationValue
+        - user_ref
+        - yaw
+        - position
+        - timestamp
         
     position:
       type: object
