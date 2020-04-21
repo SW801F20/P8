@@ -124,16 +124,45 @@ namespace IO.Swagger.Controllers
         {
             try
             {
+                var userCollection = db.GetCollection<User>("user");
+                if(!userCollection.Find((u) => location.UserRef == u.Username).Any())
+                    return StatusCode(400, "Location refers to an unknown user!");
                 var locationCollection = db.GetCollection<Location>("location");
                 locationCollection.InsertOne(location);
             }
             catch (Exception e)
             {
-
                 return StatusCode(400, e.Message);
             }
             
            
+            return StatusCode(201);
+        }
+
+
+        /// <summary>
+        /// adds a new user
+        /// </summary>
+        /// <param name="user">a JSON object of a location</param>
+        /// <response code="201">user added successfully</response>
+        /// <response code="400">user added unsuccessfully</response>
+        [HttpPost]
+        [Route("/User")]
+        [ValidateModelState]
+        [SwaggerOperation("PostUser")]
+        public virtual IActionResult PostUser([FromBody]User user)
+        {
+            try
+            {
+                var userCollection = db.GetCollection<User>("user");
+                userCollection.InsertOne(user);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(400, e.Message);
+            }
+
+
             return StatusCode(201);
         }
     }
