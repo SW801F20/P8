@@ -78,9 +78,7 @@ namespace IO.Swagger.Controllers
         public virtual IActionResult GetUser([FromRoute][Required]string username)
         {
             var userCollection = db.GetCollection<User>("user");
-            User user;
-
-            user = userCollection.Find((u) => u.Username == username).FirstOrDefault();
+            User user = userCollection.Find((u) => u.Username == username).FirstOrDefault();
             
             if (user == null)
             {
