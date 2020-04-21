@@ -20,6 +20,8 @@ using Microsoft.AspNetCore.Authorization;
 using IO.Swagger.Models;
 using MongoDB.Driver;
 using MongoDB.Bson;
+using System.IO;
+using Newtonsoft.Json.Linq;
 
 namespace IO.Swagger.Controllers
 { 
@@ -29,12 +31,11 @@ namespace IO.Swagger.Controllers
     [ApiController]
     public class DefaultApiController : ControllerBase
     {
-        public DefaultApiController()
+        public DefaultApiController(MongoConnectionService mongoConnectionService)
         {
-            dbClient = new MongoClient("mongodb://admin:mongo801@130.225.57.95:27017");
-            db = dbClient.GetDatabase("DeadCrumbs");
+            db = mongoConnectionService.db;
         }
-        private MongoClient dbClient;
+       
         private IMongoDatabase db;
 
         /// <summary>

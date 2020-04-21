@@ -51,6 +51,7 @@ namespace IO.Swagger
         /// <param name="services"></param>
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<MongoConnectionService>();
             // Add framework services.
             services
                 .AddMvc()
