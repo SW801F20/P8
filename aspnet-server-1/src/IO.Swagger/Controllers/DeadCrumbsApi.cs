@@ -29,9 +29,9 @@ namespace IO.Swagger.Controllers
     /// 
     /// </summary>
     [ApiController]
-    public class DefaultApiController : ControllerBase
+    public class DeadCrumbsController : ControllerBase
     {
-        public DefaultApiController(MongoConnectionService mongoConnectionService)
+        public DeadCrumbsController(MongoConnectionService mongoConnectionService)
         {
             db = mongoConnectionService.db;
         }
