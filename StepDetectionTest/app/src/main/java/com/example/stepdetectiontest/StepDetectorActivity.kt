@@ -78,13 +78,13 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
         when (event.sensor.type) {
             Sensor.TYPE_ACCELEROMETER -> {
                 Log.v(
-                    "Z-axis new value: " + event.timestamp.toString() + " ",
+                    "Z-axis new value: " + (event.timestamp / 1_000_000_000).toString()  + " ",
                     (event.values[2] - gravitationalAccel).toString()
                 )
                 if(accBufferIndex > accArraySize - 1)
                     accBufferIndex = 0
                 // Subtract acceleration from Earth's gravity
-                accelerometerZs[accBufferIndex] = Pair(event.values[2] - gravitationalAccel, event.timestamp)
+                accelerometerZs[accBufferIndex] = Pair(event.values[2] - gravitationalAccel, event.timestamp / 1_000_000_000)
                 accBufferIndex++
             }
             Sensor.TYPE_STEP_DETECTOR -> {
