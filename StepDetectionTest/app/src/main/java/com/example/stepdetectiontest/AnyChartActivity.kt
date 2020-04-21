@@ -12,6 +12,8 @@ import com.anychart.enums.Anchor
 import com.anychart.enums.MarkerType
 import com.anychart.enums.TooltipPositionMode
 import com.anychart.graphics.vector.Stroke
+import java.math.RoundingMode
+import java.text.DecimalFormat
 import java.util.*
 
 
@@ -40,10 +42,13 @@ class LineChartActivity : AppCompatActivity() {
         cartesian.xAxis(0).labels().padding(5.0, 5.0, 5.0, 5.0)
         val seriesData: MutableList<DataEntry> = ArrayList()
         val accelReadings = intent.getFloatArrayExtra("ACCEL_READINGS")
-        val accelTimestamps = intent.getLongArrayExtra("ACCEL_TIMESTAMPS")
+        val accelTimestamps = intent.getDoubleArrayExtra("ACCEL_TIMESTAMPS")
+
+        val df = DecimalFormat("#.##")
+        df.roundingMode = RoundingMode.CEILING
 
         for (i in accelReadings!!.indices) {
-            seriesData.add(CustomDataEntry(accelTimestamps!![i].toString(), accelReadings!![i]))
+            seriesData.add(CustomDataEntry(String.format("%.2f",accelTimestamps!![i]), accelReadings!![i]))
         }
 
 

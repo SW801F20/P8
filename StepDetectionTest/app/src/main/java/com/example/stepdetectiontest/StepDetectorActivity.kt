@@ -23,9 +23,10 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
     private var stepCounterSensor: Sensor? = null
     private var accelerometer: Sensor? = null
     private val accArraySize : Int = 10000
-    var accelerometerZs = arrayOfNulls<Pair<Float, Long>>(accArraySize)
+    var accelerometerZs = arrayOfNulls<Pair<Float, Double>>(accArraySize)
     var accBufferIndex : Int = 0
-    val gravitationalAccel : Float = 9.72F
+    var gravitationalAccel : Double = 9.72
+    var firstTimestamp : Double = 0.0
 
     var sdViewModel: StepDetectorViewModel? = null
 
@@ -55,12 +56,12 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
             button_AnyChart.isClickable = false
             val intent = Intent(this, LineChartActivity::class.java)
             val accelReadings = FloatArray(accArraySize)
-            val accelTimestamps = LongArray(accArraySize)
+            val accelTimestamps = DoubleArray(accArraySize)
 
             for ((i, readingPair) in accelerometerZs.withIndex()) {
                 if (readingPair != null) {
                     accelReadings[i] = readingPair!!.first
-                    accelTimestamps[i] = readingPair!!.second
+                    accelTimestamps[i] = readingPair!!.second.toDouble()
                 }
             }
 
@@ -77,15 +78,40 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
 
         when (event.sensor.type) {
             Sensor.TYPE_ACCELEROMETER -> {
-                Log.v(
-                    "Z-axis new value: " + (event.timestamp / 1_000_000_000).toString()  + " ",
-                    (event.values[2] - gravitationalAccel).toString()
-                )
-                if(accBufferIndex > accArraySize - 1)
+                var accelValue = event.values[2]
+
+                if(accBufferIndex > accArraySize - 1) {
                     accBufferIndex = 0
-                // Subtract acceleration from Earth's gravity
-                accelerometerZs[accBufferIndex] = Pair(event.values[2] - gravitationalAccel, event.timestamp / 1_000_000_000)
+                    accelerometerZs = arrayOfNulls(accArraySize)
+                }
+
+                // High pass filter to remove influence of earth's gravity
+                val alpha = 0.95 // Should be between 0.9 and 1.0, so we just set it in between
+                gravitationalAccel = alpha * gravitationalAccel + (1 - alpha) * accelValue // Equation 4 in SmartPDR
+                accelValue = (accelValue - gravitationalAccel).toFloat() // Equation 5 in SmartPDR
+
+                Log.v(
+                    "gzt: ",  gravitationalAccel.toString()
+                )
+
+                // Low pass filter from equation 6 in SmartPDR
+                val w = 3
+                if (accBufferIndex > (w - 1) / 2){
+
+                }
+
+
+                // Save the first reading's timestamp and use to make timestamps count from 0 and up
+                if (firstTimestamp == 0.0)
+                    firstTimestamp = event.timestamp.toDouble()
+                // Add accelerometer value and timestamp to array
+                accelerometerZs[accBufferIndex] = Pair(accelValue, (event.timestamp - firstTimestamp) / 1_000_000_000.0)
                 accBufferIndex++
+
+                Log.v(
+                    "Z-axis new value: " + ((event.timestamp - firstTimestamp)/ 1_000_000_000.0).toString()  + " ",
+                    (accelValue - gravitationalAccel).toString()
+                )
             }
             Sensor.TYPE_STEP_DETECTOR -> {
                 sdViewModel!!.stepDetectorCount += 1
@@ -119,10 +145,16 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
                 }
                 if (accelerometerZs[0] != null) {
 
-                    // Estimate step length using Scarlet approach
-                    val simpleDist = simpleScarletEstimation(accelerometerValues)
-                    val scarletDist = scarletEstimation(accelerometerValues)
-                    val weinbergDist = weinbergEstimation(accelerometerValues)
+                    var simpleDist = 0.0
+                    var scarletDist = 0.0
+                    var weinbergDist = 0.0
+
+                    // Estimate step length
+                    if (!accelerometerValues.isEmpty()) {
+                        simpleDist = simpleScarletEstimation(accelerometerValues)
+                        scarletDist = scarletEstimation(accelerometerValues)
+                        weinbergDist = weinbergEstimation(accelerometerValues)
+                    }
 
                     // Update total distances
                     if (!scarletDist.isNaN()) sdViewModel!!.scarletDistSum += scarletDist
@@ -144,7 +176,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
 
                     // Clear old accel readings
                     // TODO: Make sure what we're doing makes sense
-//                accelerometerZs = accelerometerZs.filter { it!!.second >= event.timestamp }.toTypedArray()
+//                accelerometerZs = accelerometerZs.filter { it!!.second >= event.timestamp }.toTypedArray() // this crashes
 //                    accelerometerZs = arrayOfNulls(accArraySize)
 //                    accBufferIndex = 0
                 }
