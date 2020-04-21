@@ -11,13 +11,15 @@ paths:
       operationId: getUsers
       responses:
         200:
-          description: a JSON array of users
+          description: Succesfull request! Returns a JSON array of users
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/user'
+        404:
+          description: No users found
 
   /User/{username}:
     get:
@@ -27,11 +29,13 @@ paths:
         - $ref: '#/components/parameters/username'
       responses:
         200:
-          description: a user represented as json
+          description: Succesfull request! Returns a user represented as JSON
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/user'
+        404:
+          description: No user found called "username"
 
   /Location/{username}:
     get:
@@ -41,17 +45,14 @@ paths:
         - $ref: '#/components/parameters/username'
       responses:
         200:
-          description: a JSON object of a location
+          description: Succesfull request! Returns a location represented as JSON
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/location'
-                
-        400:
-          description: retrival of location went wrong
-        
+                        
         404:
-          description: no device with that id
+          description: No locations found!
                 
   
   /Location:
@@ -62,10 +63,9 @@ paths:
         $ref: '#/components/requestBodies/location'
       responses:
         201:
-          description: location added successfully
+          description: Succesfull request! Created new location
         400:
-          description: location added unsuccessfully
-
+          description: Bad request! Location not added
       
 
 components:
