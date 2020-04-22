@@ -59,8 +59,11 @@ class MainActivity : AppCompatActivity() {
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-        gpsViewModel = GPSViewModel()
-        gpsViewModel.getLastLocation(this, this@MainActivity)
+        var locationViewModel : GPSViewModel? = null
+        val locationFactory = InjectorUtils.provideLocation()
+        locationViewModel = ViewModelProviders.of(this, locationFactory)
+            .get(GPSViewModel::class.java)
+        locationViewModel.getLastLocation(this, this@MainActivity)
     }
 
     override fun onResume() {

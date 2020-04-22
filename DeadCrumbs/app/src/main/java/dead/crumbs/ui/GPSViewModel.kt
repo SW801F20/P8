@@ -16,8 +16,9 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.ViewModel
 import com.google.android.gms.location.*
+import dead.crumbs.data.LocationRepository
 
-class GPSViewModel () : ViewModel(){
+class GPSViewModel (private val locationRepository : LocationRepository) : ViewModel(){
 
     val PERMISSION_ID = 42;
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
@@ -87,9 +88,15 @@ class GPSViewModel () : ViewModel(){
     private val mLocationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
             var mLastLocation: Location = locationResult.lastLocation
-            //This call shold call the api
+
         }
     }
+
+    fun getLocations() = locationRepository.getLocation()
+
+    fun postLocation() = locationRepository.postLocation()
+
+
 
 
 
