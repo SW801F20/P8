@@ -49,10 +49,18 @@ class LineChartActivity : AppCompatActivity() {
         df.roundingMode = RoundingMode.CEILING
 
         for (i in accelReadings!!.indices) {
+            val peakValue : Int
+            val slopeValue : Int
             if (peakTimestamps.contains(accelTimestamps[i]))
-                seriesData.add(CustomDataEntry(String.format("%.2f",accelTimestamps!![i]), accelReadings!![i], 8))
+                peakValue = 8
             else
-                seriesData.add(CustomDataEntry(String.format("%.2f",accelTimestamps!![i]), accelReadings!![i], 7))
+                peakValue = 7
+            if (slopeTimeStamps.contains(accelTimestamps[i]))
+                slopeValue = 10
+            else
+                slopeValue = 9
+
+            seriesData.add(CustomDataEntry(String.format("%.2f",accelTimestamps!![i]), accelReadings!![i], peakValue, slopeValue))
         }
 
 
@@ -60,9 +68,11 @@ class LineChartActivity : AppCompatActivity() {
         val set = Set.instantiate()
         set.data(seriesData)
         val series1Mapping = set.mapAs("{ x: 'x', value: 'value' }")
-        val series2Mapping = set.mapAs("{ x: 'x', value: 'value2' }")
+        val series2Mapping = set.mapAs("{ x: 'x', value: 'peak' }")
+        val series3Mapping = set.mapAs("{ x: 'x', value: 'slope' }")
+
         val series1 = cartesian.line(series1Mapping)
-        series1.name("Life")
+        series1.name("Accelerometer")
         series1.hovered().markers().enabled(true)
         series1.hovered().markers()
             .type(MarkerType.CIRCLE)
@@ -84,6 +94,19 @@ class LineChartActivity : AppCompatActivity() {
             .anchor(Anchor.LEFT_CENTER)
             .offsetX(5.0)
             .offsetY(5.0)
+
+        val series3 = cartesian.line(series3Mapping)
+        series3.name("Slopes")
+        series3.hovered().markers().enabled(true)
+        series3.hovered().markers()
+            .type(MarkerType.CIRCLE)
+            .size(4.0)
+        series3.tooltip()
+            .position("right")
+            .anchor(Anchor.LEFT_CENTER)
+            .offsetX(5.0)
+            .offsetY(5.0)
+
         cartesian.legend().enabled(true)
         cartesian.legend().fontSize(13.0)
         cartesian.legend().padding(0.0, 0.0, 10.0, 0.0)
@@ -93,11 +116,13 @@ class LineChartActivity : AppCompatActivity() {
     private class CustomDataEntry internal constructor(
         x: String?,
         value: Number?,
-        value2: Number?
+        peak: Number?,
+        slope: Number?
     ) :
         ValueDataEntry(x, value) {
         init {
-            setValue("value2", value2)
+            setValue("peak", peak)
+            setValue("slope", slope)
         }
     }
 

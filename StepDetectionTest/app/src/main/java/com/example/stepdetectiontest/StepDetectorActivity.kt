@@ -240,7 +240,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
                 }
             }
             if (isPeak) {
-                tPeak.plus(accelReadings[t]!!.first)
+                tPeak = tPeak.plus(accelReadings[t]!!.first)
                 Log.v("Peak: ", "Peak found. Value: ${accelReadings[t]!!.first}")
                 anyChartPeakTimestamps.add(accelReadings[t]!!.second)
                 // Count and show a step
@@ -351,7 +351,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
         val n : Int = 6
 
         // Run through all the "middle" data points.
-        for (j in n / 2 .. accBufferIndex - n / 2) {
+        for (j in n / 2 until accBufferIndex - n / 2) {
 
             // Fields for the cumulative sum of differences.
             var sum1 = 0.0
@@ -366,8 +366,8 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
                 // And add the difference between the next data point and this one.
                 sum1 += accelReadings[i + 1]!!.first - accelReadings[i]!!.first
             }
-            // The result should be multiplied by the constant 2 / n.
-            sum1 *= 2 / n
+            // The result should be multiplied by the factor 2 / n.
+//            sum1 *= 2 / n
 
             // Upper and lower bounds for the second summation.
             val lower2 = j + 1
@@ -379,11 +379,11 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
                 sum2 += accelReadings[i]!!.first - accelReadings[i - 1]!!.first
             }
             // And multiply by the factor 2 / n
-            sum2 *= 2 / n
+//            sum2 *= 2 / n
 
             // The data point is added if sum1 is positive and sum2 is negative.
             if (sum1 > 0 && sum2 < 0) {
-                resultingSet.plus(accelReadings[j]!!.first)
+                resultingSet = resultingSet.plus(accelReadings[j]!!.first)
                 Log.v("Slope: ", "Slope found. Value: ${accelReadings[j]!!.first}")
                 anyChartSlopeTimestamps.add(accelReadings[j]!!.second)
             }
