@@ -13,6 +13,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlin.math.abs
+import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 
@@ -27,6 +28,11 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
     var accBufferIndex : Int = 0
     var gravitationalAccel : Double = 9.72
     var firstTimestamp : Double = 0.0
+
+    // For viewing data in AnyChartActivity
+    var anyChartPeakTimestamps = mutableListOf<Double>()
+    val anyChartAccels = mutableListOf<Float>()
+    val anyChartTimestamps = mutableListOf<Double>()
 
     var sdViewModel: StepDetectorViewModel? = null
 
@@ -55,18 +61,29 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
         button_AnyChart.setOnClickListener{
             button_AnyChart.isClickable = false
             val intent = Intent(this, LineChartActivity::class.java)
-            val accelReadings = FloatArray(accArraySize)
-            val accelTimestamps = DoubleArray(accArraySize)
 
-            for ((i, readingPair) in accelerometerZs.withIndex()) {
-                if (readingPair != null) {
-                    accelReadings[i] = readingPair!!.first
-                    accelTimestamps[i] = readingPair!!.second.toDouble()
-                }
+//            for ((i, readingPair) in accelerometerZs.withIndex()) {
+//                if (readingPair != null) {
+//                    accelReadings[i] = readingPair!!.first
+//                    accelTimestamps[i] = readingPair!!.second.toDouble()
+//                }
+//            }
+
+            var anyChartPeakTimestampsArray = DoubleArray(accArraySize)
+            val anyChartAccelsArray = FloatArray(accArraySize)
+            val anyChartTimestampsArray = DoubleArray(accArraySize)
+
+            for (i in anyChartAccels.indices){
+                    anyChartAccelsArray[i] = anyChartAccels[i]
+                    anyChartTimestampsArray[i] = anyChartTimestamps[i]
+            }
+            for (i in anyChartPeakTimestamps.indices){
+                anyChartPeakTimestampsArray[i] = anyChartPeakTimestamps[i]
             }
 
-            intent.putExtra("ACCEL_READINGS", accelReadings)
-            intent.putExtra("ACCEL_TIMESTAMPS", accelTimestamps)
+            intent.putExtra("ACCEL_READINGS", anyChartAccelsArray)
+            intent.putExtra("ACCEL_TIMESTAMPS", anyChartTimestampsArray)
+            intent.putExtra("PEAK_TIMESTAMPS", anyChartPeakTimestampsArray)
 
             startActivity(intent)
         }
@@ -78,40 +95,10 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
 
         when (event.sensor.type) {
             Sensor.TYPE_ACCELEROMETER -> {
-                var accelValue = event.values[2]
-
-                if(accBufferIndex > accArraySize - 1) {
-                    accBufferIndex = 0
-                    accelerometerZs = arrayOfNulls(accArraySize)
-                }
-
-                // High pass filter to remove influence of earth's gravity
-                val alpha = 0.95 // Should be between 0.9 and 1.0, so we just set it in between
-                gravitationalAccel = alpha * gravitationalAccel + (1 - alpha) * accelValue // Equation 4 in SmartPDR
-                accelValue = (accelValue - gravitationalAccel).toFloat() // Equation 5 in SmartPDR
-
-                Log.v(
-                    "gzt: ",  gravitationalAccel.toString()
-                )
-
-                // Low pass filter from equation 6 in SmartPDR
-                val w = 3
-                if (accBufferIndex > (w - 1) / 2){
-
-                }
-
-
-                // Save the first reading's timestamp and use to make timestamps count from 0 and up
-                if (firstTimestamp == 0.0)
-                    firstTimestamp = event.timestamp.toDouble()
-                // Add accelerometer value and timestamp to array
-                accelerometerZs[accBufferIndex] = Pair(accelValue, (event.timestamp - firstTimestamp) / 1_000_000_000.0)
-                accBufferIndex++
-
-                Log.v(
-                    "Z-axis new value: " + ((event.timestamp - firstTimestamp)/ 1_000_000_000.0).toString()  + " ",
-                    (accelValue - gravitationalAccel).toString()
-                )
+                processAndRecordReading(event)
+//                if (accBufferIndex % 50 == 0){
+                    isStep(accelerometerZs)
+//                }
             }
             Sensor.TYPE_STEP_DETECTOR -> {
                 sdViewModel!!.stepDetectorCount += 1
@@ -182,6 +169,125 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
                 }
             }
         }
+    }
+
+    private fun isStep(accelReadings: Array<Pair<Float, Double>?>): Boolean {
+
+//        var accelReadings = lowPassFilter(accelReadings1, accBufferIndex)
+
+        val aTauPeak = 0.5
+        val aTauPP = 1.0
+        val n = 6
+
+        var tPeak = setOf<Float>()
+        for (t in n/2 .. accBufferIndex - n/2) {
+            var isPeak = true
+            for (i in -n/2 .. n/2 - 1) {
+//                if (i == 0 || t + i < 0 || t + i > accBufferIndex) continue
+                if (i == 0) continue
+                val current = accelReadings[t]!!.first
+                val local = accelReadings[t+i]!!.first
+                if (current <= local || current <= aTauPeak) {
+                    isPeak = false
+                    break
+                }
+            }
+            if (isPeak) {
+                tPeak.plus(accelReadings[t]!!.first)
+                Log.v("Peak: ", "Peak found. Value: ${accelReadings[t]!!.first}")
+                anyChartPeakTimestamps.add(accelReadings[t]!!.second)
+                // Count and show a step
+                sdViewModel!!.ourStepCounter++
+                text_OurStepCounter.text = "OurStepCounter: ${sdViewModel!!.ourStepCounter}"
+
+                // Copy values for viewing in AnyChartActivity before flushing
+                for ((i, readingPair) in accelerometerZs.withIndex()) {
+                    if (readingPair != null) {
+                        anyChartAccels.add(readingPair!!.first)
+                        anyChartTimestamps.add(readingPair!!.second)
+                    }
+                }
+
+                //TODO: Refactor hardcode flush
+                accelerometerZs = arrayOfNulls(accArraySize)
+                accBufferIndex = 0
+            }
+        }
+
+        var tPP = setOf<Float>()
+
+        var tSlope = setOf<Float>()
+
+        val tStep = tPeak
+            .intersect(tPP)
+            .intersect(tSlope)
+
+        return false
+    }
+
+    private fun processAndRecordReading(event: SensorEvent) {
+        var accelReading = event.values[2]
+        // If array is full (reached accArraySize), reset the array
+        if(accBufferIndex > accArraySize - 1) {
+            accBufferIndex = 0
+            accelerometerZs = arrayOfNulls(accArraySize)
+        }
+
+        // High pass filter to remove influence of earth's gravity
+        accelReading = highPassFilter(accelReading)
+
+        // Save the first reading's timestamp and use to make timestamps count from 0 and up
+        if (firstTimestamp == 0.0)
+            firstTimestamp = event.timestamp.toDouble()
+        // Add accelerometer value and timestamp to array
+        accelerometerZs[accBufferIndex] = Pair(accelReading, (event.timestamp - firstTimestamp) / 1_000_000_000.0)
+        accBufferIndex++
+
+        // Log the reading in logcat
+        Log.v(
+            "Z-axis new value: " + ((event.timestamp - firstTimestamp)/ 1_000_000_000.0).toString()  + " ",
+            (accelReading - gravitationalAccel).toString()
+        )
+
+        // Low pass filter to remove high frequency noise
+//        accelerometerZs = lowPassFilter(accelerometerZs, accBufferIndex)
+    }
+
+    /* Perform a low pass filter to remove high frequency noise
+       This function only uses the readings, not the timestamps, but extracting the readings
+       and passing them to this function would require two for loops iterating over the array,
+       which is bad for performance.
+     */
+    private fun lowPassFilter(accelReadings: Array<Pair<Float, Double>?>, arrayIndex: Int): Array<Pair<Float, Double>?> {
+        // Low pass filter from equation 6 in SmartPDR
+        // We tried few tests with w = 3, 9, 11 and 15, where 9 and 11 seemed to be best
+        val w = 11.0 // Window size
+        // Filter if there are enough readings for averaging over w readings
+        if (arrayIndex > w - 1){
+            // For storing the result of the summation
+            var temp = 0.0F
+            // Bounds for the summation
+            val lower = (-(w-1)/2).roundToInt()
+            val upper = ((w-1)/2).roundToInt()
+
+            // Iterate over the w newest readings in accelReadings and calculate sum
+            for (i in lower .. upper)
+                temp += accelReadings[arrayIndex + lower - 1 + i]!!.first
+            // Perform the filtering
+            val filteredAcc = ((1 / w) * temp).toFloat()
+            // The middle element of the window will be overwritten with the filtered reading
+            val windowMiddle = arrayIndex - ((w-1)/2).roundToInt() - 1
+            // Use copy to make a new pair since we cannot reassign values in pair
+            accelReadings[windowMiddle] = accelReadings[windowMiddle]!!.copy(first = filteredAcc)
+        }
+        return accelReadings
+    }
+
+    // Performs a high pass filter on an accelerometer reading
+    private fun highPassFilter(accelReading: Float): Float {
+        val alpha = 0.95 // Should be between 0.9 and 1.0, so we just set it in between
+        gravitationalAccel = alpha * gravitationalAccel + (1 - alpha) * accelReading // Equation 4 in SmartPDR
+        return (accelReading - gravitationalAccel).toFloat() // Equation 5 in SmartPDR
     }
 
     // TODO: Test if works

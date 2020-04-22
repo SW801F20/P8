@@ -1,7 +1,6 @@
 package com.example.stepdetectiontest
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.anychart.AnyChart
 import com.anychart.AnyChartView
@@ -43,12 +42,16 @@ class LineChartActivity : AppCompatActivity() {
         val seriesData: MutableList<DataEntry> = ArrayList()
         val accelReadings = intent.getFloatArrayExtra("ACCEL_READINGS")
         val accelTimestamps = intent.getDoubleArrayExtra("ACCEL_TIMESTAMPS")
+        val peakTimestamps = intent.getDoubleArrayExtra("PEAK_TIMESTAMPS")
 
         val df = DecimalFormat("#.##")
         df.roundingMode = RoundingMode.CEILING
 
         for (i in accelReadings!!.indices) {
-            seriesData.add(CustomDataEntry(String.format("%.2f",accelTimestamps!![i]), accelReadings!![i]))
+            if (peakTimestamps.contains(accelTimestamps[i]))
+                seriesData.add(CustomDataEntry(String.format("%.2f",accelTimestamps!![i]), accelReadings!![i], 8))
+            else
+                seriesData.add(CustomDataEntry(String.format("%.2f",accelTimestamps!![i]), accelReadings!![i], 7))
         }
 
 
@@ -56,6 +59,7 @@ class LineChartActivity : AppCompatActivity() {
         val set = Set.instantiate()
         set.data(seriesData)
         val series1Mapping = set.mapAs("{ x: 'x', value: 'value' }")
+        val series2Mapping = set.mapAs("{ x: 'x', value: 'value2' }")
         val series1 = cartesian.line(series1Mapping)
         series1.name("Life")
         series1.hovered().markers().enabled(true)
@@ -67,17 +71,40 @@ class LineChartActivity : AppCompatActivity() {
             .anchor(Anchor.LEFT_CENTER)
             .offsetX(5.0)
             .offsetY(5.0)
+
+        val series2 = cartesian.line(series2Mapping)
+        series2.name("Peaks")
+        series2.hovered().markers().enabled(true)
+        series2.hovered().markers()
+            .type(MarkerType.CIRCLE)
+            .size(4.0)
+        series2.tooltip()
+            .position("right")
+            .anchor(Anchor.LEFT_CENTER)
+            .offsetX(5.0)
+            .offsetY(5.0)
         cartesian.legend().enabled(true)
         cartesian.legend().fontSize(13.0)
         cartesian.legend().padding(0.0, 0.0, 10.0, 0.0)
         anyChartView.setChart(cartesian)
     }
 
-    private inner class CustomDataEntry internal constructor(
+    private class CustomDataEntry internal constructor(
         x: String?,
-        value: Float?
+        value: Number?,
+        value2: Number?
     ) :
         ValueDataEntry(x, value) {
-        // TODO: setValue?
+        init {
+            setValue("value2", value2)
+        }
     }
+
+//    private inner class CustomDataEntry internal constructor(
+//        x: String?,
+//        value: Float?
+//    ) :
+//        ValueDataEntry(x, value) {
+//        // TODO: setValue?
+//    }
 }
