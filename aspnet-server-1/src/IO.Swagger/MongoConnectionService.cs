@@ -16,7 +16,7 @@ namespace IO.Swagger
             try
             {
                 Console.WriteLine("Check: About to read file and parse to json");
-                JObject json = JObject.Parse(new StreamReader(@"..\..\mongoConnection.json").ReadToEnd());
+                JObject json = JObject.Parse(new StreamReader(@"../../mongoConnection.json").ReadToEnd());
                 Console.WriteLine("Check: Parsed to json");
                 var ip = json["ip"];
                 var port = json["port"];
