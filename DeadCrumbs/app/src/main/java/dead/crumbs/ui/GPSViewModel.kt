@@ -6,6 +6,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.drawable.GradientDrawable
 import android.location.Location
 import android.location.LocationManager
 import android.os.Looper
@@ -92,13 +93,10 @@ class GPSViewModel (private val locationRepository : LocationRepository) : ViewM
         }
     }
 
-    fun getLocations() = locationRepository.getLocation()
-
-    fun postLocation() = locationRepository.postLocation()
-
-
-
-
+    fun getUsers() = locationRepository.getUsers()
+    fun getUser(userName: String) = locationRepository.getUser(userName)
+    fun getLocation(userName: String) = locationRepository.getLocation(userName)
+    fun postLocation(location : io.swagger.client.models.Location) = locationRepository.postLocation(location)
 
 
 }

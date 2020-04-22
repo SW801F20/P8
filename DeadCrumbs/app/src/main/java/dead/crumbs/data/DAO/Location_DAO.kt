@@ -1,33 +1,67 @@
 package dead.crumbs.data.DAO
 
-import android.util.Log
-import okhttp3.*
-import java.io.IOException
-import java.net.URL
-
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import io.swagger.client.apis.DefaultApi
+import io.swagger.client.models.Location
+import io.swagger.client.models.Position
+import io.swagger.client.models.User
+import java.time.LocalDateTime
+import kotlin.concurrent.thread
 //This class should be the one that calls the api
-class Location_DAO{
-    private val client = OkHttpClient()
+class Location_DAO {
+    // Since access is done from an emulator, we cannot use localhost
+    // instead we have to use 10.0.2.2, also, it assumes API is running on port 8080
+    val client = DefaultApi("http://10.0.2.2:8080")
 
-    fun getLocation(){
-        val result = URL("130.225.57.95:8393/swagger/index.html/Users").readText()
-        Log.v("response", "response: " + result.toString())
+    // Adds a location to the local representation
+    // and updates database
+    fun postLocation(location: Location) {
+        val thread = thread(start = true){
+            client.postLocation(body=location)
+        }
+        thread.join()
     }
 
-    fun postLocation(){
-
-        run("130.225.57.95:8393/swagger/index.html/Location")//130.225.57.95:8393/swagger/index.html/Location
+    fun getUser(userName: String): LiveData<User>{
+        var user : User? = null
+        val thread = thread (start = true){
+            user = client.getUser(userName)
+        }
+        thread.join()
+        if(user == null){
+            //throw error here
+            return MutableLiveData(user)
+        }else{
+            return MutableLiveData(user)
+        }
     }
 
-    fun run(url: String){
-        val request = Request.Builder()
-            .url(url)
-            .build()
-
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {}
-            override fun onResponse(call: Call, response: Response) = println(response.body?.string()) // used to be body()
-        })
+    fun getUsers(): LiveData<List<User>>{
+        var all_users = arrayOf<User>()
+        //operations over the internet should happen on a thread
+        val thread = thread(start = true){
+            all_users = client.getUsers()
+        }
+        //Wait for the action to complete
+        thread.join()
+        return MutableLiveData(all_users.toList())
     }
 
+
+    // Returns the first locations that matches the deviceId
+    fun getLocation(userName: String) : LiveData<Location>{
+        var location: Location? = null
+        val thread = thread (start = true){
+            location = client.getLocation(userName)
+        }
+        thread.join()
+        if(location == null){
+            //throw error here
+            return MutableLiveData(location)
+        }else{
+            return MutableLiveData(location)
+        }
+
+    }
 }
