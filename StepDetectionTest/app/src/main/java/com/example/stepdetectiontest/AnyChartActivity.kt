@@ -43,6 +43,7 @@ class LineChartActivity : AppCompatActivity() {
         val accelReadings = intent.getFloatArrayExtra("ACCEL_READINGS")
         val accelTimestamps = intent.getDoubleArrayExtra("ACCEL_TIMESTAMPS")
         val peakTimestamps = intent.getDoubleArrayExtra("PEAK_TIMESTAMPS")
+        val slopeTimeStamps = intent.getDoubleArrayExtra("SLOPE_TIMESTAMPS")
 
         val df = DecimalFormat("#.##")
         df.roundingMode = RoundingMode.CEILING

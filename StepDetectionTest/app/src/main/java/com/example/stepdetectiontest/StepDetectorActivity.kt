@@ -31,6 +31,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
 
     // For viewing data in AnyChartActivity
     var anyChartPeakTimestamps = mutableListOf<Double>()
+    var anyChartSlopeTimestamps = mutableListOf<Double>()
     val anyChartAccels = mutableListOf<Float>()
     val anyChartTimestamps = mutableListOf<Double>()
 
@@ -72,6 +73,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
             var anyChartPeakTimestampsArray = DoubleArray(accArraySize)
             val anyChartAccelsArray = FloatArray(accArraySize)
             val anyChartTimestampsArray = DoubleArray(accArraySize)
+            val anyChartSlopeTimestampsArray = DoubleArray(accArraySize)
 
             for (i in anyChartAccels.indices){
                     anyChartAccelsArray[i] = anyChartAccels[i]
@@ -80,14 +82,17 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
             for (i in anyChartPeakTimestamps.indices){
                 anyChartPeakTimestampsArray[i] = anyChartPeakTimestamps[i]
             }
+            for (i in anyChartSlopeTimestamps.indices){
+                anyChartSlopeTimestampsArray[i] = anyChartSlopeTimestamps[i]
+            }
 
             intent.putExtra("ACCEL_READINGS", anyChartAccelsArray)
             intent.putExtra("ACCEL_TIMESTAMPS", anyChartTimestampsArray)
             intent.putExtra("PEAK_TIMESTAMPS", anyChartPeakTimestampsArray)
+            intent.putExtra("SLOPE_TIMESTAMPS", anyChartSlopeTimestampsArray)
 
             startActivity(intent)
         }
-
     }
 
     override fun onSensorChanged(event: SensorEvent) {
@@ -217,7 +222,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
         var tPP = setOf<Float>()
 
         var tSlope = setOf<Float>()
-
+        tSlope = getTSlopeValues(accelReadings)
         val tStep = tPeak
             .intersect(tPP)
             .intersect(tSlope)
@@ -290,6 +295,54 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
         return (accelReading - gravitationalAccel).toFloat() // Equation 5 in SmartPDR
     }
 
+    private fun getTSlopeValues(accelReadings: Array<Pair<Float, Double>?>): Set<Float>{
+
+        var resultingSet : Set<Float> = setOf<Float>()
+
+        // Constant value. Subject to change
+        val n : Int = 6
+
+        // Run through all the "middle" data points.
+        for (j in n / 2 .. accBufferIndex - n / 2) {
+
+            // Fields for the cumulative sum of differences.
+            var sum1 = 0.0
+            var sum2 = 0.0
+
+            // Lower and upper bound of the index used in the first summation
+            val lower1 = j - n / 2
+            val upper1 = j - 1
+
+            // Run through the points in that range
+            for (i in lower1..upper1) {
+                // And add the difference between the next data point and this one.
+                sum1 += accelReadings[i + 1]!!.first - accelReadings[i]!!.first
+            }
+            // The result should be multiplied by the constant 2 / n.
+            sum1 *= 2 / n
+
+            // Upper and lower bounds for the second summation.
+            val lower2 = j + 1
+            val upper2 = j + n / 2
+
+            // Run through the data points in that range
+            for (i in lower2..upper2) {
+                // And add the difference between this data point and the previous.
+                sum2 += accelReadings[i]!!.first - accelReadings[i - 1]!!.first
+            }
+            // And multiply by the factor 2 / n
+            sum2 *= 2 / n
+
+            // The data point is added if sum1 is positive and sum2 is negative.
+            if (sum1 > 0 && sum2 < 0) {
+                resultingSet.plus(accelReadings[j]!!.first)
+                Log.v("Slope: ", "Slope found. Value: ${accelReadings[j]!!.first}")
+                anyChartSlopeTimestamps.add(accelReadings[j]!!.second)
+            }
+        }
+
+        return resultingSet
+    }
     // TODO: Test if works
     private fun scarletEstimation(accelerometerValues: MutableList<Float>): Double {
         // walkfudge from J. Scarlet's code
