@@ -16,6 +16,11 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
+/*TODO: Next up
+ * Fix slope detection so that it actually gives something useful
+ * Test how useless PP detection is and if it actually shows up in anyChart
+ * Adjust peak detection, especially lower and upper thresholds (possibly remove upper)
+ */
 
 class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
 
@@ -23,15 +28,16 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
     private var stepDetectorSensor: Sensor? = null
     private var stepCounterSensor: Sensor? = null
     private var accelerometer: Sensor? = null
-    private val accArraySize : Int = 10000
+    private val accArraySize: Int = 10000
     var accelerometerZs = arrayOfNulls<Pair<Float, Double>>(accArraySize)
-    var accBufferIndex : Int = 0
-    var gravitationalAccel : Double = 9.72
-    var firstTimestamp : Double = 0.0
+    var accBufferIndex: Int = 0
+    var gravitationalAccel: Double = 9.72
+    var firstTimestamp: Double = 0.0
 
     // For viewing data in AnyChartActivity
     var anyChartPeakTimestamps = mutableListOf<Double>()
     var anyChartSlopeTimestamps = mutableListOf<Double>()
+    var anyChartPPTimestamps = mutableListOf<Double>()
     val anyChartAccels = mutableListOf<Float>()
     val anyChartTimestamps = mutableListOf<Double>()
 
@@ -66,7 +72,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
 
 
         // Button for seeing the main chart
-        button_AnyChart.setOnClickListener{
+        button_AnyChart.setOnClickListener {
             button_AnyChart.isClickable = false
             val intent = Intent(this, LineChartActivity::class.java)
 
@@ -82,17 +88,21 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
             val anyChartAccelsArray = FloatArray(accArraySize)
             val anyChartTimestampsArray = DoubleArray(accArraySize)
             val anyChartSlopeTimestampsArray = DoubleArray(accArraySize)
+            var anyChartPPTimestampsArray = DoubleArray(accArraySize)
 
             // Copy the data
-            for (i in anyChartAccels.indices){
-                    anyChartAccelsArray[i] = anyChartAccels[i]
-                    anyChartTimestampsArray[i] = anyChartTimestamps[i]
+            for (i in anyChartAccels.indices) {
+                anyChartAccelsArray[i] = anyChartAccels[i]
+                anyChartTimestampsArray[i] = anyChartTimestamps[i]
             }
-            for (i in anyChartPeakTimestamps.indices){
+            for (i in anyChartPeakTimestamps.indices) {
                 anyChartPeakTimestampsArray[i] = anyChartPeakTimestamps[i]
             }
-            for (i in anyChartSlopeTimestamps.indices){
+            for (i in anyChartSlopeTimestamps.indices) {
                 anyChartSlopeTimestampsArray[i] = anyChartSlopeTimestamps[i]
+            }
+            for (i in anyChartPPTimestamps.indices) {
+                anyChartPPTimestampsArray[i] = anyChartPPTimestamps[i]
             }
 
             // Pass the data to the chart
@@ -100,12 +110,13 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
             intent.putExtra("ACCEL_TIMESTAMPS", anyChartTimestampsArray)
             intent.putExtra("PEAK_TIMESTAMPS", anyChartPeakTimestampsArray)
             intent.putExtra("SLOPE_TIMESTAMPS", anyChartSlopeTimestampsArray)
+            intent.putExtra("PP_TIMESTAMPS", anyChartPPTimestampsArray)
 
             startActivity(intent)
         }
 
         // Button for seeing the filter chart
-        button_AnyChartFilter.setOnClickListener{
+        button_AnyChartFilter.setOnClickListener {
             button_AnyChartFilter.isClickable = false
             val intent = Intent(this, LineChartActivity::class.java)
 
@@ -119,7 +130,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
             val anyChartLowAndHighPassFilteredArray = FloatArray(accArraySize)
 
             // Copy the data
-            for (i in anyChartAccels.indices){
+            for (i in anyChartAccels.indices) {
                 anyChartTimestampsArray[i] = anyChartTimestamps[i]
                 anyChartLowAndHighPassFilteredArray[i] = anyChartAccels[i]
             }
@@ -140,7 +151,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
             Sensor.TYPE_ACCELEROMETER -> {
                 processAndRecordReading(event)
 //                if (accBufferIndex % 50 == 0){
-                    isStep(accelerometerZs)
+                isStep(accelerometerZs)
 //                }
             }
             Sensor.TYPE_STEP_DETECTOR -> {
@@ -168,7 +179,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
                 for (readingPair in accelerometerZs) {
                     if (readingPair == null) break
                     // Take all accel values before current step timestamp unless they are more than 'interval' old
-                     // 400 ms
+                    // 400 ms
                     if (readingPair.second < event.timestamp && event.timestamp - readingPair.second < interval) {
                         accelerometerValues.add(readingPair.first)
                     }
@@ -219,20 +230,20 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
         // Threshold for not considering small peaks as peaks. SmartPDR sets it to 0.5.
         val peakLowerThresh = 2.0
         val peakUpperThresh = 6.5
-        val aTauPP = 1.0
+
         val n = 6
 
         // Peak detection
         var tPeak = setOf<Float>()
-        for (t in n/2 .. accBufferIndex - n/2) {
+        for (t in n / 2..accBufferIndex - n / 2) {
             var isPeak = true
-            for (i in -n/2 .. n/2 - 1) {
+            for (i in -n / 2..n / 2 - 1) {
 //                if (i == 0 || t + i < 0 || t + i > accBufferIndex) continue
                 // If i == 0 current and local will be the same reading
                 if (i == 0) continue
                 // Check if current accel reading is larger than its n/2 neighbouring/local readings
                 val current = accelReadings[t]!!.first
-                val local = accelReadings[t+i]!!.first
+                val local = accelReadings[t + i]!!.first
                 // Check if not peak
                 if (current <= local || current <= peakLowerThresh || current >= peakUpperThresh) {
                     isPeak = false
@@ -261,7 +272,8 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
             }
         }
 
-        var tPP = setOf<Float>()
+        val tPP = peakToPeak(accelReadings)
+
 
         var tSlope = setOf<Float>()
         tSlope = getTSlopeValues(accelReadings)
@@ -272,10 +284,43 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
         return false
     }
 
+    /* From SmartPDR:
+    * tpp is the set of time points with the largest difference between the current peak and
+    * both of previous and next valley (peak-to-peak) is greater than the threshold appτ
+    * */
+
+    //TODO: Test if this works
+    private fun peakToPeak(accelReadings: Array<Pair<Float, Double>?>): Set<Float> {
+        var tPP = setOf<Float>()
+        val aTauPP = 1.0
+        val n = 6
+
+        for (t in n / 2 until accBufferIndex - n / 2) {
+            val current = accelReadings[t]!!.first
+            val candidates = arrayOf<Float>()
+            val candidates2 = arrayOf<Float>()
+            for (i in 1..n / 2) {
+                val local = accelReadings[t - i]!!.first
+                val local2 = accelReadings[t + i]!!.first
+                candidates.plus(current - local)
+                candidates2.plus(current - local2)
+            }
+            val max1 = candidates.max()!!
+            val max2 = candidates2.max()!!
+
+            if (max1 > aTauPP && max2 > aTauPP) {
+                tPP = tPP.plus(current)
+                anyChartPPTimestamps.add(accelReadings[t]!!.second)
+            }
+        }
+
+        return tPP
+    }
+
     private fun processAndRecordReading(event: SensorEvent) {
         var accelReading = event.values[2]
         // If array is full (reached accArraySize), reset the array
-        if(accBufferIndex > accArraySize - 1) {
+        if (accBufferIndex > accArraySize - 1) {
             accBufferIndex = 0
             accelerometerZs = arrayOfNulls(accArraySize)
         }
@@ -293,12 +338,13 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
         if (firstTimestamp == 0.0)
             firstTimestamp = event.timestamp.toDouble()
         // Add accelerometer value and timestamp to array
-        accelerometerZs[accBufferIndex] = Pair(accelReading, (event.timestamp - firstTimestamp) / 1_000_000_000.0)
+        accelerometerZs[accBufferIndex] =
+            Pair(accelReading, (event.timestamp - firstTimestamp) / 1_000_000_000.0)
         accBufferIndex++
 
         // Log the reading in logcat
         Log.v(
-            "Z-axis new value: " + ((event.timestamp - firstTimestamp)/ 1_000_000_000.0).toString()  + " ",
+            "Z-axis new value: " + ((event.timestamp - firstTimestamp) / 1_000_000_000.0).toString() + " ",
             (accelReading - gravitationalAccel).toString()
         )
 
@@ -311,25 +357,28 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
        and passing them to this function would require two for loops iterating over the array,
        which is bad for performance.
      */
-    private fun lowPassFilter(accelReadings: Array<Pair<Float, Double>?>, arrayIndex: Int): Array<Pair<Float, Double>?> {
+    private fun lowPassFilter(
+        accelReadings: Array<Pair<Float, Double>?>,
+        arrayIndex: Int
+    ): Array<Pair<Float, Double>?> {
         // Low pass filter from equation 6 in SmartPDR
         // We tried few tests with w = 3, 9, 11 and 15, where 9 and 11 seemed to be best
         val w = 11.0 // Window size
         // Filter if there are enough readings for averaging over w readings
-        if (arrayIndex > w - 1){
+        if (arrayIndex > w - 1) {
             // For storing the result of the summation
             var temp = 0.0F
             // Bounds for the summation
-            val lower = (-(w-1)/2).roundToInt()
-            val upper = ((w-1)/2).roundToInt()
+            val lower = (-(w - 1) / 2).roundToInt()
+            val upper = ((w - 1) / 2).roundToInt()
 
             // Iterate over the w newest readings in accelReadings and calculate sum
-            for (i in lower .. upper)
+            for (i in lower..upper)
                 temp += accelReadings[arrayIndex + lower - 1 + i]!!.first
             // Perform the filtering
             val filteredAcc = ((1 / w) * temp).toFloat()
             // The middle element of the window will be overwritten with the filtered reading
-            val windowMiddle = arrayIndex - ((w-1)/2).roundToInt() - 1
+            val windowMiddle = arrayIndex - ((w - 1) / 2).roundToInt() - 1
             // Use copy to make a new pair since we cannot reassign values in pair
             accelReadings[windowMiddle] = accelReadings[windowMiddle]!!.copy(first = filteredAcc)
         }
@@ -339,16 +388,18 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
     // Performs a high pass filter on an accelerometer reading
     private fun highPassFilter(accelReading: Float): Float {
         val alpha = 0.95 // Should be between 0.9 and 1.0, so we just set it in between
-        gravitationalAccel = alpha * gravitationalAccel + (1 - alpha) * accelReading // Equation 4 in SmartPDR
+        gravitationalAccel =
+            alpha * gravitationalAccel + (1 - alpha) * accelReading // Equation 4 in SmartPDR
         return (accelReading - gravitationalAccel).toFloat() // Equation 5 in SmartPDR
     }
 
-    private fun getTSlopeValues(accelReadings: Array<Pair<Float, Double>?>): Set<Float>{
+    //TODO: Refactor
+    private fun getTSlopeValues(accelReadings: Array<Pair<Float, Double>?>): Set<Float> {
 
-        var resultingSet : Set<Float> = setOf<Float>()
+        var resultingSet: Set<Float> = setOf<Float>()
 
         // Constant value. Subject to change
-        val n : Int = 6
+        val n: Int = 6
 
         // Run through all the "middle" data points.
         for (j in n / 2 until accBufferIndex - n / 2) {
@@ -391,6 +442,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
 
         return resultingSet
     }
+
     // TODO: Test if works
     private fun scarletEstimation(accelerometerValues: MutableList<Float>): Double {
         // walkfudge from J. Scarlet's code

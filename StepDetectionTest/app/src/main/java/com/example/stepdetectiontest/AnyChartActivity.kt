@@ -43,7 +43,8 @@ class LineChartActivity : AppCompatActivity() {
         val accelReadings = intent.getFloatArrayExtra("ACCEL_READINGS")
         val accelTimestamps = intent.getDoubleArrayExtra("ACCEL_TIMESTAMPS")
         val peakTimestamps = intent.getDoubleArrayExtra("PEAK_TIMESTAMPS")
-        val slopeTimeStamps = intent.getDoubleArrayExtra("SLOPE_TIMESTAMPS")
+        val slopeTimestamps = intent.getDoubleArrayExtra("SLOPE_TIMESTAMPS")
+        val ppTimestamps = intent.getDoubleArrayExtra("PP_TIMESTAMPS")
 
         val df = DecimalFormat("#.##")
         df.roundingMode = RoundingMode.CEILING
@@ -51,16 +52,21 @@ class LineChartActivity : AppCompatActivity() {
         for (i in accelReadings!!.indices) {
             val peakValue : Int
             val slopeValue : Int
+            val ppValue : Int
             if (peakTimestamps.contains(accelTimestamps[i]))
                 peakValue = 8
             else
                 peakValue = 7
-            if (slopeTimeStamps.contains(accelTimestamps[i]))
+            if (slopeTimestamps.contains(accelTimestamps[i]))
                 slopeValue = 10
             else
                 slopeValue = 9
+            if (ppTimestamps.contains(accelTimestamps[i]))
+                ppValue = 12
+            else
+                ppValue = 11
 
-            seriesData.add(CustomDataEntry(String.format("%.2f",accelTimestamps!![i]), accelReadings!![i], peakValue, slopeValue))
+            seriesData.add(CustomDataEntry(String.format("%.2f",accelTimestamps!![i]), accelReadings!![i], peakValue, slopeValue, ppValue))
         }
 
 
@@ -70,6 +76,7 @@ class LineChartActivity : AppCompatActivity() {
         val series1Mapping = set.mapAs("{ x: 'x', value: 'value' }")
         val series2Mapping = set.mapAs("{ x: 'x', value: 'peak' }")
         val series3Mapping = set.mapAs("{ x: 'x', value: 'slope' }")
+        val series4Mapping = set.mapAs("{ x: 'x', value: 'pp' }")
 
         val series1 = cartesian.line(series1Mapping)
         series1.name("Accelerometer")
@@ -107,6 +114,18 @@ class LineChartActivity : AppCompatActivity() {
             .offsetX(5.0)
             .offsetY(5.0)
 
+        val series4 = cartesian.line(series4Mapping)
+        series4.name("Peak-to-Peak")
+        series4.hovered().markers().enabled(true)
+        series4.hovered().markers()
+            .type(MarkerType.CIRCLE)
+            .size(4.0)
+        series4.tooltip()
+            .position("right")
+            .anchor(Anchor.LEFT_CENTER)
+            .offsetX(5.0)
+            .offsetY(5.0)
+
         cartesian.legend().enabled(true)
         cartesian.legend().fontSize(13.0)
         cartesian.legend().padding(0.0, 0.0, 10.0, 0.0)
@@ -117,12 +136,14 @@ class LineChartActivity : AppCompatActivity() {
         x: String?,
         value: Number?,
         peak: Number?,
-        slope: Number?
+        slope: Number?,
+        pp: Number?
     ) :
         ValueDataEntry(x, value) {
         init {
             setValue("peak", peak)
             setValue("slope", slope)
+            setValue("pp", pp)
         }
     }
 
