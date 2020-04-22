@@ -15,16 +15,13 @@ namespace IO.Swagger
         {
             try
             {
-                Console.WriteLine("Check: About to read file and parse to json");
                 JObject json = JObject.Parse(new StreamReader(@"../../mongoConnection.json").ReadToEnd());
-                Console.WriteLine("Check: Parsed to json");
                 var ip = json["ip"];
                 var port = json["port"];
                 var username = json["username"];
                 var password = json["password"];
                 var connectionString = $"mongodb://{username}:{password}@{ip}:{port}";
                 var dbClient = new MongoClient(connectionString);
-                Console.WriteLine("Check: Created Mongo Client");
                 db = dbClient.GetDatabase("DeadCrumbs");
             }
             catch (Exception)
