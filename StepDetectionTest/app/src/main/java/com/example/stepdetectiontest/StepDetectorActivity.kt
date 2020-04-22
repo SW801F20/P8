@@ -35,6 +35,11 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
     val anyChartAccels = mutableListOf<Float>()
     val anyChartTimestamps = mutableListOf<Double>()
 
+    // For showing the effects of filtering
+    val anyChartNotFiltered = mutableListOf<Float>()
+    val anyChartHighPassFiltered = mutableListOf<Float>()
+    var anyChartLowPassFiltered = mutableListOf<Float>()
+
     var sdViewModel: StepDetectorViewModel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,6 +64,8 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
         sensorManager.registerListener(this, stepCounterSensor, SensorManager.SENSOR_DELAY_NORMAL)
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
 
+
+        // Button for seeing the main chart
         button_AnyChart.setOnClickListener{
             button_AnyChart.isClickable = false
             val intent = Intent(this, LineChartActivity::class.java)
@@ -70,11 +77,13 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
 //                }
 //            }
 
+            // Data to pass to the chart
             var anyChartPeakTimestampsArray = DoubleArray(accArraySize)
             val anyChartAccelsArray = FloatArray(accArraySize)
             val anyChartTimestampsArray = DoubleArray(accArraySize)
             val anyChartSlopeTimestampsArray = DoubleArray(accArraySize)
 
+            // Copy the data
             for (i in anyChartAccels.indices){
                     anyChartAccelsArray[i] = anyChartAccels[i]
                     anyChartTimestampsArray[i] = anyChartTimestamps[i]
@@ -86,6 +95,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
                 anyChartSlopeTimestampsArray[i] = anyChartSlopeTimestamps[i]
             }
 
+            // Pass the data to the chart
             intent.putExtra("ACCEL_READINGS", anyChartAccelsArray)
             intent.putExtra("ACCEL_TIMESTAMPS", anyChartTimestampsArray)
             intent.putExtra("PEAK_TIMESTAMPS", anyChartPeakTimestampsArray)
@@ -93,6 +103,34 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
 
             startActivity(intent)
         }
+
+        // Button for seeing the filter chart
+        button_AnyChartFilter.setOnClickListener{
+            button_AnyChartFilter.isClickable = false
+            val intent = Intent(this, LineChartActivity::class.java)
+
+
+            // TODO: Finish this
+            // Data to pass to the chart
+            val anyChartTimestampsArray = DoubleArray(accArraySize)
+            val anyChartNotFilteredArray = FloatArray(accArraySize)
+            val anyChartHighPassFilteredArray = FloatArray(accArraySize)
+            val anyChartLowPassFiltered = FloatArray(accArraySize)
+            val anyChartLowAndHighPassFilteredArray = FloatArray(accArraySize)
+
+            // Copy the data
+            for (i in anyChartAccels.indices){
+                anyChartTimestampsArray[i] = anyChartTimestamps[i]
+                anyChartLowAndHighPassFilteredArray[i] = anyChartAccels[i]
+            }
+
+            // Pass the data to the chart
+            intent.putExtra("HIGH_AND_LOW_FILTERED_ACCS", anyChartLowAndHighPassFilteredArray)
+            intent.putExtra("ACCEL_TIMESTAMPS", anyChartTimestampsArray)
+
+            startActivity(intent)
+        }
+
     }
 
     override fun onSensorChanged(event: SensorEvent) {
@@ -178,21 +216,25 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
 
     private fun isStep(accelReadings: Array<Pair<Float, Double>?>): Boolean {
 
-//        var accelReadings = lowPassFilter(accelReadings1, accBufferIndex)
-
-        val aTauPeak = 0.5
+        // Threshold for not considering small peaks as peaks. SmartPDR sets it to 0.5.
+        val peakLowerThresh = 2.0
+        val peakUpperThresh = 6.5
         val aTauPP = 1.0
         val n = 6
 
+        // Peak detection
         var tPeak = setOf<Float>()
         for (t in n/2 .. accBufferIndex - n/2) {
             var isPeak = true
             for (i in -n/2 .. n/2 - 1) {
 //                if (i == 0 || t + i < 0 || t + i > accBufferIndex) continue
+                // If i == 0 current and local will be the same reading
                 if (i == 0) continue
+                // Check if current accel reading is larger than its n/2 neighbouring/local readings
                 val current = accelReadings[t]!!.first
                 val local = accelReadings[t+i]!!.first
-                if (current <= local || current <= aTauPeak) {
+                // Check if not peak
+                if (current <= local || current <= peakLowerThresh || current >= peakUpperThresh) {
                     isPeak = false
                     break
                 }
@@ -238,8 +280,14 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
             accelerometerZs = arrayOfNulls(accArraySize)
         }
 
+        // Add unfiltered value to anyChart for comparison between filter and no-filter
+        anyChartNotFiltered.add(accelReading)
+
         // High pass filter to remove influence of earth's gravity
         accelReading = highPassFilter(accelReading)
+
+        // Add high pass filtered value to anyChart for comparison between filter and no-filter
+        anyChartHighPassFiltered.add(accelReading)
 
         // Save the first reading's timestamp and use to make timestamps count from 0 and up
         if (firstTimestamp == 0.0)
@@ -255,7 +303,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
         )
 
         // Low pass filter to remove high frequency noise
-//        accelerometerZs = lowPassFilter(accelerometerZs, accBufferIndex)
+        accelerometerZs = lowPassFilter(accelerometerZs, accBufferIndex)
     }
 
     /* Perform a low pass filter to remove high frequency noise
