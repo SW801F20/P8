@@ -68,7 +68,7 @@ namespace IO.Swagger.Controllers
         /// return the user
         /// </summary>
         /// <param name="username">The username of the user.</param>
-        /// <response code="200"> Succesful request! Returns a user represented as JSON</response>
+        /// <response code="200"> Successful request! Returns a user represented as JSON</response>
         /// <response code="404"> No user found called "username"</response>
         [HttpGet]
         [Route("/User/{username}")]
@@ -91,7 +91,7 @@ namespace IO.Swagger.Controllers
         /// <summary>
         /// returns all user as a list
         /// </summary>
-        /// <response code="200">Succesful request! Returns a JSON array of users</response>
+        /// <response code="200">Successful request! Returns a JSON array of users</response>
         /// <response code="404"> No users found</response>
         [HttpGet]
         [Route("/Users")]
