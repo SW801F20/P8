@@ -154,74 +154,74 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
                 isStep(accelerometerZs)
 //                }
             }
-            Sensor.TYPE_STEP_DETECTOR -> {
-                sdViewModel!!.stepDetectorCount += 1
-                text_StepDetector.text = "StepDetector: ${sdViewModel!!.stepDetectorCount}"
-            }
-            Sensor.TYPE_STEP_COUNTER -> {
-                // Set initial count value upon first reading
-                if (sdViewModel!!.stepCounterInitial < 1)
-                    sdViewModel!!.stepCounterInitial = sensorValue.toInt()
-
-                // #steps taken since initial value
-                sdViewModel!!.stepCounter = sensorValue.toInt() - sdViewModel!!.stepCounterInitial
-
-
-                text_StepCounter.text = "StepCounter: ${sdViewModel!!.stepCounter}"
-                text_StepCounterTotal.text = "StepCounterTotal: $sensorValue"
-
-                val accelerometerValues = mutableListOf<Float>()
-
-                // Extract relevant accelerometer values
-                // TODO: Make sure we extract the right values
-                // TODO: Research around which time in the step the STEP_COUNTER detects a step
-                val interval = 0.4 * 1000000000
-                for (readingPair in accelerometerZs) {
-                    if (readingPair == null) break
-                    // Take all accel values before current step timestamp unless they are more than 'interval' old
-                    // 400 ms
-                    if (readingPair.second < event.timestamp && event.timestamp - readingPair.second < interval) {
-                        accelerometerValues.add(readingPair.first)
-                    }
-                }
-                if (accelerometerZs[0] != null) {
-
-                    var simpleDist = 0.0
-                    var scarletDist = 0.0
-                    var weinbergDist = 0.0
-
-                    // Estimate step length
-                    if (!accelerometerValues.isEmpty()) {
-                        simpleDist = simpleScarletEstimation(accelerometerValues)
-                        scarletDist = scarletEstimation(accelerometerValues)
-                        weinbergDist = weinbergEstimation(accelerometerValues)
-                    }
-
-                    // Update total distances
-                    if (!scarletDist.isNaN()) sdViewModel!!.scarletDistSum += scarletDist
-                    if (!simpleDist.isNaN()) sdViewModel!!.simpleDistSum += simpleDist
-                    if (!weinbergDist.isNaN()) sdViewModel!!.weinbergDistSum += weinbergDist
-
-
-                    // Update view
-                    text_ScarletDist.text = "ScarletDist: $scarletDist"
-                    text_ScarletDistSum.text = "ScarletDistSum: ${sdViewModel!!.scarletDistSum}"
-
-                    text_SimpleDist.text = "SimpleDist: $simpleDist"
-                    text_SimpleDistSum.text = "SimpleDistSum: ${sdViewModel!!.simpleDistSum}"
-
-                    text_weinbergDist.text = "WeinbergDist: $weinbergDist"
-                    text_weinbergDistSum.text = "WeinbergDistSum: ${sdViewModel!!.weinbergDistSum}"
-
-                    text_AccelSize.text = "SizeOfAccel: ${accelerometerValues.size}"
-
-                    // Clear old accel readings
-                    // TODO: Make sure what we're doing makes sense
-//                accelerometerZs = accelerometerZs.filter { it!!.second >= event.timestamp }.toTypedArray() // this crashes
-//                    accelerometerZs = arrayOfNulls(accArraySize)
-//                    accBufferIndex = 0
-                }
-            }
+//            Sensor.TYPE_STEP_DETECTOR -> {
+//                sdViewModel!!.stepDetectorCount += 1
+//                text_StepDetector.text = "StepDetector: ${sdViewModel!!.stepDetectorCount}"
+//            }
+//            Sensor.TYPE_STEP_COUNTER -> {
+//                // Set initial count value upon first reading
+//                if (sdViewModel!!.stepCounterInitial < 1)
+//                    sdViewModel!!.stepCounterInitial = sensorValue.toInt()
+//
+//                // #steps taken since initial value
+//                sdViewModel!!.stepCounter = sensorValue.toInt() - sdViewModel!!.stepCounterInitial
+//
+//
+//                text_StepCounter.text = "StepCounter: ${sdViewModel!!.stepCounter}"
+//                text_StepCounterTotal.text = "StepCounterTotal: $sensorValue"
+//
+//                val accelerometerValues = mutableListOf<Float>()
+//
+//                // Extract relevant accelerometer values
+//                // TODO: Make sure we extract the right values
+//                // TODO: Research around which time in the step the STEP_COUNTER detects a step
+//                val interval = 0.4 * 1000000000
+//                for (readingPair in accelerometerZs) {
+//                    if (readingPair == null) break
+//                    // Take all accel values before current step timestamp unless they are more than 'interval' old
+//                    // 400 ms
+//                    if (readingPair.second < event.timestamp && event.timestamp - readingPair.second < interval) {
+//                        accelerometerValues.add(readingPair.first)
+//                    }
+//                }
+//                if (accelerometerZs[0] != null) {
+//
+//                    var simpleDist = 0.0
+//                    var scarletDist = 0.0
+//                    var weinbergDist = 0.0
+//
+//                    // Estimate step length
+//                    if (!accelerometerValues.isEmpty()) {
+//                        simpleDist = simpleScarletEstimation(accelerometerValues)
+//                        scarletDist = scarletEstimation(accelerometerValues)
+//                        weinbergDist = weinbergEstimation(accelerometerValues)
+//                    }
+//
+//                    // Update total distances
+//                    if (!scarletDist.isNaN()) sdViewModel!!.scarletDistSum += scarletDist
+//                    if (!simpleDist.isNaN()) sdViewModel!!.simpleDistSum += simpleDist
+//                    if (!weinbergDist.isNaN()) sdViewModel!!.weinbergDistSum += weinbergDist
+//
+//
+//                    // Update view
+//                    text_ScarletDist.text = "ScarletDist: $scarletDist"
+//                    text_ScarletDistSum.text = "ScarletDistSum: ${sdViewModel!!.scarletDistSum}"
+//
+//                    text_SimpleDist.text = "SimpleDist: $simpleDist"
+//                    text_SimpleDistSum.text = "SimpleDistSum: ${sdViewModel!!.simpleDistSum}"
+//
+//                    text_weinbergDist.text = "WeinbergDist: $weinbergDist"
+//                    text_weinbergDistSum.text = "WeinbergDistSum: ${sdViewModel!!.weinbergDistSum}"
+//
+//                    text_AccelSize.text = "SizeOfAccel: ${accelerometerValues.size}"
+//
+//                    // Clear old accel readings
+//                    // TODO: Make sure what we're doing makes sense
+////                accelerometerZs = accelerometerZs.filter { it!!.second >= event.timestamp }.toTypedArray() // this crashes
+////                    accelerometerZs = arrayOfNulls(accArraySize)
+////                    accBufferIndex = 0
+//                }
+//            }
         }
     }
 
@@ -292,18 +292,18 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
     //TODO: Test if this works
     private fun peakToPeak(accelReadings: Array<Pair<Float, Double>?>): Set<Float> {
         var tPP = setOf<Float>()
-        val aTauPP = 1.0
-        val n = 6
-
+        val aTauPP = -200
+        val n = 4
+        // TODO: Use accelReadings' size instead of accBufferIndex
         for (t in n / 2 until accBufferIndex - n / 2) {
             val current = accelReadings[t]!!.first
-            val candidates = arrayOf<Float>()
-            val candidates2 = arrayOf<Float>()
+            var candidates = arrayOf<Float>()
+            var candidates2 = arrayOf<Float>()
             for (i in 1..n / 2) {
                 val local = accelReadings[t - i]!!.first
                 val local2 = accelReadings[t + i]!!.first
-                candidates.plus(current - local)
-                candidates2.plus(current - local2)
+                candidates = candidates.plus(current - local)
+                candidates2 = candidates2.plus(current - local2)
             }
             val max1 = candidates.max()!!
             val max2 = candidates2.max()!!
@@ -315,6 +315,56 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
         }
 
         return tPP
+    }
+
+    //TODO: Refactor
+    private fun getTSlopeValues(accelReadings: Array<Pair<Float, Double>?>): Set<Float> {
+
+        var resultingSet: Set<Float> = setOf<Float>()
+
+        // Constant value. Subject to change
+        val n: Int = 8
+
+        // Run through all the "middle" data points.
+        for (j in n / 2 until accBufferIndex - n / 2) {
+
+            // Fields for the cumulative sum of differences.
+            var sum1 = 0.0
+            var sum2 = 0.0
+
+            // Lower and upper bound of the index used in the first summation
+            val lower1 = j - n / 2
+            val upper1 = j - 1
+
+            // Run through the points in that range
+            for (i in lower1..upper1) {
+                // And add the difference between the next data point and this one.
+                sum1 += accelReadings[i + 1]!!.first - accelReadings[i]!!.first
+            }
+            // The result should be multiplied by the factor 2 / n.
+//            sum1 *= 2 / n
+
+            // Upper and lower bounds for the second summation.
+            val lower2 = j + 1
+            val upper2 = j + n / 2
+
+            // Run through the data points in that range
+            for (i in lower2..upper2) {
+                // And add the difference between this data point and the previous.
+                sum2 += accelReadings[i]!!.first - accelReadings[i - 1]!!.first
+            }
+            // And multiply by the factor 2 / n
+//            sum2 *= 2 / n
+
+            // The data point is added if sum1 is positive and sum2 is negative.
+            if (sum1 > 0 && sum2 < 0) {
+                resultingSet = resultingSet.plus(accelReadings[j]!!.first)
+                Log.v("Slope: ", "Slope found. Value: ${accelReadings[j]!!.first}")
+                anyChartSlopeTimestamps.add(accelReadings[j]!!.second)
+            }
+        }
+
+        return resultingSet
     }
 
     private fun processAndRecordReading(event: SensorEvent) {
@@ -393,55 +443,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
         return (accelReading - gravitationalAccel).toFloat() // Equation 5 in SmartPDR
     }
 
-    //TODO: Refactor
-    private fun getTSlopeValues(accelReadings: Array<Pair<Float, Double>?>): Set<Float> {
 
-        var resultingSet: Set<Float> = setOf<Float>()
-
-        // Constant value. Subject to change
-        val n: Int = 6
-
-        // Run through all the "middle" data points.
-        for (j in n / 2 until accBufferIndex - n / 2) {
-
-            // Fields for the cumulative sum of differences.
-            var sum1 = 0.0
-            var sum2 = 0.0
-
-            // Lower and upper bound of the index used in the first summation
-            val lower1 = j - n / 2
-            val upper1 = j - 1
-
-            // Run through the points in that range
-            for (i in lower1..upper1) {
-                // And add the difference between the next data point and this one.
-                sum1 += accelReadings[i + 1]!!.first - accelReadings[i]!!.first
-            }
-            // The result should be multiplied by the factor 2 / n.
-//            sum1 *= 2 / n
-
-            // Upper and lower bounds for the second summation.
-            val lower2 = j + 1
-            val upper2 = j + n / 2
-
-            // Run through the data points in that range
-            for (i in lower2..upper2) {
-                // And add the difference between this data point and the previous.
-                sum2 += accelReadings[i]!!.first - accelReadings[i - 1]!!.first
-            }
-            // And multiply by the factor 2 / n
-//            sum2 *= 2 / n
-
-            // The data point is added if sum1 is positive and sum2 is negative.
-            if (sum1 > 0 && sum2 < 0) {
-                resultingSet = resultingSet.plus(accelReadings[j]!!.first)
-                Log.v("Slope: ", "Slope found. Value: ${accelReadings[j]!!.first}")
-                anyChartSlopeTimestamps.add(accelReadings[j]!!.second)
-            }
-        }
-
-        return resultingSet
-    }
 
     // TODO: Test if works
     private fun scarletEstimation(accelerometerValues: MutableList<Float>): Double {
@@ -468,7 +470,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-        Toast.makeText(this, "AccChanged to $accuracy", Toast.LENGTH_SHORT).show()
+//        Toast.makeText(this, "AccChanged to $accuracy", Toast.LENGTH_SHORT).show()
         // TODO: Fix app crash at screen turn to horizontal
     }
 
