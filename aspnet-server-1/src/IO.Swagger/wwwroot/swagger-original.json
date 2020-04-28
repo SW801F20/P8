@@ -87,7 +87,7 @@
             }
           },
           "400" : {
-            "description" : "retrival of location went wrong"
+            "description" : "retrieval of location went wrong"
           },
           "404" : {
             "description" : "no device with that id"

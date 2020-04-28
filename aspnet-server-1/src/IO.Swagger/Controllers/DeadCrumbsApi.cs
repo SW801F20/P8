@@ -24,7 +24,7 @@ using System.IO;
 using Newtonsoft.Json.Linq;
 
 namespace IO.Swagger.Controllers
-{ 
+{
     /// <summary>
     /// 
     /// </summary>
@@ -35,7 +35,7 @@ namespace IO.Swagger.Controllers
         {
             db = mongoConnectionService.db;
         }
-       
+
         private IMongoDatabase db;
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace IO.Swagger.Controllers
         {
             var userCollection = db.GetCollection<User>("user");
             User user = userCollection.Find((u) => u.Username == username).FirstOrDefault();
-            
+
             if (user == null)
             {
                 return StatusCode(404, $"No user found called \"{username}\"!");
@@ -102,7 +102,7 @@ namespace IO.Swagger.Controllers
         {
             var userCollection = db.GetCollection<User>("user");
             List<User> users = userCollection.Find(_ => true).ToList();
-            if (users.Count==0)
+            if (users.Count == 0)
             {
                 return StatusCode(404, $"No users found!");
             }
@@ -120,12 +120,13 @@ namespace IO.Swagger.Controllers
         [Route("/Location")]
         [ValidateModelState]
         [SwaggerOperation("PostLocation")]
+        [SwaggerResponse(statusCode: 201)]
         public virtual IActionResult PostLocation([FromBody]Location location)
         {
             try
             {
                 var userCollection = db.GetCollection<User>("user");
-                if(!userCollection.Find((u) => location.UserRef == u.Username).Any())
+                if (!userCollection.Find((u) => location.UserRef == u.Username).Any())
                     return StatusCode(400, "Location refers to an unknown user!");
                 var locationCollection = db.GetCollection<Location>("location");
                 locationCollection.InsertOne(location);
@@ -134,7 +135,7 @@ namespace IO.Swagger.Controllers
             {
                 return StatusCode(400, e.Message);
             }
-           
+
             return StatusCode(201);
         }
 
@@ -149,6 +150,7 @@ namespace IO.Swagger.Controllers
         [Route("/User")]
         [ValidateModelState]
         [SwaggerOperation("PostUser")]
+        [SwaggerResponse(statusCode: 201)]
         public virtual IActionResult PostUser([FromBody]User user)
         {
             try
