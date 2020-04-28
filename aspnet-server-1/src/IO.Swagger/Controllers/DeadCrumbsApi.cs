@@ -42,7 +42,7 @@ namespace IO.Swagger.Controllers
         /// returns the location associated with username
         /// </summary>
         /// <param name="username">The username of the user.</param>
-        /// <response code="200"> Succesful request! Returns the newest location represented as JSON</response>
+        /// <response code="200"> Successful request! Returns the newest location represented as JSON</response>
         /// <response code="404"> No locations found!</response>
         [HttpGet]
         [Route("/Location/{username}")]
