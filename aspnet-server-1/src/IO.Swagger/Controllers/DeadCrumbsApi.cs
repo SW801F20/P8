@@ -22,6 +22,7 @@ using MongoDB.Driver;
 using MongoDB.Bson;
 using System.IO;
 using Newtonsoft.Json.Linq;
+using IO.Swagger.DAL;
 
 namespace IO.Swagger.Controllers
 {
@@ -31,11 +32,13 @@ namespace IO.Swagger.Controllers
     [ApiController]
     public class DeadCrumbsController : ControllerBase
     {
-        public DeadCrumbsController(MongoConnectionService mongoConnectionService)
+        public DeadCrumbsController(MongoConnectionService mongoConnectionService, LocationService ls)
         {
             db = mongoConnectionService.db;
+            this.ls = ls;
         }
 
+        private LocationService ls;
         private IMongoDatabase db;
 
         /// <summary>
@@ -51,15 +54,12 @@ namespace IO.Swagger.Controllers
         [SwaggerResponse(statusCode: 200, type: typeof(Location), description: "a JSON object of a location")]
         public virtual IActionResult GetLocation([FromRoute][Required]string username)
         {
-            var locationCollection = db.GetCollection<Location>("location");
-            List<Location> locations = locationCollection.Find((u) => u.UserRef == username).ToList();
-            if (locations.Count == 0)
+            var newestLoc = ls.GetNewestLocation(db, username);
+            if (newestLoc == null)
             {
                 return StatusCode(404, $"No locations found!");
             }
-            locations.Sort((loc1, loc2) => loc2.Timestamp.Value.CompareTo(loc1.Timestamp.Value));
-            Location newestLoc = locations[0];
-
+           
             var result = new ObjectResult(newestLoc);
             return result;
         }
@@ -163,6 +163,56 @@ namespace IO.Swagger.Controllers
                 return StatusCode(400, e.Message);
             }
 
+            return StatusCode(201);
+        }
+
+
+        /// <summary>
+        /// adds a new user
+        /// </summary>
+        /// <param name="user">a JSON object of a location</param>
+        /// <response code="201">Successful request! Created new user</response>
+        /// <response code="400">Bad request! User not added</response>
+        [HttpPost]
+        [Route("/RSSI/{mac1}/{mac2}/{rssiDist}")]
+        [ValidateModelState]
+        [SwaggerOperation("UpdateLocations")]
+        [SwaggerResponse(statusCode: 201)]
+        public virtual IActionResult UpdateLocations([FromRoute][Required]string mac1, 
+            [FromRoute][Required]string mac2, 
+            [FromRoute][Required]double rssiDist)
+        {
+            const float rssiThreshold = 2;
+            if(rssiDist < rssiThreshold)
+            {
+                var userCollection = db.GetCollection<User>("user");
+                User user1 = userCollection.Find((u) => u.MacAddress == "A8:87:B3:ED:DF:7E").FirstOrDefault();
+                User user2 = userCollection.Find((u) => u.MacAddress == "10:32:7E:F4:B3:C5").FirstOrDefault();
+
+                var loc1 = ls.GetNewestLocation(db, user1.Username);
+                var loc2 = ls.GetNewestLocation(db, user2.Username);
+                
+                var earthRadiusKm = 6371;
+                Func<double, double> toRadians = (degrees) => { return degrees * Math.PI / 180; };
+                var dLat = toRadians(loc1.Position.Coordinates[0] - loc2.Position.Coordinates[0]);
+                var dLon = toRadians(loc1.Position.Coordinates[1] - loc2.Position.Coordinates[1]);
+                var lat1 = toRadians(loc1.Position.Coordinates[0]);
+                var lat2 = toRadians(loc2.Position.Coordinates[0]);
+                var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                        Math.Sin(dLon / 2) * Math.Sin(dLon / 2) * Math.Cos(lat1) * Math.Cos(lat2);
+                var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+                var distanceKM = earthRadiusKm * c;
+                var distanceM = distanceKM * 1000;
+
+                if (distanceM > 2)
+                {
+                    //if x1<x2
+                    //if x2 < x1
+                    //if y1 < y2
+                    //if y2 < y1
+                }
+            }
+            
             return StatusCode(201);
         }
     }

@@ -41,7 +41,7 @@ namespace IO.Swagger.Models
         [Required]
         [BsonElement("coordinates")]
         [DataMember(Name="coordinates")]
-        public List<double?> Coordinates { get; set; }
+        public List<double> Coordinates { get; set; }
 
         /// <summary>
         /// Returns the string presentation of the object
