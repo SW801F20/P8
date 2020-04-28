@@ -114,7 +114,7 @@ namespace IO.Swagger.Controllers
         /// adds a new location
         /// </summary>
         /// <param name="location">a JSON object of a location</param>
-        /// <response code="201">Succesfull request! Created new location</response>
+        /// <response code="201">Successfull request! Created new location</response>
         /// <response code="400">Bad request! Location not added</response>
         [HttpPost]
         [Route("/Location")]
@@ -144,7 +144,7 @@ namespace IO.Swagger.Controllers
         /// adds a new user
         /// </summary>
         /// <param name="user">a JSON object of a location</param>
-        /// <response code="201">Succesfull request! Created new user</response>
+        /// <response code="201">Successfull request! Created new user</response>
         /// <response code="400">Bad request! User not added</response>
         [HttpPost]
         [Route("/User")]
