@@ -28,6 +28,13 @@ namespace IO.Swagger.Models
     [DataContract]
     public partial class Location : IEquatable<Location>
     {
+        public Location(string userRef, double yaw, Position position, DateTime timeStamp)
+        {
+            UserRef = userRef;
+            Yaw = yaw;
+            Position = position;
+            Timestamp = timeStamp;
+        }
         /// <summary>
         /// Gets or Sets UserRef
         /// </summary>
@@ -48,7 +55,7 @@ namespace IO.Swagger.Models
         [Required]
         [BsonElement("yaw")]
         [DataMember(Name="yaw")]
-        public float? Yaw { get; set; }
+        public double Yaw { get; set; }
 
         /// <summary>
         /// Gets or Sets Position
@@ -64,7 +71,7 @@ namespace IO.Swagger.Models
         [Required]
         [BsonElement("timestamp")]
         [DataMember(Name="timestamp")]
-        public DateTime? Timestamp { get; set; }
+        public DateTime Timestamp { get; set; }
 
         /// <summary>
         /// Returns the string presentation of the object

@@ -168,26 +168,27 @@ namespace IO.Swagger.Controllers
 
 
         /// <summary>
-        /// adds a new user
+        /// Updates locations of two users
         /// </summary>
         /// <param name="user">a JSON object of a location</param>
         /// <response code="201">Successful request! Created new user</response>
         /// <response code="400">Bad request! User not added</response>
         [HttpPost]
-        [Route("/RSSI/{mac1}/{mac2}/{rssiDist}")]
+        [Route("/RSSI/{mac1}/{mac2}/{rssiDist}/{timeStamp}")]
         [ValidateModelState]
         [SwaggerOperation("UpdateLocations")]
         [SwaggerResponse(statusCode: 201)]
         public virtual IActionResult UpdateLocations([FromRoute][Required]string mac1, 
             [FromRoute][Required]string mac2, 
-            [FromRoute][Required]double rssiDist)
+            [FromRoute][Required]double rssiDist,
+            [FromRoute][Required]DateTime timeStamp)
         {
             const float rssiThreshold = 2;
             if(rssiDist < rssiThreshold)
             {
                 var userCollection = db.GetCollection<User>("user");
-                User user1 = userCollection.Find((u) => u.MacAddress == "A8:87:B3:ED:DF:7E").FirstOrDefault();
-                User user2 = userCollection.Find((u) => u.MacAddress == "10:32:7E:F4:B3:C5").FirstOrDefault();
+                User user1 = userCollection.Find((u) => u.MacAddress == mac1).FirstOrDefault();
+                User user2 = userCollection.Find((u) => u.MacAddress == mac2).FirstOrDefault();
 
                 var loc1 = ls.GetNewestLocation(db, user1.Username);
                 var loc2 = ls.GetNewestLocation(db, user2.Username);
@@ -206,10 +207,38 @@ namespace IO.Swagger.Controllers
 
                 if (distanceM > 2)
                 {
-                    //if x1<x2
-                    //if x2 < x1
-                    //if y1 < y2
-                    //if y2 < y1
+                    const double multiplier = 0.5;
+                    double latDiff = Math.Abs(loc1.Position.Coordinates[0] - loc2.Position.Coordinates[0]);
+                    if (loc1.Position.Coordinates[0] < loc2.Position.Coordinates[0])
+                    {
+                        loc1.Position.Coordinates[0] += latDiff * multiplier;
+                        loc2.Position.Coordinates[0] -= latDiff * multiplier;
+
+                    }
+                    else  if (loc1.Position.Coordinates[0] > loc2.Position.Coordinates[0])
+                    {
+                        loc1.Position.Coordinates[0] -= latDiff * multiplier;
+                        loc2.Position.Coordinates[0] += latDiff * multiplier;
+                    }
+
+                    double longDiff = Math.Abs(loc1.Position.Coordinates[1] - loc2.Position.Coordinates[1]);
+
+                    if (loc1.Position.Coordinates[1] < loc2.Position.Coordinates[1])
+                    {
+                        loc1.Position.Coordinates[1] += longDiff * multiplier;
+                        loc2.Position.Coordinates[1] -= longDiff * multiplier;
+                    }
+                    else if (loc1.Position.Coordinates[1] > loc2.Position.Coordinates[1])
+                    {
+                        loc1.Position.Coordinates[1] -= longDiff * multiplier;
+                        loc2.Position.Coordinates[1] += longDiff * multiplier;
+                    }
+                                        
+                    Location newLoc1 = new Location(loc1.UserRef, loc1.Yaw, loc1.Position, timeStamp);
+                    Location newLoc2 = new Location(loc2.UserRef, loc2.Yaw, loc2.Position, timeStamp);
+                    ls.InsertLocation(db, newLoc1);
+                    ls.InsertLocation(db, newLoc2);
+                    
                 }
             }
             

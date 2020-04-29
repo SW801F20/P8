@@ -17,8 +17,14 @@ namespace IO.Swagger.DAL
             {
                 return null;
             }
-            locations.Sort((loc1, loc2) => loc2.Timestamp.Value.CompareTo(loc1.Timestamp.Value));
+            locations.Sort((loc1, loc2) => loc2.Timestamp.CompareTo(loc1.Timestamp));
             return locations[0]; //newest location
+        }
+
+        public void InsertLocation(IMongoDatabase db, Location location )
+        {
+            var locationCollection = db.GetCollection<Location>("location");
+            locationCollection.InsertOne(location);
         }
 
     }
