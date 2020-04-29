@@ -58,9 +58,17 @@ class GPSViewModel (private val locationRepository : LocationRepository) : ViewM
                     if (location == null) {
                         requestNewLocationData(activity)
                     } else {
-                        getUsers()
-                        //postLocation(io.swagger.client.models.Location("Bjerk", 10.0f, Position("str", arrayOf(10.0, 12.0)),
-                            //Calendar.getInstance().time))
+                        //getUsers()
+                        val currYear = Calendar.getInstance().get(Calendar.YEAR)
+                        val currMonth = Calendar.getInstance().get(Calendar.MONTH).toInt() + 1
+                        val currDate = Calendar.getInstance().get(Calendar.DATE)
+                        val currHour = Calendar.getInstance().get(Calendar.HOUR)
+                        val currMinute = Calendar.getInstance().get(Calendar.MINUTE)
+                        val currSecond = Calendar.getInstance().get(Calendar.SECOND)
+                        val dateTimeString = currYear.toString() + "-" + currMonth.toString() + "-" + currDate.toString() + "T" + currHour.toString() + ":" + currMinute.toString() + ":" + currSecond.toString()
+
+                        postLocation(io.swagger.client.models.Location("jacob6565", 10.0, Position("point", arrayOf(10.0, 12.0)),
+                            dateTimeString))
                         Log.v( "gps", "Coordinate latitude:" + location.latitude.toString())
                         Log.v( "gps", "Coordinate longitude:" + location.longitude.toString())
                     }

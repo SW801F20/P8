@@ -13,8 +13,6 @@ package io.swagger.client.models
 
 import io.swagger.client.models.Position
 
-import java.util.*
-
 /**
  * 
  * @param userRef 
@@ -24,9 +22,9 @@ import java.util.*
  */
 data class Location (
     val userRef: kotlin.String,
-    val yaw: kotlin.Float,
+    val yaw: kotlin.Double,
     val position: Position,
-    val timestamp: Date
+    val timestamp: kotlin.String
 
 ) {
 }

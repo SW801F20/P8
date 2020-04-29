@@ -93,6 +93,34 @@ class DefaultApi(basePath: kotlin.String = "/") : ApiClient(basePath) {
         }
     }
     /**
+     * updates locations based on bluetooth sync
+     * 
+     * @param mac1 The mac address of a user1. 
+     * @param mac2 The mac address of a user2. 
+     * @param rssiDist distance estimated from RSSI 
+     * @param timeStamp The time. 
+     * @return User
+     */
+    @Suppress("UNCHECKED_CAST")
+    fun postBluetoothSync(mac1: kotlin.String, mac2: kotlin.String, rssiDist: kotlin.Double, timeStamp: kotlin.String): User {
+        
+        val localVariableConfig = RequestConfig(
+                RequestMethod.POST,
+                "/RSSI/{mac1}/{mac2}/{rssiDist}/{timeStamp}".replace("{" + "mac1" + "}", "$mac1").replace("{" + "mac2" + "}", "$mac2").replace("{" + "rssiDist" + "}", "$rssiDist").replace("{" + "timeStamp" + "}", "$timeStamp")
+        )
+        val response = request<User>(
+                localVariableConfig
+        )
+
+        return when (response.responseType) {
+            ResponseType.Success -> (response as Success<*>).data as User
+            ResponseType.Informational -> TODO()
+            ResponseType.Redirection -> TODO()
+            ResponseType.ClientError -> throw ClientException((response as ClientError<*>).body as? String ?: "Client error")
+            ResponseType.ServerError -> throw ServerException((response as ServerError<*>).message ?: "Server error")
+        }
+    }
+    /**
      * adds a new location
      * 
      * @param body a JSON object of a location 
@@ -104,6 +132,31 @@ class DefaultApi(basePath: kotlin.String = "/") : ApiClient(basePath) {
         val localVariableConfig = RequestConfig(
                 RequestMethod.POST,
                 "/Location"
+        )
+        val response = request<Any?>(
+                localVariableConfig
+        )
+
+        return when (response.responseType) {
+            ResponseType.Success -> Unit
+            ResponseType.Informational -> TODO()
+            ResponseType.Redirection -> TODO()
+            ResponseType.ClientError -> throw ClientException((response as ClientError<*>).body as? String ?: "Client error")
+            ResponseType.ServerError -> throw ServerException((response as ServerError<*>).message ?: "Server error")
+        }
+    }
+    /**
+     * adds a new user
+     * 
+     * @param body a JSON object of a user 
+     * @return void
+     */
+    fun postUser(body: User): Unit {
+        val localVariableBody: kotlin.Any? = body
+        
+        val localVariableConfig = RequestConfig(
+                RequestMethod.POST,
+                "/User"
         )
         val response = request<Any?>(
                 localVariableConfig
