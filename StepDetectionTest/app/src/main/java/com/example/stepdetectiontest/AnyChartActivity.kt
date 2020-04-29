@@ -43,8 +43,8 @@ class LineChartActivity : AppCompatActivity() {
         val accelReadings = intent.getFloatArrayExtra("ACCEL_READINGS")
         val accelTimestamps = intent.getDoubleArrayExtra("ACCEL_TIMESTAMPS")
         val peakTimestamps = intent.getDoubleArrayExtra("PEAK_TIMESTAMPS")
-        val slopeTimestamps = intent.getDoubleArrayExtra("SLOPE_TIMESTAMPS")
-        val ppTimestamps = intent.getDoubleArrayExtra("PP_TIMESTAMPS")
+//        val slopeTimestamps = intent.getDoubleArrayExtra("SLOPE_TIMESTAMPS")
+//        val ppTimestamps = intent.getDoubleArrayExtra("PP_TIMESTAMPS")
 
         val df = DecimalFormat("#.##")
         df.roundingMode = RoundingMode.CEILING
@@ -57,16 +57,17 @@ class LineChartActivity : AppCompatActivity() {
                 peakValue = 8
             else
                 peakValue = 7
-            if (slopeTimestamps.contains(accelTimestamps[i]))
-                slopeValue = 10
-            else
-                slopeValue = 9
-            if (ppTimestamps.contains(accelTimestamps[i]))
-                ppValue = 12
-            else
-                ppValue = 11
+//            if (slopeTimestamps.contains(accelTimestamps[i]))
+//                slopeValue = 10
+//            else
+//                slopeValue = 9
+//            if (ppTimestamps.contains(accelTimestamps[i]))
+//                ppValue = 12
+//            else
+//                ppValue = 11
 
-            seriesData.add(CustomDataEntry(String.format("%.2f",accelTimestamps!![i]), accelReadings!![i], peakValue, slopeValue, ppValue))
+//            seriesData.add(CustomDataEntry(String.format("%.2f",accelTimestamps!![i]), accelReadings!![i], peakValue, slopeValue, ppValue))
+            seriesData.add(CustomDataEntry(String.format("%.2f",accelTimestamps!![i]), accelReadings!![i], peakValue))
         }
 
 
@@ -75,8 +76,8 @@ class LineChartActivity : AppCompatActivity() {
         set.data(seriesData)
         val series1Mapping = set.mapAs("{ x: 'x', value: 'value' }")
         val series2Mapping = set.mapAs("{ x: 'x', value: 'peak' }")
-        val series3Mapping = set.mapAs("{ x: 'x', value: 'slope' }")
-        val series4Mapping = set.mapAs("{ x: 'x', value: 'pp' }")
+//        val series3Mapping = set.mapAs("{ x: 'x', value: 'slope' }")
+//        val series4Mapping = set.mapAs("{ x: 'x', value: 'pp' }")
 
         val series1 = cartesian.line(series1Mapping)
         series1.name("Accelerometer")
@@ -102,29 +103,29 @@ class LineChartActivity : AppCompatActivity() {
             .offsetX(5.0)
             .offsetY(5.0)
 
-        val series3 = cartesian.line(series3Mapping)
-        series3.name("Slopes")
-        series3.hovered().markers().enabled(true)
-        series3.hovered().markers()
-            .type(MarkerType.CIRCLE)
-            .size(4.0)
-        series3.tooltip()
-            .position("right")
-            .anchor(Anchor.LEFT_CENTER)
-            .offsetX(5.0)
-            .offsetY(5.0)
-
-        val series4 = cartesian.line(series4Mapping)
-        series4.name("Peak-to-Peak")
-        series4.hovered().markers().enabled(true)
-        series4.hovered().markers()
-            .type(MarkerType.CIRCLE)
-            .size(4.0)
-        series4.tooltip()
-            .position("right")
-            .anchor(Anchor.LEFT_CENTER)
-            .offsetX(5.0)
-            .offsetY(5.0)
+//        val series3 = cartesian.line(series3Mapping)
+//        series3.name("Slopes")
+//        series3.hovered().markers().enabled(true)
+//        series3.hovered().markers()
+//            .type(MarkerType.CIRCLE)
+//            .size(4.0)
+//        series3.tooltip()
+//            .position("right")
+//            .anchor(Anchor.LEFT_CENTER)
+//            .offsetX(5.0)
+//            .offsetY(5.0)
+//
+//        val series4 = cartesian.line(series4Mapping)
+//        series4.name("Peak-to-Peak")
+//        series4.hovered().markers().enabled(true)
+//        series4.hovered().markers()
+//            .type(MarkerType.CIRCLE)
+//            .size(4.0)
+//        series4.tooltip()
+//            .position("right")
+//            .anchor(Anchor.LEFT_CENTER)
+//            .offsetX(5.0)
+//            .offsetY(5.0)
 
         cartesian.legend().enabled(true)
         cartesian.legend().fontSize(13.0)
@@ -135,15 +136,15 @@ class LineChartActivity : AppCompatActivity() {
     private class CustomDataEntry internal constructor(
         x: String?,
         value: Number?,
-        peak: Number?,
-        slope: Number?,
-        pp: Number?
+        peak: Number?//,
+//        slope: Number?,
+//        pp: Number?
     ) :
         ValueDataEntry(x, value) {
         init {
             setValue("peak", peak)
-            setValue("slope", slope)
-            setValue("pp", pp)
+//            setValue("slope", slope)
+//            setValue("pp", pp)
         }
     }
 

@@ -87,8 +87,8 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
             var anyChartPeakTimestampsArray = DoubleArray(accArraySize)
             val anyChartAccelsArray = FloatArray(accArraySize)
             val anyChartTimestampsArray = DoubleArray(accArraySize)
-            val anyChartSlopeTimestampsArray = DoubleArray(accArraySize)
-            var anyChartPPTimestampsArray = DoubleArray(accArraySize)
+//            val anyChartSlopeTimestampsArray = DoubleArray(accArraySize)
+//            var anyChartPPTimestampsArray = DoubleArray(accArraySize)
 
             // Copy the data
             for (i in anyChartAccels.indices) {
@@ -98,49 +98,49 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
             for (i in anyChartPeakTimestamps.indices) {
                 anyChartPeakTimestampsArray[i] = anyChartPeakTimestamps[i]
             }
-            for (i in anyChartSlopeTimestamps.indices) {
-                anyChartSlopeTimestampsArray[i] = anyChartSlopeTimestamps[i]
-            }
-            for (i in anyChartPPTimestamps.indices) {
-                anyChartPPTimestampsArray[i] = anyChartPPTimestamps[i]
-            }
+//            for (i in anyChartSlopeTimestamps.indices) {
+//                anyChartSlopeTimestampsArray[i] = anyChartSlopeTimestamps[i]
+//            }
+//            for (i in anyChartPPTimestamps.indices) {
+//                anyChartPPTimestampsArray[i] = anyChartPPTimestamps[i]
+//            }
 
             // Pass the data to the chart
             intent.putExtra("ACCEL_READINGS", anyChartAccelsArray)
             intent.putExtra("ACCEL_TIMESTAMPS", anyChartTimestampsArray)
             intent.putExtra("PEAK_TIMESTAMPS", anyChartPeakTimestampsArray)
-            intent.putExtra("SLOPE_TIMESTAMPS", anyChartSlopeTimestampsArray)
-            intent.putExtra("PP_TIMESTAMPS", anyChartPPTimestampsArray)
+//            intent.putExtra("SLOPE_TIMESTAMPS", anyChartSlopeTimestampsArray)
+//            intent.putExtra("PP_TIMESTAMPS", anyChartPPTimestampsArray)
 
             startActivity(intent)
         }
 
         // Button for seeing the filter chart
-        button_AnyChartFilter.setOnClickListener {
-            button_AnyChartFilter.isClickable = false
-            val intent = Intent(this, LineChartActivity::class.java)
-
-
-            // TODO: Finish this
-            // Data to pass to the chart
-            val anyChartTimestampsArray = DoubleArray(accArraySize)
-            val anyChartNotFilteredArray = FloatArray(accArraySize)
-            val anyChartHighPassFilteredArray = FloatArray(accArraySize)
-            val anyChartLowPassFiltered = FloatArray(accArraySize)
-            val anyChartLowAndHighPassFilteredArray = FloatArray(accArraySize)
-
-            // Copy the data
-            for (i in anyChartAccels.indices) {
-                anyChartTimestampsArray[i] = anyChartTimestamps[i]
-                anyChartLowAndHighPassFilteredArray[i] = anyChartAccels[i]
-            }
-
-            // Pass the data to the chart
-            intent.putExtra("HIGH_AND_LOW_FILTERED_ACCS", anyChartLowAndHighPassFilteredArray)
-            intent.putExtra("ACCEL_TIMESTAMPS", anyChartTimestampsArray)
-
-            startActivity(intent)
-        }
+//        button_AnyChartFilter.setOnClickListener {
+//            button_AnyChartFilter.isClickable = false
+//            val intent = Intent(this, LineChartActivity::class.java)
+//
+//
+//            // TODO: Finish this
+//            // Data to pass to the chart
+//            val anyChartTimestampsArray = DoubleArray(accArraySize)
+//            val anyChartNotFilteredArray = FloatArray(accArraySize)
+//            val anyChartHighPassFilteredArray = FloatArray(accArraySize)
+//            val anyChartLowPassFiltered = FloatArray(accArraySize)
+//            val anyChartLowAndHighPassFilteredArray = FloatArray(accArraySize)
+//
+//            // Copy the data
+//            for (i in anyChartAccels.indices) {
+//                anyChartTimestampsArray[i] = anyChartTimestamps[i]
+//                anyChartLowAndHighPassFilteredArray[i] = anyChartAccels[i]
+//            }
+//
+//            // Pass the data to the chart
+//            intent.putExtra("HIGH_AND_LOW_FILTERED_ACCS", anyChartLowAndHighPassFilteredArray)
+//            intent.putExtra("ACCEL_TIMESTAMPS", anyChartTimestampsArray)
+//
+//            startActivity(intent)
+//        }
 
     }
 
@@ -272,14 +272,14 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
             }
         }
 
-        val tPP = peakToPeak(accelReadings)
-
-
-        var tSlope = setOf<Float>()
-        tSlope = getTSlopeValues(accelReadings)
-        val tStep = tPeak
-            .intersect(tPP)
-            .intersect(tSlope)
+//        val tPP = peakToPeak(accelReadings)
+//
+//
+//        var tSlope = setOf<Float>()
+//        tSlope = getTSlopeValues(accelReadings)
+//        val tStep = tPeak
+//            .intersect(tPP)
+//            .intersect(tSlope)
 
         return false
     }
