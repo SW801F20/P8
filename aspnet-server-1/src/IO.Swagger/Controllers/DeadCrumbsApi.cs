@@ -32,13 +32,16 @@ namespace IO.Swagger.Controllers
     [ApiController]
     public class DeadCrumbsController : ControllerBase
     {
-        public DeadCrumbsController(MongoConnectionService mongoConnectionService, LocationService ls)
+        public DeadCrumbsController(MongoConnectionService mongoConnectionService,
+                                    LocationService ls, UserService us)
         {
             db = mongoConnectionService.db;
             this.ls = ls;
+            this.us = us;
         }
 
         private LocationService ls;
+        private UserService us;
         private IMongoDatabase db;
 
         /// <summary>
@@ -77,8 +80,7 @@ namespace IO.Swagger.Controllers
         [SwaggerResponse(statusCode: 200, type: typeof(User), description: "a user represented as json")]
         public virtual IActionResult GetUser([FromRoute][Required]string username)
         {
-            var userCollection = db.GetCollection<User>("user");
-            User user = userCollection.Find((u) => u.Username == username).FirstOrDefault();
+            User user = us.GetUserByName(db, username);
 
             if (user == null)
             {
@@ -100,8 +102,7 @@ namespace IO.Swagger.Controllers
         [SwaggerResponse(statusCode: 200, type: typeof(List<User>), description: "a JSON array of users")]
         public virtual IActionResult GetUsers()
         {
-            var userCollection = db.GetCollection<User>("user");
-            List<User> users = userCollection.Find(_ => true).ToList();
+            List<User> users = us.GetUsers(db);
             if (users.Count == 0)
             {
                 return StatusCode(404, $"No users found!");
@@ -125,11 +126,14 @@ namespace IO.Swagger.Controllers
         {
             try
             {
-                var userCollection = db.GetCollection<User>("user");
-                if (!userCollection.Find((u) => location.UserRef == u.Username).Any())
+                User user = us.GetUserByName(db, location.UserRef);
+
+                if (user == null)
+                {
                     return StatusCode(400, "Location refers to an unknown user!");
-                var locationCollection = db.GetCollection<Location>("location");
-                locationCollection.InsertOne(location);
+                }
+                
+                ls.InsertLocation(db, location);
             }
             catch (Exception e)
             {
@@ -155,8 +159,7 @@ namespace IO.Swagger.Controllers
         {
             try
             {
-                var userCollection = db.GetCollection<User>("user");
-                userCollection.InsertOne(user);
+                us.InsertUser(db, user);
             }
             catch (Exception e)
             {
@@ -186,9 +189,8 @@ namespace IO.Swagger.Controllers
             const float rssiThreshold = 2;
             if(rssiDist < rssiThreshold)
             {
-                var userCollection = db.GetCollection<User>("user");
-                User user1 = userCollection.Find((u) => u.MacAddress == mac1).FirstOrDefault();
-                User user2 = userCollection.Find((u) => u.MacAddress == mac2).FirstOrDefault();
+                User user1 = us.GetUserByMac(db, mac1);
+                User user2 = us.GetUserByMac(db, mac2);
 
                 var loc1 = ls.GetNewestLocation(db, user1.Username);
                 var loc2 = ls.GetNewestLocation(db, user2.Username);

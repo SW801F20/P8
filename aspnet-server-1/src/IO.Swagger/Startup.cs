@@ -54,6 +54,7 @@ namespace IO.Swagger
         {
             services.AddSingleton<MongoConnectionService>();
             services.AddSingleton<LocationService>();
+            services.AddSingleton<UserService>();
             // Add framework services.
             services
                 .AddMvc()
