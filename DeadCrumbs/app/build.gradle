@@ -47,6 +47,9 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
+    //Dependency for timestamps
+    //implementation 'com.jakewharton.threetenabp:threetenabp:1.2.1'
+
     //Dependencies for using the client API
     implementation "com.squareup.moshi:moshi-kotlin:1.8.0"
     implementation "com.squareup.moshi:moshi-adapters:1.8.0"

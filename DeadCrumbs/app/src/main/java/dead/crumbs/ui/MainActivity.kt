@@ -24,6 +24,7 @@ import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.google.android.gms.location.*
+//import com.jakewharton.threetenabp.AndroidThreeTen
 import dead.crumbs.R
 import dead.crumbs.data.BluetoothRSSI
 import dead.crumbs.utilities.InjectorUtils
@@ -39,6 +40,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var gpsViewModel: GPSViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        //AndroidThreeTen.init(this)
         setContentView(R.layout.activity_main)
 
         //Checks locations permissions, which are necessary for

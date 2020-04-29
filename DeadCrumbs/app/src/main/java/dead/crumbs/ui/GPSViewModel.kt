@@ -4,20 +4,19 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.drawable.GradientDrawable
 import android.location.Location
 import android.location.LocationManager
 import android.os.Looper
-import android.provider.Settings
 import android.util.Log
-import android.widget.Toast
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.ViewModel
 import com.google.android.gms.location.*
 import dead.crumbs.data.LocationRepository
+import io.swagger.client.models.Position
+//import java.time.LocalDateTime
+
+import java.util.Calendar
 
 class GPSViewModel (private val locationRepository : LocationRepository) : ViewModel(){
 
@@ -59,6 +58,9 @@ class GPSViewModel (private val locationRepository : LocationRepository) : ViewM
                     if (location == null) {
                         requestNewLocationData(activity)
                     } else {
+                        getUsers()
+                        //postLocation(io.swagger.client.models.Location("Bjerk", 10.0f, Position("str", arrayOf(10.0, 12.0)),
+                            //Calendar.getInstance().time))
                         Log.v( "gps", "Coordinate latitude:" + location.latitude.toString())
                         Log.v( "gps", "Coordinate longitude:" + location.longitude.toString())
                     }

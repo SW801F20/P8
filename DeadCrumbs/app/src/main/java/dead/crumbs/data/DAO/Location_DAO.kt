@@ -12,7 +12,7 @@ import kotlin.concurrent.thread
 class Location_DAO {
     // Since access is done from an emulator, we cannot use localhost
     // instead we have to use 10.0.2.2, also, it assumes API is running on port 8080
-    val client = DefaultApi("http://10.0.2.2:8080")
+    val client = DefaultApi("http://130.225.57.95:8393/swagger/")
 
     // Adds a location to the local representation
     // and updates database
@@ -40,9 +40,10 @@ class Location_DAO {
     fun getUsers(): LiveData<List<User>>{
         var all_users = arrayOf<User>()
         //operations over the internet should happen on a thread
-        val thread = thread(start = true){
-            all_users = client.getUsers()
+        val thread = thread{
+            //all_users = client.getUsers()
         }
+        //thread.start()
         //Wait for the action to complete
         thread.join()
         return MutableLiveData(all_users.toList())
