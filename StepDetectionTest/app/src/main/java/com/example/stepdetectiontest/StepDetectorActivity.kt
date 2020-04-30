@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import kotlin.math.sign
 import kotlin.math.sqrt
 
 /*TODO: Next up
@@ -68,7 +69,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
 
         sensorManager.registerListener(this, stepDetectorSensor, SensorManager.SENSOR_DELAY_NORMAL)
         sensorManager.registerListener(this, stepCounterSensor, SensorManager.SENSOR_DELAY_NORMAL)
-        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
+        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI)
 
 
         // Button for seeing the main chart
@@ -151,7 +152,57 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
             Sensor.TYPE_ACCELEROMETER -> {
                 processAndRecordReading(event)
 //                if (accBufferIndex % 50 == 0){
-                isStep(accelerometerZs)
+                if (isStep(accelerometerZs)) {
+                    val accelerometerValues = mutableListOf<Float>()
+
+                    // Extract relevant accelerometer values
+                    val interval = 0.4 * 1000000000
+                    var counter : Int = 0
+                    //anyChartAccels.add(15f)
+                    //anyChartTimestamps.add((event.timestamp - firstTimestamp) / 1_000_000_000)
+                    val iterations : Int = anyChartAccels.size - 1
+                    for(i in iterations downTo 1){
+                        accelerometerValues.add(anyChartAccels[i])
+
+                        val current = anyChartAccels[i]
+                        val previous = anyChartAccels[i - 1]
+
+                        if (anyChartAccels[i] < 0 && anyChartAccels[i - 1] > 0 && anyChartAccels[i] != -15f) {
+                            //anyChartAccels[i] = -15f
+                            break
+                        }
+                    }
+
+                    var simpleDist = 0.0
+                    var scarletDist = 0.0
+                    var weinbergDist = 0.0
+
+                    // Estimate step length
+                    if (!accelerometerValues.isEmpty()) {
+                        simpleDist = simpleScarletEstimation(accelerometerValues)
+                        scarletDist = scarletEstimation(accelerometerValues)
+                        weinbergDist = weinbergEstimation(accelerometerValues)
+                    }
+
+                    // Update total distances
+                    if (!scarletDist.isNaN()) sdViewModel!!.scarletDistSum += scarletDist
+                    if (!simpleDist.isNaN()) sdViewModel!!.simpleDistSum += simpleDist
+                    if (!weinbergDist.isNaN()) sdViewModel!!.weinbergDistSum += weinbergDist
+
+
+                    // Update view
+                    text_ScarletDist.text = "ScarletDist: $scarletDist"
+                    text_ScarletDistSum.text = "ScarletDistSum: ${sdViewModel!!.scarletDistSum}"
+
+                    text_SimpleDist.text = "SimpleDist: $simpleDist"
+                    text_SimpleDistSum.text = "SimpleDistSum: ${sdViewModel!!.simpleDistSum}"
+
+                    text_weinbergDist.text = "WeinbergDist: $weinbergDist"
+                    text_weinbergDistSum.text = "WeinbergDistSum: ${sdViewModel!!.weinbergDistSum}"
+
+                    text_AccelSize.text = "SizeOfAccel: ${accelerometerValues.size}"
+                }
+
 //                }
             }
 //            Sensor.TYPE_STEP_DETECTOR -> {
@@ -269,6 +320,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
                 //TODO: Refactor hardcode flush
                 accelerometerZs = arrayOfNulls(accArraySize)
                 accBufferIndex = 0
+                return true
             }
         }
 
@@ -444,14 +496,13 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
     }
 
 
-
     // TODO: Test if works
     private fun scarletEstimation(accelerometerValues: MutableList<Float>): Double {
         // walkfudge from J. Scarlet's code
-        val k = 0.0249
+        //val k = 0.0249
         // Constant from Indonesian paper
         // https://www.researchgate.net/publication/261381305_Smartphone-based_Pedestrian_Dead_Reckoning_as_an_Indoor_Positioning_System
-//        val k = 0.81
+        val k = 0.2499
 
         val min = accelerometerValues.min()
         val max = accelerometerValues.max()
@@ -477,7 +528,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
     // TODO: Doesn't provide accurate distances at the moment
     private fun simpleScarletEstimation(accelerometerValues: MutableList<Float>): Double {
         // walkfudge from Jim Scarlet's code
-        val k = 0.0249
+        val k = 0.81
 
         val min = accelerometerValues.min()
         val max = accelerometerValues.max()
@@ -487,7 +538,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun weinbergEstimation(accelerometerValues: MutableList<Float>): Double {
-        val k = 0.41
+        val k = 0.3
 
         val min = accelerometerValues.min()
         val max = accelerometerValues.max()
