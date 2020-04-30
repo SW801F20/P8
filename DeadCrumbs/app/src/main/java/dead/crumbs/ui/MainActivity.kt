@@ -1,34 +1,27 @@
 package dead.crumbs.ui
 
-import android.Manifest
-import android.annotation.SuppressLint
-import android.app.Activity
+//import com.jakewharton.threetenabp.AndroidThreeTen
+
 import android.bluetooth.BluetoothAdapter
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.content.pm.PackageManager
-import android.location.Location
-import android.location.LocationManager
-import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.os.Looper
 import android.provider.Settings
-import android.util.Log
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import com.google.android.gms.location.*
-//import com.jakewharton.threetenabp.AndroidThreeTen
-import dead.crumbs.R
-import dead.crumbs.data.BluetoothRSSI
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.R
+import dead.crumbs.data.RSSIDist
 import dead.crumbs.utilities.InjectorUtils
 import kotlinx.android.synthetic.main.activity_main.*
+import java.util.*
+
 
 
 class MainActivity : AppCompatActivity() {
@@ -236,8 +229,17 @@ class MainActivity : AppCompatActivity() {
             // We've bound to BluetoothService, cast the IBinder and get LocalService instance
             val binder = service as BluetoothService.LocalBinder
             bluetoothService = binder.getService()
-            bluetoothService.callback = fun(rssi:BluetoothRSSI) {       //callback function
-                viewModel!!.addRSSI(rssi);
+            bluetoothService.callback = fun(my_mac: String, target_mac: String, rssi: Double) {       //callback function
+                val currYear = Calendar.getInstance().get(Calendar.YEAR).toString().padStart(4,'0')
+                val currMonth = (Calendar.getInstance().get(Calendar.MONTH) + 1).toString().padStart(2,'0')
+                val currDate = Calendar.getInstance().get(Calendar.DATE).toString().padStart(2,'0')
+                val currHour = Calendar.getInstance().get(Calendar.HOUR).toString().padStart(2,'0')
+                val currMinute = Calendar.getInstance().get(Calendar.MINUTE).toString().padStart(2,'0')
+                val currSecond = Calendar.getInstance().get(Calendar.SECOND).toString().padStart(2,'0')
+                val dateTimeString = currYear + "-" + currMonth + "-" + currDate+ "T" + currHour + ":" + currMinute + ":" + currSecond
+
+
+                viewModel!!.addRSSI(RSSIDist(my_mac, target_mac, rssiProximity.distanceFromRSSI(rssi), dateTimeString));
                 //printDeviceDistance(rssi, rssiProximity.getNewAverageDist(rssi)); //for debugging
             }
 
@@ -250,8 +252,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     //printDeviceDistance is for debugging/testing rssi distance calculations
-    private fun printDeviceDistance(rssi: BluetoothRSSI, dist: Double){
-        Toast.makeText(this@MainActivity, "${rssi.target_mac_address}'s distance is\n $dist m", Toast.LENGTH_LONG).show()
+    private fun printDeviceDistance(rssiDist: RSSIDist, dist: Double){
+        Toast.makeText(this@MainActivity, "${rssiDist.target_mac_address}'s distance is\n $dist m", Toast.LENGTH_LONG).show()
     }
 
 }

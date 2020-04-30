@@ -6,21 +6,25 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import dead.crumbs.data.BluetoothRSSI
+import dead.crumbs.data.RSSIDist
 import android.app.Service
 import android.os.Binder
 import android.os.IBinder
+import android.provider.Settings
 
 //factory: RSSIViewModelFactory, viewModel: RSSIViewModel
 class BluetoothService() : Service(){
-    var callback: ((BluetoothRSSI) -> Unit)? = null
+    var callback: ((String, String, Double) -> Unit)? = null
 
     //Called on creation of BluetoothService
     override fun onCreate() {
         super.onCreate()
         setupBluetooth()
     }
-
+    val my_mac = Settings.Secure.getString(
+        this@BluetoothService.getContentResolver(),
+        "bluetooth_address"
+    )
     //----------Binding--------------
     // Binder given to clients
     private val binder = LocalBinder()
@@ -56,11 +60,10 @@ class BluetoothService() : Service(){
                         intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
 
                     var rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE).toDouble() // retrieve rssi
-                    var mac_address: String = device!!.address         //Note Bluetooth mac address != WiFi mac address
-                    var bluetoothRSSI = BluetoothRSSI(rssi, mac_address);
+                    var target_mac_address: String = device!!.address         //Note Bluetooth mac address != WiFi mac address
 
                     //Add to RSSIViewModel through callback
-                    callback?.let { it(bluetoothRSSI) }
+                    callback?.let { it(my_mac, target_mac_address, rssi) }
                 }
             }
         }
