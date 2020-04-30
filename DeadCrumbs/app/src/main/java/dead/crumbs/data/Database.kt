@@ -1,9 +1,10 @@
 package dead.crumbs.data
 
+import dead.crumbs.data.DAO.Location_DAO
 import dead.crumbs.data.DAO.Maps_DAO
 import dead.crumbs.data.DAO.RSSI_DAO
 
-class FakeDatabase private constructor() {
+class Database private constructor() {
 
     // All the DAOs go here!
     var rssiDao = RSSI_DAO()
@@ -12,9 +13,12 @@ class FakeDatabase private constructor() {
     var mapsDao = Maps_DAO()
         private set
 
+    var locationDao = Location_DAO()
+        private set
+
     companion object {
         // @Volatile - Writes to this property are immediately visible to other threads
-        @Volatile private var instance: FakeDatabase? = null
+        @Volatile private var instance: Database? = null
 
         // The only way to get hold of the FakeDatabase object
         fun getInstance() =
@@ -23,7 +27,7 @@ class FakeDatabase private constructor() {
             instance ?: synchronized(this) {
                 // If it's still not instantiated, finally create an object
                 // also set the "instance" property to be the currently created one
-                instance ?: FakeDatabase().also { instance = it }
+                instance ?: Database().also { instance = it }
             }
     }
 }

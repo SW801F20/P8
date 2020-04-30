@@ -1,32 +1,50 @@
 package dead.crumbs.ui
 
 import android.Manifest
+import android.annotation.SuppressLint
+import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.IBinder
+import android.os.Looper
+import android.provider.Settings
+import android.util.Log
+import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import com.google.android.gms.location.*
+//import com.jakewharton.threetenabp.AndroidThreeTen
 import dead.crumbs.R
 import dead.crumbs.data.BluetoothRSSI
 import dead.crumbs.utilities.InjectorUtils
 import kotlinx.android.synthetic.main.activity_main.*
 
+
 class MainActivity : AppCompatActivity() {
     private val REQUEST_ENABLE_BT = 1
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
+
+    val PERMISSION_ID = 42;
+    lateinit var mFusedLocationClient: FusedLocationProviderClient
+    private lateinit var gpsViewModel: GPSViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        //AndroidThreeTen.init(this)
         setContentView(R.layout.activity_main)
 
         //Checks locations permissions, which are necessary for
-        checkLocationPermissions()
+        //checkLocationPermissions()
 
         initializeBluetoothScan()
         initializeMapsViewModel() //Must be called before "startDeadReckoning()"
@@ -40,6 +58,14 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this,MapsActivity::class.java)
             startActivity(intent)
         }
+
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+        var locationViewModel : GPSViewModel? = null
+        val locationFactory = InjectorUtils.provideLocation()
+        locationViewModel = ViewModelProviders.of(this, locationFactory)
+            .get(GPSViewModel::class.java)
+        locationViewModel.getLastLocation(this, this@MainActivity)
     }
 
     override fun onResume() {
@@ -157,6 +183,8 @@ class MainActivity : AppCompatActivity() {
         startActivity(discoverableIntent)
     }
 
+    //can remove this function
+    /*
     private fun checkLocationPermissions() {
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
             var permissionCheck =
@@ -175,7 +203,7 @@ class MainActivity : AppCompatActivity() {
                 ) //Any number
             }
         }
-    }
+    }*/
 
     private fun enableBluetooth(){
         if (bluetoothAdapter == null) {
@@ -225,6 +253,5 @@ class MainActivity : AppCompatActivity() {
     private fun printDeviceDistance(rssi: BluetoothRSSI, dist: Double){
         Toast.makeText(this@MainActivity, "${rssi.target_mac_address}'s distance is\n $dist m", Toast.LENGTH_LONG).show()
     }
-
 
 }

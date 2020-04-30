@@ -175,7 +175,8 @@ class DeadReckoningService : Service(), SensorEventListener {
     private fun simpleScarletEstimation(accelerometerValues: MutableList<Float>): Double {
         // walkfudge from Jim Scarlet's code
         val k = 0.0249
-
+        if(accelerometerValues.isEmpty())
+            return 0.0;
         val min = accelerometerValues.min()
         val max = accelerometerValues.max()
         val avg = accelerometerValues.average()
@@ -187,7 +188,8 @@ class DeadReckoningService : Service(), SensorEventListener {
     private fun scarletEstimation(accelerometerValues: MutableList<Float>): Double {
         // walkfudge from Jim Scarlet's code
         val k = 0.0249
-
+        if(accelerometerValues.isEmpty())
+            return 0.0;
         val min = accelerometerValues.min()
         val max = accelerometerValues.max()
         val avg = accelerometerValues.average().toFloat()
