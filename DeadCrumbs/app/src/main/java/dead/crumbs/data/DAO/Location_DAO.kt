@@ -41,7 +41,7 @@ class Location_DAO {
         var all_users = arrayOf<User>()
         //operations over the internet should happen on a thread
         val thread = thread{
-            //all_users = client.getUsers()
+            all_users = client.getUsers()
         }
         //thread.start()
         //Wait for the action to complete

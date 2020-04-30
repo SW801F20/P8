@@ -10,7 +10,5 @@ object Serializer {
     val moshi: Moshi = Moshi.Builder()
             .add(KotlinJsonAdapterFactory())
             .add(Date::class.java, Rfc3339DateJsonAdapter().nullSafe())
-            .add(LocalDateTimeAdapter())
-            .add(LocalDateAdapter())
             .build()
 }

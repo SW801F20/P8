@@ -134,7 +134,7 @@ class DefaultApi(basePath: kotlin.String = "/") : ApiClient(basePath) {
                 "/Location"
         )
         val response = request<Any?>(
-                localVariableConfig
+                localVariableConfig, localVariableBody
         )
 
         return when (response.responseType) {

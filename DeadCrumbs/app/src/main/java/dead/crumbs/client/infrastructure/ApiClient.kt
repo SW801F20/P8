@@ -45,8 +45,12 @@ open class ApiClient(val baseUrl: String) {
                 else -> TODO("requestBody currently only supports JSON body and File body.")
             }
 
-    protected inline fun <reified T : Any?> responseBody(body: ResponseBody?, mediaType: String = JsonMediaType): T? {
-        if (body == null) return null
+    protected inline fun <reified T : Any?> responseBody(
+        body: ResponseBody?,
+        mediaType: String = JsonMediaType,
+        code: Int
+    ): T? {
+        if (body == null ||code == 201) return null
         return when (mediaType) {
             JsonMediaType -> Serializer.moshi.adapter(T::class.java).fromJson(body.source())
             else -> TODO()
@@ -107,7 +111,7 @@ open class ApiClient(val baseUrl: String) {
                     response.headers.toMultimap()
             )
             response.isSuccessful -> return Success(
-                    responseBody(response.body, accept),
+                    responseBody(response.body, accept, response.code),
                     response.code,
                     response.headers.toMultimap()
             )

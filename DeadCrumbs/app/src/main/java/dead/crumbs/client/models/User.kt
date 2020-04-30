@@ -15,11 +15,11 @@ package io.swagger.client.models
 /**
  * 
  * @param username 
- * @param macAddress 
+ * @param mac_address
  */
 data class User (
     val username: kotlin.String,
-    val macAddress: kotlin.String
+    val mac_address: kotlin.String
 
 ) {
 }

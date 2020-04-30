@@ -59,15 +59,15 @@ class GPSViewModel (private val locationRepository : LocationRepository) : ViewM
                         requestNewLocationData(activity)
                     } else {
                         //getUsers()
-                        val currYear = Calendar.getInstance().get(Calendar.YEAR)
-                        val currMonth = Calendar.getInstance().get(Calendar.MONTH).toInt() + 1
-                        val currDate = Calendar.getInstance().get(Calendar.DATE)
-                        val currHour = Calendar.getInstance().get(Calendar.HOUR)
-                        val currMinute = Calendar.getInstance().get(Calendar.MINUTE)
-                        val currSecond = Calendar.getInstance().get(Calendar.SECOND)
-                        val dateTimeString = currYear.toString() + "-" + currMonth.toString() + "-" + currDate.toString() + "T" + currHour.toString() + ":" + currMinute.toString() + ":" + currSecond.toString()
+                        val currYear = Calendar.getInstance().get(Calendar.YEAR).toString().padStart(4,'0')
+                        val currMonth = (Calendar.getInstance().get(Calendar.MONTH) + 1).toString().padStart(2,'0')
+                        val currDate = Calendar.getInstance().get(Calendar.DATE).toString().padStart(2,'0')
+                        val currHour = Calendar.getInstance().get(Calendar.HOUR).toString().padStart(2,'0')
+                        val currMinute = Calendar.getInstance().get(Calendar.MINUTE).toString().padStart(2,'0')
+                        val currSecond = Calendar.getInstance().get(Calendar.SECOND).toString().padStart(2,'0')
+                        val dateTimeString = currYear + "-" + currMonth + "-" + currDate+ "T" + currHour + ":" + currMinute + ":" + currSecond
 
-                        postLocation(io.swagger.client.models.Location("jacob6565", 10.0, Position("point", arrayOf(10.0, 12.0)),
+                        postLocation(io.swagger.client.models.Location("jacob6565", 6.0, Position("point", arrayOf(10.0, 12.0)),
                             dateTimeString))
                         Log.v( "gps", "Coordinate latitude:" + location.latitude.toString())
                         Log.v( "gps", "Coordinate longitude:" + location.longitude.toString())
