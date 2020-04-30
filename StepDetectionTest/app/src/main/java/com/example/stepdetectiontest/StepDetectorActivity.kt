@@ -34,6 +34,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
     var accBufferIndex: Int = 0
     var gravitationalAccel: Double = 9.72
     var firstTimestamp: Double = 0.0
+    var previousPeakTimeStamp : Double = 0.0
 
     // For viewing data in AnyChartActivity
     var anyChartPeakTimestamps = mutableListOf<Double>()
@@ -153,6 +154,10 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
                 processAndRecordReading(event)
 //                if (accBufferIndex % 50 == 0){
                 if (isStep(accelerometerZs)) {
+                    val startIndex = accelerometerZs.indexOf(accelerometerZs.find { it!!.second == previousPeakTimeStamp })
+                    for (i in startIndex .. accBufferIndex){
+
+                    }
                     val accelerometerValues = mutableListOf<Float>()
 
                     // Extract relevant accelerometer values
@@ -201,6 +206,11 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
                     text_weinbergDistSum.text = "WeinbergDistSum: ${sdViewModel!!.weinbergDistSum}"
 
                     text_AccelSize.text = "SizeOfAccel: ${accelerometerValues.size}"
+
+                    //TODO: Refactor hardcode flush
+                    Log.v("number of samples", accelerometerValues.size.toString())
+                    accelerometerZs = arrayOfNulls(accArraySize)
+                    accBufferIndex = 0
                 }
 
 //                }
@@ -317,9 +327,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
                     }
                 }
 
-                //TODO: Refactor hardcode flush
-                accelerometerZs = arrayOfNulls(accArraySize)
-                accBufferIndex = 0
+
                 return true
             }
         }
@@ -444,14 +452,17 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
             Pair(accelReading, (event.timestamp - firstTimestamp) / 1_000_000_000.0)
         accBufferIndex++
 
+
+        // Low pass filter to remove high frequency noise
+        accelerometerZs = lowPassFilter(accelerometerZs, accBufferIndex)
+
         // Log the reading in logcat
         Log.v(
             "Z-axis new value: " + ((event.timestamp - firstTimestamp) / 1_000_000_000.0).toString() + " ",
             (accelReading - gravitationalAccel).toString()
         )
 
-        // Low pass filter to remove high frequency noise
-        accelerometerZs = lowPassFilter(accelerometerZs, accBufferIndex)
+
     }
 
     /* Perform a low pass filter to remove high frequency noise
@@ -502,7 +513,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
         //val k = 0.0249
         // Constant from Indonesian paper
         // https://www.researchgate.net/publication/261381305_Smartphone-based_Pedestrian_Dead_Reckoning_as_an_Indoor_Positioning_System
-        val k = 0.2499
+        val k = 0.31
 
         val min = accelerometerValues.min()
         val max = accelerometerValues.max()
@@ -528,7 +539,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
     // TODO: Doesn't provide accurate distances at the moment
     private fun simpleScarletEstimation(accelerometerValues: MutableList<Float>): Double {
         // walkfudge from Jim Scarlet's code
-        val k = 0.81
+        val k = 2.5
 
         val min = accelerometerValues.min()
         val max = accelerometerValues.max()
@@ -538,7 +549,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun weinbergEstimation(accelerometerValues: MutableList<Float>): Double {
-        val k = 0.3
+        val k = 0.9
 
         val min = accelerometerValues.min()
         val max = accelerometerValues.max()
@@ -549,8 +560,10 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
 
     //https://rosettacode.org/wiki/Nth_root#Kotlin
     fun nthRoot(x: Double, n: Int): Double {
+        if (x == 0.0)
+            return 0.0
         if (n < 2) throw IllegalArgumentException("n must be more than 1")
-        if (x <= 0.0) throw IllegalArgumentException("x must be positive")
+        if (x < 0.0) throw IllegalArgumentException("x must be positive")
         val np = n - 1
         fun iter(g: Double) = (np * g + x / Math.pow(g, np.toDouble())) / n
         var g1 = x
