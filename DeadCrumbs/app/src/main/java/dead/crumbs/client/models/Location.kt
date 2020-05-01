@@ -23,7 +23,7 @@ import io.swagger.client.models.Position
 data class Location (
     val user_ref: kotlin.String,
     val yaw: kotlin.Double,
-    val position: Position,
+    var position: Position,
     val timestamp: kotlin.String
 
 ) {

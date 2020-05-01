@@ -1,7 +1,9 @@
 package dead.crumbs.ui
 
+import android.content.Context
 import android.location.Location
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -17,6 +19,8 @@ import com.google.android.gms.maps.model.Marker
 import dead.crumbs.R
 import dead.crumbs.utilities.InjectorUtils
 import java.lang.Exception
+import java.lang.Thread.sleep
+import kotlin.concurrent.thread
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     GoogleMap.OnMarkerClickListener{
@@ -68,9 +72,18 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
      * installed Google Play services and returned to the app.
      */
     override fun onMapReady(googleMap: GoogleMap) {
+
         viewModel!!.setupMap(googleMap, this, this@MapsActivity)
         viewModel!!.map.setOnMarkerClickListener(this)
-
+        var context : Context = this
+        var handler = Handler()
+        var runnable = object : Runnable {
+            override fun run(){
+                viewModel!!.updateMapPositions(context, this@MapsActivity)
+                handler.postDelayed(this, 5000)
+            }
+        }
+        handler.postDelayed(runnable, 5000)
     }
 
     override fun onMarkerClick(p0: Marker?): Boolean {

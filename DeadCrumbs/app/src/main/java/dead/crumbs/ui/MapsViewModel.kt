@@ -228,6 +228,40 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         }
     }
 
+    fun updateMapPositions(context: Context, activity: Activity){
+        try {
+            var loc = getLastLocation(context, activity)
+            var users = getUsers();
+            var newLocations : MutableList<LiveData<io.swagger.client.models.Location>> = arrayListOf()
+            if(users.value != null) {
+                for (user in users.value!!) {
+                    try {
+                        newLocations.add(getLocation(user.username))
+                    } catch (e: java.lang.Exception) {
+                        Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+
+            var marker = map.addMarker(newMarker( loc = LatLng(loc!!.latitude, loc.longitude), name = "Me", icon = R.mipmap.my_picture))
+
+
+            //assign meMarker for easier update of orientation
+            meMarker = marker
+            var newMarkerList = mutableListOf<Marker>()
+            for (user in newLocations) {
+                var marker = map.addMarker(newMarker(LatLng(user.value!!.position.coordinates!![0],
+                    user.value!!.position.coordinates!![1]), user.value!!.user_ref,20.0,
+                    R.mipmap.my_picture))
+                newMarkerList.add(marker)
+            }
+            markerList = newMarkerList
+        }
+        catch(e: java.lang.Exception){
+            Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
+        }
+    }
+
     fun getUsers() = mapsRepository.getUsers()
     fun getUser(userName: String) = mapsRepository.getUser(userName)
     fun getLocation(userName: String) = mapsRepository.getLocation(userName)
