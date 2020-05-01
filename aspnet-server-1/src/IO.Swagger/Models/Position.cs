@@ -18,7 +18,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
 using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Bson;
 
 namespace IO.Swagger.Models
 { 
@@ -26,45 +25,23 @@ namespace IO.Swagger.Models
     /// 
     /// </summary>
     [DataContract]
-    public partial class Location : IEquatable<Location>
+    public partial class Position : IEquatable<Position>
     {
         /// <summary>
-        /// Gets or Sets UserRef
-        /// </summary>
-        [BsonId]
-        public ObjectId id { get; set; }
-
-        /// <summary>
-        /// Gets or Sets UserRef
+        /// Gets or Sets Type
         /// </summary>
         [Required]
-        [BsonElement("user_ref")]
-        [DataMember(Name="user_ref")]
-        public string UserRef { get; set; }
+        [BsonElement("type")]
+        [DataMember(Name="type")]
+        public string Type { get; set; }
 
         /// <summary>
-        /// Gets or Sets Yaw
+        /// Gets or Sets Coordinates
         /// </summary>
         [Required]
-        [BsonElement("yaw")]
-        [DataMember(Name="yaw")]
-        public float? Yaw { get; set; }
-
-        /// <summary>
-        /// Gets or Sets Position
-        /// </summary>
-        [Required]
-        [BsonElement("position")]
-        [DataMember(Name="position")]
-        public Position Position { get; set; }
-
-        /// <summary>
-        /// Gets or Sets Timestamp
-        /// </summary>
-        [Required]
-        [BsonElement("timestamp")]
-        [DataMember(Name="timestamp")]
-        public DateTime? Timestamp { get; set; }
+        [BsonElement("coordinates")]
+        [DataMember(Name="coordinates")]
+        public List<double?> Coordinates { get; set; }
 
         /// <summary>
         /// Returns the string presentation of the object
@@ -73,11 +50,9 @@ namespace IO.Swagger.Models
         public override string ToString()
         {
             var sb = new StringBuilder();
-            sb.Append("class Location {\n");
-            sb.Append("  UserRef: ").Append(UserRef).Append("\n");
-            sb.Append("  Yaw: ").Append(Yaw).Append("\n");
-            sb.Append("  Position: ").Append(Position).Append("\n");
-            sb.Append("  Timestamp: ").Append(Timestamp).Append("\n");
+            sb.Append("class Position {\n");
+            sb.Append("  Type: ").Append(Type).Append("\n");
+            sb.Append("  Coordinates: ").Append(Coordinates).Append("\n");
             sb.Append("}\n");
             return sb.ToString();
         }
@@ -100,39 +75,29 @@ namespace IO.Swagger.Models
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            return obj.GetType() == GetType() && Equals((Location)obj);
+            return obj.GetType() == GetType() && Equals((Position)obj);
         }
 
         /// <summary>
-        /// Returns true if Location instances are equal
+        /// Returns true if Position instances are equal
         /// </summary>
-        /// <param name="other">Instance of Location to be compared</param>
+        /// <param name="other">Instance of Position to be compared</param>
         /// <returns>Boolean</returns>
-        public bool Equals(Location other)
+        public bool Equals(Position other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
 
             return 
                 (
-                    UserRef == other.UserRef ||
-                    UserRef != null &&
-                    UserRef.Equals(other.UserRef)
+                    Type == other.Type ||
+                    Type != null &&
+                    Type.Equals(other.Type)
                 ) && 
                 (
-                    Yaw == other.Yaw ||
-                    Yaw != null &&
-                    Yaw.Equals(other.Yaw)
-                ) && 
-                (
-                    Position == other.Position ||
-                    Position != null &&
-                    Position.Equals(other.Position)
-                ) && 
-                (
-                    Timestamp == other.Timestamp ||
-                    Timestamp != null &&
-                    Timestamp.Equals(other.Timestamp)
+                    Coordinates == other.Coordinates ||
+                    Coordinates != null &&
+                    Coordinates.SequenceEqual(other.Coordinates)
                 );
         }
 
@@ -146,14 +111,10 @@ namespace IO.Swagger.Models
             {
                 var hashCode = 41;
                 // Suitable nullity checks etc, of course :)
-                    if (UserRef != null)
-                    hashCode = hashCode * 59 + UserRef.GetHashCode();
-                    if (Yaw != null)
-                    hashCode = hashCode * 59 + Yaw.GetHashCode();
-                    if (Position != null)
-                    hashCode = hashCode * 59 + Position.GetHashCode();
-                    if (Timestamp != null)
-                    hashCode = hashCode * 59 + Timestamp.GetHashCode();
+                    if (Type != null)
+                    hashCode = hashCode * 59 + Type.GetHashCode();
+                    if (Coordinates != null)
+                    hashCode = hashCode * 59 + Coordinates.GetHashCode();
                 return hashCode;
             }
         }
@@ -161,12 +122,12 @@ namespace IO.Swagger.Models
         #region Operators
         #pragma warning disable 1591
 
-        public static bool operator ==(Location left, Location right)
+        public static bool operator ==(Position left, Position right)
         {
             return Equals(left, right);
         }
 
-        public static bool operator !=(Location left, Location right)
+        public static bool operator !=(Position left, Position right)
         {
             return !Equals(left, right);
         }

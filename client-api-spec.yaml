@@ -1,127 +1,132 @@
-# Todo:
-# Sikkerhed: fx API-keys osv.
-
-
-
-
 openapi: 3.0.3
 info:
-  title: Walking Skeleton API
-  description: This is the API for the Walking Skeleton.
+  title: DeadCrumbs API
+  description: This is the API for for the DeadCrumbs application.
   version: '1'
-  
-
-servers:
-  - url: url1
-    description: production server
-  - url: url2
-    description: testing server
-    
 
 paths:
-  /Locations:
+  /Users:
     get:
-      summary: returns all locations as a list
-      operationId: getLocations
+      summary: returns all user as a list
+      operationId: getUsers
       responses:
         200:
-          description: a JSON array of locations
+          description: Succesfull request! Returns a JSON array of users
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Location'
-                
+                  $ref: '#/components/schemas/user'
         404:
-          description: no locations are in the database
-          
-  /Location/{deviceId}:
+          description: No users found
+
+  /User/{username}:
     get:
-      summary: returns the location associated with device ID
-      operationId: getLocation
-      parameters:
-        - $ref: '#/components/parameters/deviceId'
+      summary: return the user
+      operationId: getUser
+      parameters: 
+        - $ref: '#/components/parameters/username'
       responses:
         200:
-          description: a JSON object of a location
+          description: Succesfull request! Returns a user represented as JSON
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Location'
-                
-        400:
-          description: retrival of location went wrong
-        
+                $ref: '#/components/schemas/user'
         404:
-          description: no device with that id
-                
-    delete:
-      summary: deletes a location
-      operationId: deleteLocation
+          description: No user found called "username"
+
+  /Location/{username}:
+    get:
+      summary: returns the location associated with username
+      operationId: getLocation
       parameters:
-        - $ref: '#/components/parameters/deviceId'
+        - $ref: '#/components/parameters/username'
       responses:
-       200:
-        description: location deleted successfully
-       400:
-        description: deletion of location went wrong
-       404:
-        description: no location associated with devive ID
+        200:
+          description: Succesfull request! Returns a location represented as JSON
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/location'
+                        
+        404:
+          description: No locations found!
+                
   
   /Location:
     post:
       summary: adds a new location
       operationId: postLocation
       requestBody:
-        $ref: '#/components/requestBodies/Location'
+        $ref: '#/components/requestBodies/location'
       responses:
         201:
-          description: location added successfully
+          description: Succesfull request! Created new location
         400:
-          description: location added unsuccessfully
-
+          description: Bad request! Location not added
       
 
 components:
   schemas:
-    Location:
+    user:
       type: object
       properties:
-        id:
-          type: integer
-          format: int32
-        deviceId:
-          type: integer
-          format: int32
-        locationValue:
+        username:
           type: string
-          example: some RSSI value
-          
+          example: "jacob6565"
+        mac_address:
+          type: string
+          format: "D6:11:A1:23"
       required: 
-        - id
-        - deviceId
-        - locationValue
-      
+        - username
+        - mac_address
+        
+    location:
+      type: object
+      properties:
+        user_ref:
+          type: string
+        yaw:
+          type: number
+          format: float
+        position:
+          $ref: '#/components/schemas/position'
+        timestamp:
+          type: string
+          format: date-time
+      required: 
+        - user_ref
+        - yaw
+        - position
+        - timestamp
+        
+    position:
+      type: object
+      properties:
+        type:
+          type: string
+        coordinates:
+          type: array
+          items:
+            type: number
+            format: double
+            
   parameters:
-    deviceId:
-      name: deviceId
+    username:
+      name: username
       in: path
       required: true
-      description: The ID of the device.
+      description: The username of the user.
       schema:
-        type: integer
-        format: int32
-        minimum: 1
-        
+        type: string
+
   requestBodies:
-    Location:
+    location:
       description: a JSON object of a location
       required: true
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Location'
-    
-
-    
+            $ref: '#/components/schemas/location'

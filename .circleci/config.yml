@@ -2,9 +2,11 @@ version: 2.1
 
 orbs:
  android: circleci/android@0.2.0
+ windows: circleci/windows@2.2.0
+
 
 jobs:
-  build:
+  build_APP:
     executor: android/android
     steps:
       - checkout
@@ -16,3 +18,19 @@ jobs:
       - run:
           name: Run Tests
           command: cd DeadCrumbs && ./gradlew test
+  build_API:
+    description: Build API with Release configuration
+    executor:
+      name: windows/default
+      shell: cmd.exe
+    steps:
+      - checkout
+      - run:
+          name: "Build API"
+          command: cd aspnet-server-1/ && build.bat
+
+workflows:
+  build_API_and_APP:
+    jobs:
+      - build_API
+      - build_APP
