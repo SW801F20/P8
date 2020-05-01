@@ -187,14 +187,17 @@ namespace IO.Swagger.Controllers
             [FromRoute][Required]DateTime timeStamp)
         {
             const float rssiThreshold = 2;
-            if(rssiDist < rssiThreshold)
-            {
-                User user1 = us.GetUserByName(db, username);
-                User user2 = us.GetUserByMac(db, targetMac);
 
-                var loc1 = ls.GetNewestLocation(db, user1.Username);
-                var loc2 = ls.GetNewestLocation(db, user2.Username);
-                
+            User user1 = us.GetUserByName(db, username);
+            User user2 = us.GetUserByMac(db, targetMac);
+
+            var loc1 = ls.GetNewestLocation(db, user1.Username);
+            var loc2 = ls.GetNewestLocation(db, user2.Username);
+
+            List<Location> res = new List<Location>() { loc1, loc2 }; //Default is the no change to locations res
+
+            if (rssiDist < rssiThreshold)
+            {           
                 var earthRadiusKm = 6371;
                 Func<double, double> toRadians = (degrees) => { return degrees * Math.PI / 180; };
                 var dLat = toRadians(loc1.Position.Coordinates[0] - loc2.Position.Coordinates[0]);
@@ -207,7 +210,7 @@ namespace IO.Swagger.Controllers
                 var distanceKM = earthRadiusKm * c;
                 var distanceM = distanceKM * 1000;
 
-                if (distanceM > 2)
+                if (distanceM > 2) //threshold for sync
                 {
                     const double multiplier = 0.5;
                     double latDiff = Math.Abs(loc1.Position.Coordinates[0] - loc2.Position.Coordinates[0]);
@@ -240,11 +243,11 @@ namespace IO.Swagger.Controllers
                     Location newLoc2 = new Location(loc2.UserRef, loc2.Yaw, loc2.Position, timeStamp);
                     ls.InsertLocation(db, newLoc1);
                     ls.InsertLocation(db, newLoc2);
-                    
+                    res = new List<Location>() { newLoc1, newLoc2 }; //New updated locations based on sync
                 }
             }
-            
-            return StatusCode(201);
+
+            return new ObjectResult(res) { StatusCode = 201 };
         }
     }
 }
