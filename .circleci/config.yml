@@ -28,15 +28,9 @@ jobs:
       - run:
           name: "Build API"
           command: cd aspnet-server-1/ && build.bat
-      - run:
-          name: "Run API"
-          command: cd aspnet-server-1/ && dotnet run -p src/IO.Swagger/IO.Swagger.csproj --launch-profile web
-          background: true
 
 workflows:
   build_API_and_APP:
     jobs:
       - build_API
-      - build_APP:
-          requires:
-            - build_API
+      - build_APP
