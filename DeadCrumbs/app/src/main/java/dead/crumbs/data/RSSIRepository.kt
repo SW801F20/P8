@@ -6,8 +6,8 @@ class RSSIRepository private constructor(private val rssiDao: RSSI_DAO) {
 
     // This may seem redundant.
     // Imagine a code which also updates and checks the backend.
-    fun addRSSI(rssiDist: RSSIDist) {
-        rssiDao.update_locations(rssiDist)
+    fun bluetoothSync(rssiDist: RSSIDist) {
+        rssiDao.bluetoothSync(rssiDist)
     }
 
 
