@@ -14,7 +14,7 @@ import kotlin.math.abs
 import kotlin.math.sqrt
 
 class DeadReckoningService : Service(), SensorEventListener{
-
+    private var accelerometer: Sensor? = null
     private lateinit var sensorManager: SensorManager
     var orientationCallback: ((FloatArray) -> Unit)? = null
 
@@ -38,11 +38,8 @@ class DeadReckoningService : Service(), SensorEventListener{
         sensorManager.registerListener(this, magneticFieldSensor,
             SensorManager.SENSOR_DELAY_FASTEST, SensorManager.SENSOR_DELAY_UI)
 
-        //Step counter
-        var stepCounterSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-
-        //TODO: Consider SENSOR_DELAY_FASTEST
-        sensorManager.registerListener(this, stepCounterSensor, SensorManager.SENSOR_DELAY_NORMAL)
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME)
 
     }
 
@@ -108,26 +105,7 @@ class DeadReckoningService : Service(), SensorEventListener{
      * from a sensor it is listening to (registerListener) */
     override fun onSensorChanged(event: SensorEvent) {
         when (event.sensor.type) {
-            Sensor.TYPE_STEP_COUNTER -> {
-                val sensorValue = event.values[0]
-                // Set initial count value upon first reading
-                if (stepCounterInitial < 1)
-                    stepCounterInitial = sensorValue.toInt()
-                // Update counter with #steps taken since initial value
-                stepCounter = sensorValue.toInt() - stepCounterInitial
 
-                //TODO: Find out how and where to pass value on to
-                // See LogCat in Android Studio, make sure Verbose is selected
-                // and then search for stepCounter
-                Log.d("stepCounter: ", stepCounter.toString())
-
-                //TODO: Find out how and where to pass value on to
-                // Step length estimation
-                val stepLength = estimateStepLength(event.timestamp)
-                // See LogCat in Android Studio, make sure Verbose is selected
-                // and then search for stepLength
-                Log.d("stepLength: ", stepLength.toString())
-            }
             Sensor.TYPE_ACCELEROMETER -> {
                 // For orientation
                 System.arraycopy(event.values, 0, accelerometerReading, 0, accelerometerReading.size)
