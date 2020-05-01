@@ -91,7 +91,7 @@ paths:
         - $ref: '#/components/parameters/rssiDist'
         - $ref: '#/components/parameters/timeStamp'
       responses:
-        200:
+        201:
           description: Succesfull request! Returns a JSON array of locations
           content:
             application/json:
@@ -100,7 +100,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/location'
         404:
-          description: No user found called "username"
+          description: "Sync failed. User or location does not exist"
   
 components:
   schemas:
