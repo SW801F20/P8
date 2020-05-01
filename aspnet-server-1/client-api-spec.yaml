@@ -92,11 +92,13 @@ paths:
         - $ref: '#/components/parameters/timeStamp'
       responses:
         200:
-          description: Succesfull request! Returns a user represented as JSON
+          description: Succesfull request! Returns a JSON array of locations
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/user'
+                type: array
+                items:
+                  $ref: '#/components/schemas/location'
         404:
           description: No user found called "username"
   
