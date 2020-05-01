@@ -2,6 +2,7 @@ package dead.crumbs.ui
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProviders
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -12,6 +13,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.Marker
 import dead.crumbs.R
 import dead.crumbs.utilities.InjectorUtils
+import java.lang.Exception
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     GoogleMap.OnMarkerClickListener{
@@ -34,7 +36,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         val locationFactory = InjectorUtils.provideLocation()
         locationViewModel = ViewModelProviders.of(this, locationFactory)
             .get(GPSViewModel::class.java)
-        var loc = locationViewModel!!.getLastLocation(this, this@MapsActivity)
+        try {
+            var loc = locationViewModel!!.getLastLocation(this, this@MapsActivity)
+        }
+        catch(e: Exception){
+            Toast.makeText(this, "Make sure to turn on GPS", Toast.LENGTH_LONG).show()
+        }
+
+        try{
+            var users = locationViewModel!!.getUsers();
+
+            var i : Int = 3
+        }
+        catch (e:Exception){
+
+        }
+
+
 
         initializeViewModel()
     }

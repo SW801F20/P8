@@ -58,7 +58,6 @@ class GPSViewModel (private val locationRepository : LocationRepository) : ViewM
         var location: Location ?= null
         if (checkPermissions(context)) {
             if (isLocationEnabled(context)) {
-
                 location = locMan.getLastKnownLocation(LocationManager.GPS_PROVIDER)
                 if(location == null)
                     location = locMan.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
@@ -88,7 +87,6 @@ class GPSViewModel (private val locationRepository : LocationRepository) : ViewM
                         val dateTimeString =
                             currYear + "-" + currMonth + "-" + currDate + "T" + currHour + ":" + currMinute + ":" + currSecond
 
-
                         Log.v("gps", "Coordinate latitude:" + location!!.latitude.toString())
                         Log.v("gps", "Coordinate longitude:" + location!!.longitude.toString())
                     }
@@ -99,7 +97,7 @@ class GPSViewModel (private val locationRepository : LocationRepository) : ViewM
         } else {
             requestPermissions(activity)
         }
-        return location
+        throw Exception()
     }
 
     @SuppressLint("MissingPermission")
