@@ -70,7 +70,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
 
         sensorManager.registerListener(this, stepDetectorSensor, SensorManager.SENSOR_DELAY_NORMAL)
         sensorManager.registerListener(this, stepCounterSensor, SensorManager.SENSOR_DELAY_NORMAL)
-        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI)
+        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME)
 
 
         // Button for seeing the main chart
@@ -317,7 +317,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
         val peakLowerThresh = 2.0
         val peakUpperThresh = 6.5
 
-        val n = 6
+        val n = 10
 
         // Peak detection
         var tPeak = setOf<Float>()
@@ -564,7 +564,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
     // TODO: Doesn't provide accurate distances at the moment
     private fun simpleScarletEstimation(accelerometerValues: MutableList<Float>): Double {
         // walkfudge from Jim Scarlet's code
-        val k = 2.5
+        val k = 1.7623
 
         val min = accelerometerValues.min()
         val max = accelerometerValues.max()
@@ -574,7 +574,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun weinbergEstimation(accelerometerValues: MutableList<Float>): Double {
-        val k = 0.9
+        val k = 0.4242
 
         val min = accelerometerValues.min()
         val max = accelerometerValues.max()
