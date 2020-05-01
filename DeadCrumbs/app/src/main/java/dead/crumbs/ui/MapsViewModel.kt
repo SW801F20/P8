@@ -77,6 +77,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
             //assign meMarker for easier update of orientation
             meMarker = marker
 
+            //TODO(distance set to 20.0, however we have no idea of the influence of this, find out)
             for (user in locList) {
                 var marker = map.addMarker(newMarker(LatLng(user.value!!.position.coordinates!![0],
                     user.value!!.position.coordinates!![1]), user.value!!.user_ref,20.0,
