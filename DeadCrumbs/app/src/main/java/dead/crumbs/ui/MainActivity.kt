@@ -37,7 +37,7 @@ class MainActivity : AppCompatActivity() {
 
     val PERMISSION_ID = 42;
     lateinit var mFusedLocationClient: FusedLocationProviderClient
-    private lateinit var gpsViewModel: GPSViewModel
+    //private lateinit var gpsViewModel: GPSViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //AndroidThreeTen.init(this)
@@ -60,12 +60,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
+        /*
         var locationViewModel : GPSViewModel? = null
         val locationFactory = InjectorUtils.provideLocation()
         locationViewModel = ViewModelProviders.of(this, locationFactory)
             .get(GPSViewModel::class.java)
-        locationViewModel.getLastLocation(this, this@MainActivity)
+        locationViewModel.getLastLocation(this, this@MainActivity)*/
     }
 
     override fun onResume() {

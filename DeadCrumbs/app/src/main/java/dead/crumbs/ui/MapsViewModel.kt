@@ -15,9 +15,7 @@ import kotlin.math.sin
 
 class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
     lateinit var map: GoogleMap
-
     var markerList = mutableListOf<Marker>()
-
     var mapIsInitialized = false
 
     fun updateOrientation(degrees: Double){

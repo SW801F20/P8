@@ -4,16 +4,19 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.content.Context.LOCATION_SERVICE
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
 import android.os.Looper
 import android.util.Log
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.ViewModel
 import com.google.android.gms.location.*
 import dead.crumbs.data.LocationRepository
 import io.swagger.client.models.Position
+import okhttp3.internal.wait
 //import java.time.LocalDateTime
 
 import java.util.Calendar
@@ -22,7 +25,7 @@ class GPSViewModel (private val locationRepository : LocationRepository) : ViewM
 
     val PERMISSION_ID = 42;
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
-
+    var callback:(() -> Location)? = null
 
     private fun checkPermissions(context: Context): Boolean {
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
@@ -49,35 +52,54 @@ class GPSViewModel (private val locationRepository : LocationRepository) : ViewM
 
 
     @SuppressLint("MissingPermission")
-    public fun getLastLocation(context:Context, activity: Activity) {
+    public fun getLastLocation(context:Context, activity: Activity): Location? {
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity)
+        var locMan : LocationManager = context.getSystemService(LOCATION_SERVICE) as LocationManager
+        var location: Location ?= null
         if (checkPermissions(context)) {
             if (isLocationEnabled(context)) {
-                mFusedLocationClient.lastLocation.addOnCompleteListener() { task ->
-                    var location: Location? = task.result
+
+                location = locMan.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                if(location == null)
+                    location = locMan.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+
+                Log.v("gps", "Coordinate latitude:" + location!!.latitude.toString())
+                Log.v("gps", "Coordinate longitude:" + location!!.longitude.toString())
+
+                return location
+                /*mFusedLocationClient.lastLocation.addOnCompleteListener() { task ->
+                    location = task.result
                     if (location == null) {
                         requestNewLocationData(activity)
                     } else {
-                        //getUsers()
-                        val currYear = Calendar.getInstance().get(Calendar.YEAR).toString().padStart(4,'0')
-                        val currMonth = (Calendar.getInstance().get(Calendar.MONTH) + 1).toString().padStart(2,'0')
-                        val currDate = Calendar.getInstance().get(Calendar.DATE).toString().padStart(2,'0')
-                        val currHour = Calendar.getInstance().get(Calendar.HOUR).toString().padStart(2,'0')
-                        val currMinute = Calendar.getInstance().get(Calendar.MINUTE).toString().padStart(2,'0')
-                        val currSecond = Calendar.getInstance().get(Calendar.SECOND).toString().padStart(2,'0')
-                        val dateTimeString = currYear + "-" + currMonth + "-" + currDate+ "T" + currHour + ":" + currMinute + ":" + currSecond
 
-                        postLocation(io.swagger.client.models.Location("jacob6565", 6.0, Position("point", arrayOf(10.0, 12.0)),
-                            dateTimeString))
-                        Log.v( "gps", "Coordinate latitude:" + location.latitude.toString())
-                        Log.v( "gps", "Coordinate longitude:" + location.longitude.toString())
+                        val currYear =
+                            Calendar.getInstance().get(Calendar.YEAR).toString().padStart(4, '0')
+                        val currMonth = (Calendar.getInstance().get(Calendar.MONTH) + 1).toString()
+                            .padStart(2, '0')
+                        val currDate =
+                            Calendar.getInstance().get(Calendar.DATE).toString().padStart(2, '0')
+                        val currHour =
+                            Calendar.getInstance().get(Calendar.HOUR).toString().padStart(2, '0')
+                        val currMinute =
+                            Calendar.getInstance().get(Calendar.MINUTE).toString().padStart(2, '0')
+                        val currSecond =
+                            Calendar.getInstance().get(Calendar.SECOND).toString().padStart(2, '0')
+                        val dateTimeString =
+                            currYear + "-" + currMonth + "-" + currDate + "T" + currHour + ":" + currMinute + ":" + currSecond
+
+
+                        Log.v("gps", "Coordinate latitude:" + location!!.latitude.toString())
+                        Log.v("gps", "Coordinate longitude:" + location!!.longitude.toString())
                     }
-                }
-            } else {
-            }
+                }*/
+
+
+            } else { }
         } else {
             requestPermissions(activity)
         }
+        return location
     }
 
     @SuppressLint("MissingPermission")

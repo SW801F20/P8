@@ -18,6 +18,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
+    var locationViewModel : GPSViewModel? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
@@ -26,6 +28,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+
+        //initializes the locationViewModel, used to get users and their positions
+        val locationFactory = InjectorUtils.provideLocation()
+        locationViewModel = ViewModelProviders.of(this, locationFactory)
+            .get(GPSViewModel::class.java)
+        var loc = locationViewModel!!.getLastLocation(this, this@MapsActivity)
+
         initializeViewModel()
     }
 
