@@ -175,7 +175,7 @@ namespace IO.Swagger.Controllers
         /// </summary>
         /// <param name="user">a JSON object of a location</param>
         /// <response code="201">Successful request! Created new user</response>
-        /// <response code="400">Bad request! User not added</response>
+        /// <response code="400">Sync failed. User or location does not exist</response>
         [HttpPost]
         [Route("/RSSI/{username}/{targetMac}/{rssiDist}/{timeStamp}")]
         [ValidateModelState]
@@ -191,8 +191,18 @@ namespace IO.Swagger.Controllers
             User user1 = us.GetUserByName(db, username);
             User user2 = us.GetUserByMac(db, targetMac);
 
+            if(user1 == null || user2 == null) {
+                return StatusCode(404);
+            }
+
             var loc1 = ls.GetNewestLocation(db, user1.Username);
             var loc2 = ls.GetNewestLocation(db, user2.Username);
+
+            if (loc1 == null || loc2 == null)
+            {
+                return StatusCode(404);
+            }
+
 
             List<Location> res = new List<Location>() { loc1, loc2 }; //Default is the no change to locations res
 
