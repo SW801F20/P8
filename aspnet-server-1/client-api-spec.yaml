@@ -81,13 +81,13 @@ paths:
           description: Bad request! Location not added
       
   
-  /RSSI/{mac1}/{mac2}/{rssiDist}/{timeStamp}:
+  /RSSI/{username}/{targetMac}/{rssiDist}/{timeStamp}:
     post:
       summary: updates locations based on bluetooth sync
       operationId: postBluetoothSync
       parameters:
-        - $ref: '#/components/parameters/mac1'
-        - $ref: '#/components/parameters/mac2'
+        - $ref: '#/components/parameters/username'
+        - $ref: '#/components/parameters/targetMac'
         - $ref: '#/components/parameters/rssiDist'
         - $ref: '#/components/parameters/timeStamp'
       responses:
@@ -145,19 +145,11 @@ components:
             format: double
             
   parameters:
-    mac1:
-      name: mac1
+    targetMac:
+      name: targetMac
       in: path
       required: true
-      description: The mac address of a user1.
-      schema:
-        type: string
-        
-    mac2:
-      name: mac2
-      in: path
-      required: true
-      description: The mac address of a user2.
+      description: The mac address of another user.
       schema:
         type: string
     
