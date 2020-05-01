@@ -8,13 +8,11 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlin.math.abs
 import kotlin.math.roundToInt
-import kotlin.math.sign
 import kotlin.math.sqrt
 
 /*TODO: Next up
@@ -30,11 +28,13 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
     private var stepCounterSensor: Sensor? = null
     private var accelerometer: Sensor? = null
     private val accArraySize: Int = 10000
+
+    //                     accelerometer reading , timestamp
     var accelerometerZs = arrayOfNulls<Pair<Float, Double>>(accArraySize)
     var accBufferIndex: Int = 0
     var gravitationalAccel: Double = 9.72
     var firstTimestamp: Double = 0.0
-    var previousStepTimestamp : Double = 0.0
+    var previousStepTimestamp: Double = 0.0
 
     // For viewing data in AnyChartActivity
     var anyChartPeakTimestamps = mutableListOf<Double>()
@@ -151,180 +151,126 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
 
         when (event.sensor.type) {
             Sensor.TYPE_ACCELEROMETER -> {
-                val nowSeconds : Double = (event.timestamp - firstTimestamp) / 1_000_000_000.0 
-                val threshold : Double = 2.0
                 processAndRecordReading(event)
                 if (isStep(accelerometerZs)) {
-
-                    // If too much time has passed since previous step
-                    if (nowSeconds - previousStepTimestamp > threshold){
-                        previousStepTimestamp = nowSeconds - threshold // Pull previous peak time stamp closer to now.
-                        
-                        // And find the next valid timestamp
-                        for( readingPair in accelerometerZs){
-                            if (readingPair!!.second > previousStepTimestamp){
-                                previousStepTimestamp = readingPair.second
-                                break
-                            }
-                        }
-                    }
-                    Log.v("previous time stamp", previousStepTimestamp.toString())
-
-                    val test = accelerometerZs.find { it!!.second == previousStepTimestamp }
-                    val startIndex = accelerometerZs.indexOf(test)
-                    val accelerometerValues = mutableListOf<Float>()
-                    
-                    for (i in startIndex .. accBufferIndex - 1){
-                        accelerometerValues.add(accelerometerZs[i]!!.first)
-                    }
-                    previousStepTimestamp = nowSeconds
-
-                    /*
-                    // Extract relevant accelerometer values
-                    val interval = 0.4 * 1000000000
-                    var counter : Int = 0
-                    //anyChartAccels.add(15f)
-                    //anyChartTimestamps.add((event.timestamp - firstTimestamp) / 1_000_000_000)
-                    val iterations : Int = anyChartAccels.size - 1
-                    for(i in iterations downTo 1){
-                        accelerometerValues.add(anyChartAccels[i])
-
-                        val current = anyChartAccels[i]
-                        val previous = anyChartAccels[i - 1]
-
-                        if (anyChartAccels[i] < 0 && anyChartAccels[i - 1] > 0 && anyChartAccels[i] != -15f) {
-                            //anyChartAccels[i] = -15f
-                            break
-                        }
-                    }
-                    */
-
-                    var simpleDist = 0.0
-                    var scarletDist = 0.0
-                    var weinbergDist = 0.0
-
-                    // Estimate step length
-                    if (!accelerometerValues.isEmpty()) {
-                        simpleDist = simpleScarletEstimation(accelerometerValues)
-                        scarletDist = scarletEstimation(accelerometerValues)
-                        weinbergDist = weinbergEstimation(accelerometerValues)
-                    }
-
-                    // Update total distances
-                    if (!scarletDist.isNaN()) sdViewModel!!.scarletDistSum += scarletDist
-                    if (!simpleDist.isNaN()) sdViewModel!!.simpleDistSum += simpleDist
-                    if (!weinbergDist.isNaN()) sdViewModel!!.weinbergDistSum += weinbergDist
-
-
-                    // Update view
-                    text_ScarletDist.text = "ScarletDist: $scarletDist"
-                    text_ScarletDistSum.text = "ScarletDistSum: ${sdViewModel!!.scarletDistSum}"
-
-                    text_SimpleDist.text = "SimpleDist: $simpleDist"
-                    text_SimpleDistSum.text = "SimpleDistSum: ${sdViewModel!!.simpleDistSum}"
-
-                    text_weinbergDist.text = "WeinbergDist: $weinbergDist"
-                    text_weinbergDistSum.text = "WeinbergDistSum: ${sdViewModel!!.weinbergDistSum}"
-
-                    text_AccelSize.text = "SizeOfAccel: ${accelerometerValues.size}"
-
-                    //TODO: Refactor hardcode flush
-                    Log.v("number of samples", accelerometerValues.size.toString())
-                    //accelerometerZs = arrayOfNulls(accArraySize)
-
-                    accelerometerZs[0] = accelerometerZs[accBufferIndex - 1]
-                    for(i in 1.. accBufferIndex - 1){
-                        accelerometerZs[i] = null
-                    }
-
-                    accBufferIndex = 1
+                    val accelerometerValues: MutableList<Float> =
+                        getAccelReadingsDuringStep(accelerometerZs, event)
+                    val estimatedStepLength: Double = estimateStepLength(accelerometerValues)
+                    accelerometerZs = removeOldAccelReadings(accelerometerZs)
                 }
             }
-//            Sensor.TYPE_STEP_DETECTOR -> {
-//                sdViewModel!!.stepDetectorCount += 1
-//                text_StepDetector.text = "StepDetector: ${sdViewModel!!.stepDetectorCount}"
-//            }
-//            Sensor.TYPE_STEP_COUNTER -> {
-//                // Set initial count value upon first reading
-//                if (sdViewModel!!.stepCounterInitial < 1)
-//                    sdViewModel!!.stepCounterInitial = sensorValue.toInt()
-//
-//                // #steps taken since initial value
-//                sdViewModel!!.stepCounter = sensorValue.toInt() - sdViewModel!!.stepCounterInitial
-//
-//
-//                text_StepCounter.text = "StepCounter: ${sdViewModel!!.stepCounter}"
-//                text_StepCounterTotal.text = "StepCounterTotal: $sensorValue"
-//
-//                val accelerometerValues = mutableListOf<Float>()
-//
-//                // Extract relevant accelerometer values
-//                // TODO: Make sure we extract the right values
-//                // TODO: Research around which time in the step the STEP_COUNTER detects a step
-//                val interval = 0.4 * 1000000000
-//                for (readingPair in accelerometerZs) {
-//                    if (readingPair == null) break
-//                    // Take all accel values before current step timestamp unless they are more than 'interval' old
-//                    // 400 ms
-//                    if (readingPair.second < event.timestamp && event.timestamp - readingPair.second < interval) {
-//                        accelerometerValues.add(readingPair.first)
-//                    }
-//                }
-//                if (accelerometerZs[0] != null) {
-//
-//                    var simpleDist = 0.0
-//                    var scarletDist = 0.0
-//                    var weinbergDist = 0.0
-//
-//                    // Estimate step length
-//                    if (!accelerometerValues.isEmpty()) {
-//                        simpleDist = simpleScarletEstimation(accelerometerValues)
-//                        scarletDist = scarletEstimation(accelerometerValues)
-//                        weinbergDist = weinbergEstimation(accelerometerValues)
-//                    }
-//
-//                    // Update total distances
-//                    if (!scarletDist.isNaN()) sdViewModel!!.scarletDistSum += scarletDist
-//                    if (!simpleDist.isNaN()) sdViewModel!!.simpleDistSum += simpleDist
-//                    if (!weinbergDist.isNaN()) sdViewModel!!.weinbergDistSum += weinbergDist
-//
-//
-//                    // Update view
-//                    text_ScarletDist.text = "ScarletDist: $scarletDist"
-//                    text_ScarletDistSum.text = "ScarletDistSum: ${sdViewModel!!.scarletDistSum}"
-//
-//                    text_SimpleDist.text = "SimpleDist: $simpleDist"
-//                    text_SimpleDistSum.text = "SimpleDistSum: ${sdViewModel!!.simpleDistSum}"
-//
-//                    text_weinbergDist.text = "WeinbergDist: $weinbergDist"
-//                    text_weinbergDistSum.text = "WeinbergDistSum: ${sdViewModel!!.weinbergDistSum}"
-//
-//                    text_AccelSize.text = "SizeOfAccel: ${accelerometerValues.size}"
-//
-//                    // Clear old accel readings
-//                    // TODO: Make sure what we're doing makes sense
-////                accelerometerZs = accelerometerZs.filter { it!!.second >= event.timestamp }.toTypedArray() // this crashes
-////                    accelerometerZs = arrayOfNulls(accArraySize)
-////                    accBufferIndex = 0
-//                }
-//            }
         }
     }
 
-    private fun isStep(accelReadings: Array<Pair<Float, Double>?>): Boolean {
+    private fun removeOldAccelReadings(accelerometerZs: Array<Pair<Float, Double>?>): Array<Pair<Float, Double>?> {
+        // Remove everything in the array apart from the last reading, which is moved to the front
+        accelerometerZs[0] = accelerometerZs[accBufferIndex - 1]
+        for (i in 1..accBufferIndex - 1) {
+            accelerometerZs[i] = null
+        }
+        // Reset index to point to the next available spot in the array
+        accBufferIndex = 1
 
+        return accelerometerZs
+    }
+
+    private fun estimateStepLength(accelerometerValues: MutableList<Float>): Double {
+        var simpleDist = 0.0
+        var scarletDist = 0.0
+        var weinbergDist = 0.0
+
+        Log.v("number of samples", accelerometerValues.size.toString())
+
+        // Estimate step length
+        if (!accelerometerValues.isEmpty()) {
+            simpleDist = simpleScarletEstimation(accelerometerValues)
+            scarletDist = scarletEstimation(accelerometerValues)
+            weinbergDist = weinbergEstimation(accelerometerValues)
+        }
+
+        // Update total distances
+        if (!scarletDist.isNaN()) sdViewModel!!.scarletDistSum += scarletDist
+        if (!simpleDist.isNaN()) sdViewModel!!.simpleDistSum += simpleDist
+        if (!weinbergDist.isNaN()) sdViewModel!!.weinbergDistSum += weinbergDist
+
+
+        // Update view
+        text_ScarletDist.text = "ScarletDist: $scarletDist"
+        text_ScarletDistSum.text = "ScarletDistSum: ${sdViewModel!!.scarletDistSum}"
+
+        text_SimpleDist.text = "SimpleDist: $simpleDist"
+        text_SimpleDistSum.text = "SimpleDistSum: ${sdViewModel!!.simpleDistSum}"
+
+        text_weinbergDist.text = "WeinbergDist: $weinbergDist"
+        text_weinbergDistSum.text = "WeinbergDistSum: ${sdViewModel!!.weinbergDistSum}"
+
+        text_AccelSize.text = "SizeOfAccel: ${accelerometerValues.size}"
+
+        return weinbergDist
+    }
+
+
+    // Extracts the accelerometer readings which occurred during the current step to be used for
+    // step length estimation
+    private fun getAccelReadingsDuringStep(
+        accelerometerZs: Array<Pair<Float, Double>?>,
+        event: SensorEvent
+    ): MutableList<Float> {
+        // The timestamp of the newest event (now) in seconds
+        val nowSeconds: Double = (event.timestamp - firstTimestamp) / 1_000_000_000.0
+        // How many seconds before the current event to look for accelerometer values if the
+        // previous step was a long time ago (longer ago than lookback)
+        val lookback: Double = 2.0
+
+        // If too much time has passed since previous step
+        if (nowSeconds - previousStepTimestamp > lookback) {
+            // Extract accelerometer readings from 'lookback' seconds ago
+            previousStepTimestamp = nowSeconds - lookback
+
+            // previousStepTimestamp is set to be the timestamp of an actual reading, closest
+            // to 'lookback' seconds ago (right after)
+            for (readingPair in accelerometerZs) {
+                if (readingPair!!.second > previousStepTimestamp) {
+                    previousStepTimestamp = readingPair.second
+                    break
+                }
+            }
+        }
+
+        // Find the index of the previous peak (peaks correspond to steps)
+        val startIndex =
+            accelerometerZs.indexOf(accelerometerZs.find { it!!.second == previousStepTimestamp })
+
+        // Extract everything from the previous peak (step) until now
+        val accelerometerValues = mutableListOf<Float>()
+        for (i in startIndex..accBufferIndex - 1) {
+            accelerometerValues.add(accelerometerZs[i]!!.first)
+        }
+        previousStepTimestamp = nowSeconds
+
+        return accelerometerValues
+    }
+
+    private fun isStep(accelReadings: Array<Pair<Float, Double>?>): Boolean {
+        return isPeak(accelReadings)
+    }
+
+    // Implementation of equation 7a in SmartPDR
+    private fun isPeak(accelReadings: Array<Pair<Float, Double>?>): Boolean {
         // Threshold for not considering small peaks as peaks. SmartPDR sets it to 0.5.
         val peakLowerThresh = 2.0
         val peakUpperThresh = 6.5
 
+        // Defines how many accelerometer readings the current reading is compared to, in order to
+        // determine if it is a peak
         val n = 10
 
-        // Peak detection
         var tPeak = setOf<Float>()
+        // Each reading is compared to its neighbouring readings to see if it is the largest in the
+        // window of 'n' readings
         for (t in n / 2..accBufferIndex - n / 2) {
             var isPeak = true
             for (i in -n / 2..n / 2 - 1) {
-//                if (i == 0 || t + i < 0 || t + i > accBufferIndex) continue
                 // If i == 0 current and local will be the same reading
                 if (i == 0) continue
                 // Check if current accel reading is larger than its n/2 neighbouring/local readings
@@ -351,21 +297,9 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
                         anyChartTimestamps.add(readingPair!!.second)
                     }
                 }
-
-
                 return true
             }
         }
-
-//        val tPP = peakToPeak(accelReadings)
-//
-//
-//        var tSlope = setOf<Float>()
-//        tSlope = getTSlopeValues(accelReadings)
-//        val tStep = tPeak
-//            .intersect(tPP)
-//            .intersect(tSlope)
-
         return false
     }
 
