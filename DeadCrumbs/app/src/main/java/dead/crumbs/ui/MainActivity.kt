@@ -213,7 +213,9 @@ class MainActivity : AppCompatActivity() {
 
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             //TODO: this should be set doing login or something
+            //Hardcode the username here. Note must exist in DB with correct bluetooth mac address!
             val username = "jacob6565"
+
             // We've bound to BluetoothService, cast the IBinder and get LocalService instance
             val binder = service as BluetoothService.LocalBinder
             bluetoothService = binder.getService()
@@ -221,7 +223,7 @@ class MainActivity : AppCompatActivity() {
                 val rssi_dist = rssiProximity.distanceFromRSSI(rssi)
                 val dist_threshold = 2
                 if (rssi_dist < dist_threshold){
-                    rssiViewModel!!.addRSSI(username, target_mac, rssi_dist);
+                    rssiViewModel!!.bluetoothSync(username, target_mac, rssi_dist);
                 }
 
             }
