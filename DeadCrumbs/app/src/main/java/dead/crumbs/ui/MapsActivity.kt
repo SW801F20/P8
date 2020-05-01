@@ -22,8 +22,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     GoogleMap.OnMarkerClickListener{
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-
-    var locationViewModel : GPSViewModel? = null
+    var viewModel : MapsViewModel? = null
+    //var locationViewModel : GPSViewModel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,30 +36,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
 
 
         initializeViewModel()
-
         //initializes the locationViewModel, used to get users and their positions
-        val locationFactory = InjectorUtils.provideLocation()
-        locationViewModel = ViewModelProviders.of(this, locationFactory)
-            .get(GPSViewModel::class.java)
-        try {
-            var loc = locationViewModel!!.getLastLocation(this, this@MapsActivity)
-            var users = locationViewModel!!.getUsers();
-            var locList : MutableList<LiveData<io.swagger.client.models.Location>> = arrayListOf()
-            if(users.value != null)
-
-                for(user in users.value!!) {
-                    try {
-                        locList.add(locationViewModel!!.getLocation(user.username))
-                    }
-                    catch (e: Exception){
-                        Toast.makeText(this, e.message , Toast.LENGTH_LONG).show()
-                    }
-
-                }
-        }
-        catch(e: Exception){
-            Toast.makeText(this, e.message, Toast.LENGTH_LONG).show()
-        }
+        //val locationFactory = InjectorUtils.provideLocation()
+        //locationViewModel = ViewModelProviders.of(this, locationFactory)
+        //    .get(GPSViewModel::class.java)
     }
 
     override fun onDestroy() {
@@ -70,8 +50,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         //aren't in the list
         viewModel?.markerList = mutableListOf<Marker>()
     }
-
-    var viewModel : MapsViewModel? = null
 
     private fun initializeViewModel() {
         // Get the rssisViewModelFactory with all of it's dependencies constructed
@@ -90,8 +68,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
      * installed Google Play services and returned to the app.
      */
     override fun onMapReady(googleMap: GoogleMap) {
-        viewModel!!.setupMap(googleMap)
+        viewModel!!.setupMap(googleMap, this, this@MapsActivity)
         viewModel!!.map.setOnMarkerClickListener(this)
+
     }
 
     override fun onMarkerClick(p0: Marker?): Boolean {

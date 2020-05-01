@@ -22,7 +22,7 @@ import okhttp3.internal.wait
 import java.util.Calendar
 
 class GPSViewModel (private val locationRepository : LocationRepository) : ViewModel(){
-
+/*
     val PERMISSION_ID = 42;
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
     var callback:(() -> Location)? = null
@@ -128,5 +128,5 @@ class GPSViewModel (private val locationRepository : LocationRepository) : ViewM
     fun getLocation(userName: String) = locationRepository.getLocation(userName)
     fun postLocation(location : io.swagger.client.models.Location) = locationRepository.postLocation(location)
 
-
+*/
 }
