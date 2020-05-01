@@ -9,14 +9,13 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
-import android.provider.Settings
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.R
+import dead.crumbs.R
 import dead.crumbs.data.RSSIDist
 import dead.crumbs.utilities.InjectorUtils
 import kotlinx.android.synthetic.main.activity_main.*
@@ -133,14 +132,14 @@ class MainActivity : AppCompatActivity() {
 
 
     //------------Bluetooth Part-------------//
-    var viewModel : RSSIViewModel? = null
+    var rssiViewModel : RSSIViewModel? = null
 
     private fun initializeBluetoothScan() {
         // Get the rssisViewModelFactory with all of it's dependencies constructed
         val factory = InjectorUtils.provideRSSIViewModelFactory()
         // Use ViewModelProviders class to create / get already created rssisViewModel
         // for this view (activity)
-        viewModel = ViewModelProviders.of(this, factory)
+        rssiViewModel = ViewModelProviders.of(this, factory)
             .get(RSSIViewModel::class.java)
 
         //showBluetoothRSSIList() //include for debugging/testing of rssi
@@ -153,19 +152,6 @@ class MainActivity : AppCompatActivity() {
 
         //Start the actual bluetooth scan
         startBluetoothScan()
-    }
-
-    //Function for making list displaying measured rssi values - used for debugging/testing
-    private fun showBluetoothRSSIList(){
-        // Observing LiveData from the RSSIViewModel which in turn observes
-        // LiveData from the repository, which observes LiveData from the DAO ☺
-        viewModel!!.getRSSIs().observe(this, Observer { RSSIs ->
-            val stringBuilder = StringBuilder()
-            RSSIs.forEach { rssi ->
-                stringBuilder.append("$rssi\n\n")
-            }
-            textView.text = stringBuilder.toString()
-        })
     }
 
 
@@ -226,21 +212,18 @@ class MainActivity : AppCompatActivity() {
     private val connectionBluetoothService = object : ServiceConnection {
 
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            //TODO: this should be set doing login or something
+            val username = "jacob6565"
             // We've bound to BluetoothService, cast the IBinder and get LocalService instance
             val binder = service as BluetoothService.LocalBinder
             bluetoothService = binder.getService()
-            bluetoothService.callback = fun(my_mac: String, target_mac: String, rssi: Double) {       //callback function
-                val currYear = Calendar.getInstance().get(Calendar.YEAR).toString().padStart(4,'0')
-                val currMonth = (Calendar.getInstance().get(Calendar.MONTH) + 1).toString().padStart(2,'0')
-                val currDate = Calendar.getInstance().get(Calendar.DATE).toString().padStart(2,'0')
-                val currHour = Calendar.getInstance().get(Calendar.HOUR).toString().padStart(2,'0')
-                val currMinute = Calendar.getInstance().get(Calendar.MINUTE).toString().padStart(2,'0')
-                val currSecond = Calendar.getInstance().get(Calendar.SECOND).toString().padStart(2,'0')
-                val dateTimeString = currYear + "-" + currMonth + "-" + currDate+ "T" + currHour + ":" + currMinute + ":" + currSecond
+            bluetoothService.callback = fun(target_mac: String, rssi: Double) {       //callback function
+                val rssi_dist = rssiProximity.distanceFromRSSI(rssi)
+                val dist_threshold = 2
+                if (rssi_dist < dist_threshold){
+                    rssiViewModel!!.addRSSI(username, target_mac, rssi_dist);
+                }
 
-
-                viewModel!!.addRSSI(RSSIDist(my_mac, target_mac, rssiProximity.distanceFromRSSI(rssi), dateTimeString));
-                //printDeviceDistance(rssi, rssiProximity.getNewAverageDist(rssi)); //for debugging
             }
 
             boundBluetoothService = true

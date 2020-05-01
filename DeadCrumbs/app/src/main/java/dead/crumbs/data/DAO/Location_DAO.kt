@@ -2,17 +2,12 @@ package dead.crumbs.data.DAO
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import io.swagger.client.apis.DefaultApi
+import io.swagger.client.apis.DeadCrumbsApi
 import io.swagger.client.models.Location
-import io.swagger.client.models.Position
 import io.swagger.client.models.User
-import java.time.LocalDateTime
 import kotlin.concurrent.thread
 //This class should be the one that calls the api
-class Location_DAO {
-    // Since access is done from an emulator, we cannot use localhost
-    // instead we have to use 10.0.2.2, also, it assumes API is running on port 8080
-    val client = DefaultApi("http://130.225.57.95:8393/")
+class Location_DAO (val client : DeadCrumbsApi) {
 
     // Adds a location to the local representation
     // and updates database

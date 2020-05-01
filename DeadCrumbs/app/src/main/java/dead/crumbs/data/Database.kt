@@ -3,17 +3,20 @@ package dead.crumbs.data
 import dead.crumbs.data.DAO.Location_DAO
 import dead.crumbs.data.DAO.Maps_DAO
 import dead.crumbs.data.DAO.RSSI_DAO
+import io.swagger.client.apis.DeadCrumbsApi
 
 class Database private constructor() {
 
+
+    val client = DeadCrumbsApi("http://130.225.57.95:8393/")
     // All the DAOs go here!
-    var rssiDao = RSSI_DAO()
+    var rssiDao = RSSI_DAO(client)
         private set
 
-    var mapsDao = Maps_DAO()
+    var mapsDao = Maps_DAO(client)
         private set
 
-    var locationDao = Location_DAO()
+    var locationDao = Location_DAO(client)
         private set
 
     companion object {

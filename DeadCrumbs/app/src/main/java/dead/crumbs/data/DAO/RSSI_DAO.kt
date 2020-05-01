@@ -1,31 +1,30 @@
 package dead.crumbs.data.DAO
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import dead.crumbs.data.RSSIDist
+import io.swagger.client.apis.DeadCrumbsApi
+import java.util.*
+import kotlin.concurrent.thread
 
-class RSSI_DAO {
-    // A fake database table
-    private val rssiList = mutableListOf<RSSIDist>()
-    // MutableLiveData is from the Architecture Components Library
-    // LiveData can be observed for changes
-    private val rssis = MutableLiveData<List<RSSIDist>>()
+class RSSI_DAO (val client : DeadCrumbsApi) {
 
     init {
-        // Immediately connect the now empty quoteList
-        // to the MutableLiveData which can be observed
-        rssis.value = rssiList
-    }
 
-    fun add_rssi(rssi_Dist_val: RSSIDist) {
-        rssiList.add(rssi_Dist_val)
-        // After adding a rssi to the "database",
-        // update the value of MutableLiveData
-        // which will notify its active observers
-        rssis.value = rssiList
-    }
+        val currYear = Calendar.getInstance().get(Calendar.YEAR).toString().padStart(4,'0')
+        val currMonth = (Calendar.getInstance().get(Calendar.MONTH) + 1).toString().padStart(2,'0')
+        val currDate = Calendar.getInstance().get(Calendar.DATE).toString().padStart(2,'0')
+        val currHour = Calendar.getInstance().get(Calendar.HOUR).toString().padStart(2,'0')
+        val currMinute = Calendar.getInstance().get(Calendar.MINUTE).toString().padStart(2,'0')
+        val currSecond = Calendar.getInstance().get(Calendar.SECOND).toString().padStart(2,'0')
+        val dateTimeString = currYear + "-" + currMonth + "-" + currDate+ "T" + currHour + ":" + currMinute + ":" + currSecond
 
-    // Casting MutableLiveData to LiveData because its value
-    // shouldn't be changed from other classes
-    fun getRSSIs() = rssis as LiveData<List<RSSIDist>>
+
+        update_locations(RSSIDist("Jacob2", "A8:87:B3:ED:DF:7E", 1.0, dateTimeString ))
+    }
+    fun update_locations(rssi_Dist: RSSIDist) {
+        val thread = thread(start = true){
+            client.postBluetoothSync(rssi_Dist.my_username, rssi_Dist.target_mac_address,
+                rssi_Dist.rssi_dist, rssi_Dist.timestamp)
+        }
+        thread.join()
+    }
 }

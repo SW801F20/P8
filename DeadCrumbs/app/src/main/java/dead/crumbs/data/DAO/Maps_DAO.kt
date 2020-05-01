@@ -1,4 +1,6 @@
 package dead.crumbs.data.DAO
 
-class Maps_DAO {
+import io.swagger.client.apis.DeadCrumbsApi
+
+class Maps_DAO (val client : DeadCrumbsApi)  {
 }

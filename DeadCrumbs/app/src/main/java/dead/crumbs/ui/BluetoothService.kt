@@ -14,17 +14,14 @@ import android.provider.Settings
 
 //factory: RSSIViewModelFactory, viewModel: RSSIViewModel
 class BluetoothService() : Service(){
-    var callback: ((String, String, Double) -> Unit)? = null
+    var callback: ((String, Double) -> Unit)? = null
 
     //Called on creation of BluetoothService
     override fun onCreate() {
         super.onCreate()
         setupBluetooth()
     }
-    val my_mac = Settings.Secure.getString(
-        this@BluetoothService.getContentResolver(),
-        "bluetooth_address"
-    )
+
     //----------Binding--------------
     // Binder given to clients
     private val binder = LocalBinder()
@@ -63,7 +60,7 @@ class BluetoothService() : Service(){
                     var target_mac_address: String = device!!.address         //Note Bluetooth mac address != WiFi mac address
 
                     //Add to RSSIViewModel through callback
-                    callback?.let { it(my_mac, target_mac_address, rssi) }
+                    callback?.let { it(target_mac_address, rssi) }
                 }
             }
         }
