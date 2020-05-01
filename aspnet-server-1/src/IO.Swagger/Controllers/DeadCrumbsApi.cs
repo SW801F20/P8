@@ -177,20 +177,20 @@ namespace IO.Swagger.Controllers
         /// <response code="201">Successful request! Created new user</response>
         /// <response code="400">Bad request! User not added</response>
         [HttpPost]
-        [Route("/RSSI/{mac1}/{mac2}/{rssiDist}/{timeStamp}")]
+        [Route("/RSSI/{username}/{targetMac}/{rssiDist}/{timeStamp}")]
         [ValidateModelState]
         [SwaggerOperation("UpdateLocations")]
         [SwaggerResponse(statusCode: 201)]
-        public virtual IActionResult UpdateLocations([FromRoute][Required]string mac1, 
-            [FromRoute][Required]string mac2, 
+        public virtual IActionResult UpdateLocations([FromRoute][Required]string username, 
+            [FromRoute][Required]string targetMac, 
             [FromRoute][Required]double rssiDist,
             [FromRoute][Required]DateTime timeStamp)
         {
             const float rssiThreshold = 2;
             if(rssiDist < rssiThreshold)
             {
-                User user1 = us.GetUserByMac(db, mac1);
-                User user2 = us.GetUserByMac(db, mac2);
+                User user1 = us.GetUserByName(db, username);
+                User user2 = us.GetUserByMac(db, targetMac);
 
                 var loc1 = ls.GetNewestLocation(db, user1.Username);
                 var loc2 = ls.GetNewestLocation(db, user2.Username);
