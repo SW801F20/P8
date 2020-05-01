@@ -132,8 +132,15 @@ namespace IO.Swagger.Controllers
                 {
                     return StatusCode(400, "Location refers to an unknown user!");
                 }
-                
-                ls.InsertLocation(db, location);
+                if (location.Position.Coordinates.Count == 2)
+                {
+                    ls.InsertLocation(db, location);
+                }
+                else
+                {
+                    return StatusCode(400, "Coordinates most contain two elements");
+                }
+               
             }
             catch (Exception e)
             {
