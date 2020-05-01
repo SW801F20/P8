@@ -16,7 +16,7 @@ import io.swagger.client.models.User
 
 import io.swagger.client.infrastructure.*
 
-class DefaultApi(basePath: kotlin.String = "/") : ApiClient(basePath) {
+class DeadCrumbsApi(basePath: kotlin.String = "/") : ApiClient(basePath) {
 
     /**
      * returns the location associated with username
