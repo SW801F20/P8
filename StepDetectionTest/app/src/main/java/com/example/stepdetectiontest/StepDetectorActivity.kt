@@ -532,7 +532,6 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
     }
 
 
-    // TODO: Test if works
     private fun scarletEstimation(accelerometerValues: MutableList<Float>): Double {
         // walkfudge from J. Scarlet's code
         //val k = 0.0249
@@ -561,10 +560,9 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
         // TODO: Fix app crash at screen turn to horizontal
     }
 
-    // TODO: Doesn't provide accurate distances at the moment
     private fun simpleScarletEstimation(accelerometerValues: MutableList<Float>): Double {
         // walkfudge from Jim Scarlet's code
-        val k = 1.7623
+        val k = 2.15 // This value works well for David
 
         val min = accelerometerValues.min()
         val max = accelerometerValues.max()
@@ -574,8 +572,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun weinbergEstimation(accelerometerValues: MutableList<Float>): Double {
-        val k = 0.4242
-
+        val k = 0.485 // This value works well for David
         val min = accelerometerValues.min()
         val max = accelerometerValues.max()
         return (nthRoot((max!!.toDouble() - min!!.toDouble()), 4) * k)
