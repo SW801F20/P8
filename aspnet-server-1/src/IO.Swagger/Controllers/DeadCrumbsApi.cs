@@ -200,9 +200,9 @@ namespace IO.Swagger.Controllers
         [HttpPost]
         [Route("/RSSI/{username}/{targetMac}/{rssiDist}/{timeStamp}")]
         [ValidateModelState]
-        [SwaggerOperation("UpdateLocations")]
+        [SwaggerOperation("PostBluetoothSync")]
         [SwaggerResponse(statusCode: 201)]
-        public virtual IActionResult UpdateLocations([FromRoute][Required]string username, 
+        public virtual IActionResult PostBluetoothSync([FromRoute][Required]string username, 
             [FromRoute][Required]string targetMac, 
             [FromRoute][Required]double rssiDist,
             [FromRoute][Required]DateTime timeStamp)
