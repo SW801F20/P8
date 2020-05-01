@@ -1,9 +1,12 @@
 package dead.crumbs.ui
 
+import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProviders
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -32,29 +35,31 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
 
+        initializeViewModel()
+
         //initializes the locationViewModel, used to get users and their positions
         val locationFactory = InjectorUtils.provideLocation()
         locationViewModel = ViewModelProviders.of(this, locationFactory)
             .get(GPSViewModel::class.java)
         try {
             var loc = locationViewModel!!.getLastLocation(this, this@MapsActivity)
+            var users = locationViewModel!!.getUsers();
+            var locList : MutableList<LiveData<io.swagger.client.models.Location>> = arrayListOf()
+            if(users.value != null)
+
+                for(user in users.value!!) {
+                    try {
+                        locList.add(locationViewModel!!.getLocation(user.username))
+                    }
+                    catch (e: Exception){
+                        Toast.makeText(this, e.message , Toast.LENGTH_LONG).show()
+                    }
+
+                }
         }
         catch(e: Exception){
-            Toast.makeText(this, "Make sure to turn on GPS", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, e.message, Toast.LENGTH_LONG).show()
         }
-
-        try{
-            var users = locationViewModel!!.getUsers();
-
-            var i : Int = 3
-        }
-        catch (e:Exception){
-
-        }
-
-
-
-        initializeViewModel()
     }
 
     override fun onDestroy() {

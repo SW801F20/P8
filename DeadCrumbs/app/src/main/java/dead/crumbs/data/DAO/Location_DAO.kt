@@ -6,6 +6,7 @@ import io.swagger.client.apis.DefaultApi
 import io.swagger.client.models.Location
 import io.swagger.client.models.Position
 import io.swagger.client.models.User
+import java.lang.Exception
 import java.time.LocalDateTime
 import kotlin.concurrent.thread
 //This class should be the one that calls the api
@@ -54,12 +55,18 @@ class Location_DAO {
     fun getLocation(userName: String) : LiveData<Location>{
         var location: Location? = null
         val thread = thread (start = true){
-            location = client.getLocation(userName)
+            try {
+                location = client.getLocation(userName)
+            }catch (e: Exception){
+
+            }
+
         }
         thread.join()
         if(location == null){
             //throw error here
-            return MutableLiveData(location)
+            //return MutableLiveData(location)
+            throw(Exception("$userName has no recorded locations."))
         }else{
             return MutableLiveData(location)
         }
