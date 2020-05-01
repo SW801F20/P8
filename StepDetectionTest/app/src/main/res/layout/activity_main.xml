@@ -23,7 +23,7 @@
         android:layout_width="356dp"
         android:layout_height="54dp"
         android:text="OurStepCounter: 0"
-        android:textSize="36sp"
+        android:textSize="26sp"
         app:layout_constraintBottom_toTopOf="@+id/text_StepCounterTotal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.545"

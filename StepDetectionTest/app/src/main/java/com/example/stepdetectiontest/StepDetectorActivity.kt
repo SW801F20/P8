@@ -34,7 +34,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
     var accBufferIndex: Int = 0
     var gravitationalAccel: Double = 9.72
     var firstTimestamp: Double = 0.0
-    var previousPeakTimeStamp : Double = 0.0
+    var previousStepTimestamp : Double = 0.0
 
     // For viewing data in AnyChartActivity
     var anyChartPeakTimestamps = mutableListOf<Double>()
@@ -151,15 +151,35 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
 
         when (event.sensor.type) {
             Sensor.TYPE_ACCELEROMETER -> {
+                val nowSeconds : Double = (event.timestamp - firstTimestamp) / 1_000_000_000.0 
+                val threshold : Double = 2.0
                 processAndRecordReading(event)
-//                if (accBufferIndex % 50 == 0){
                 if (isStep(accelerometerZs)) {
-                    val startIndex = accelerometerZs.indexOf(accelerometerZs.find { it!!.second == previousPeakTimeStamp })
-                    for (i in startIndex .. accBufferIndex){
 
+                    // If too much time has passed since previous step
+                    if (nowSeconds - previousStepTimestamp > threshold){
+                        previousStepTimestamp = nowSeconds - threshold // Pull previous peak time stamp closer to now.
+                        
+                        // And find the next valid timestamp
+                        for( readingPair in accelerometerZs){
+                            if (readingPair!!.second > previousStepTimestamp){
+                                previousStepTimestamp = readingPair.second
+                                break
+                            }
+                        }
                     }
-                    val accelerometerValues = mutableListOf<Float>()
+                    Log.v("previous time stamp", previousStepTimestamp.toString())
 
+                    val test = accelerometerZs.find { it!!.second == previousStepTimestamp }
+                    val startIndex = accelerometerZs.indexOf(test)
+                    val accelerometerValues = mutableListOf<Float>()
+                    
+                    for (i in startIndex .. accBufferIndex - 1){
+                        accelerometerValues.add(accelerometerZs[i]!!.first)
+                    }
+                    previousStepTimestamp = nowSeconds
+
+                    /*
                     // Extract relevant accelerometer values
                     val interval = 0.4 * 1000000000
                     var counter : Int = 0
@@ -177,6 +197,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
                             break
                         }
                     }
+                    */
 
                     var simpleDist = 0.0
                     var scarletDist = 0.0
@@ -209,11 +230,15 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
 
                     //TODO: Refactor hardcode flush
                     Log.v("number of samples", accelerometerValues.size.toString())
-                    accelerometerZs = arrayOfNulls(accArraySize)
-                    accBufferIndex = 0
-                }
+                    //accelerometerZs = arrayOfNulls(accArraySize)
 
-//                }
+                    accelerometerZs[0] = accelerometerZs[accBufferIndex - 1]
+                    for(i in 1.. accBufferIndex - 1){
+                        accelerometerZs[i] = null
+                    }
+
+                    accBufferIndex = 1
+                }
             }
 //            Sensor.TYPE_STEP_DETECTOR -> {
 //                sdViewModel!!.stepDetectorCount += 1
@@ -459,7 +484,7 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
         // Log the reading in logcat
         Log.v(
             "Z-axis new value: " + ((event.timestamp - firstTimestamp) / 1_000_000_000.0).toString() + " ",
-            (accelReading - gravitationalAccel).toString()
+            (accelReading).toString()
         )
 
 
