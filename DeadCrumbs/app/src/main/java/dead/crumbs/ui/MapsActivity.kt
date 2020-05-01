@@ -25,6 +25,7 @@ import kotlin.concurrent.thread
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     GoogleMap.OnMarkerClickListener{
 
+    var handler = Handler()
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     var viewModel : MapsViewModel? = null
     //var locationViewModel : GPSViewModel? = null
@@ -76,7 +77,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         viewModel!!.setupMap(googleMap, this, this@MapsActivity)
         viewModel!!.map.setOnMarkerClickListener(this)
         var context : Context = this
-        var handler = Handler()
         var runnable = object : Runnable {
             override fun run(){
                 viewModel!!.updateMapPositions(context, this@MapsActivity)
@@ -84,6 +84,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
             }
         }
         handler.postDelayed(runnable, 5000)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        handler.removeCallbacksAndMessages(null)
     }
 
     override fun onMarkerClick(p0: Marker?): Boolean {

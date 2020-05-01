@@ -171,6 +171,10 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
                 Log.v("gps", "Coordinate longitude:" + location!!.longitude.toString())
 
                 return location
+
+                //TODO(maybe post/update current user's position in the db since this is a good place to do it - "Tobias W. Boegedal")
+                //This commented code below can be used to help with that
+
                 /*mFusedLocationClient.lastLocation.addOnCompleteListener() { task ->
                     location = task.result
                     if (location == null) {
@@ -196,7 +200,6 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
                         Log.v("gps", "Coordinate longitude:" + location!!.longitude.toString())
                     }
                 }*/
-
 
             } else { }
         } else {
@@ -230,7 +233,6 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
 
     fun updateMapPositions(context: Context, activity: Activity){
         try {
-            var loc = getLastLocation(context, activity)
             var users = getUsers();
             var newLocations : MutableList<LiveData<io.swagger.client.models.Location>> = arrayListOf()
             if(users.value != null) {
@@ -243,12 +245,10 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
                 }
             }
 
-            var marker = map.addMarker(newMarker( loc = LatLng(loc!!.latitude, loc.longitude), name = "Me", icon = R.mipmap.my_picture))
-
-
             //assign meMarker for easier update of orientation
-            meMarker = marker
             var newMarkerList = mutableListOf<Marker>()
+            newMarkerList.add(meMarker!!)
+
             for (user in newLocations) {
                 var marker = map.addMarker(newMarker(LatLng(user.value!!.position.coordinates!![0],
                     user.value!!.position.coordinates!![1]), user.value!!.user_ref,20.0,

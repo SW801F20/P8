@@ -1,10 +1,8 @@
 package dead.crumbs.utilities
 
 import dead.crumbs.data.Database
-import dead.crumbs.data.LocationRepository
 import dead.crumbs.data.MapsRepository
 import dead.crumbs.data.RSSIRepository
-import dead.crumbs.ui.LocationViewModelFactory
 import dead.crumbs.ui.SingletonMapsViewModelFactory
 import dead.crumbs.ui.RSSIViewModelFactory
 
