@@ -1,6 +1,6 @@
 # IO.Swagger - ASP.NET Core 2.0 Server
 
-This is the API for the Walking Skeleton.
+This is the API for for the DeadCrumbs application.
 
 ## Run
 
