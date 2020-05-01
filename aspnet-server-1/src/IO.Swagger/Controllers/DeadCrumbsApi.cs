@@ -166,7 +166,21 @@ namespace IO.Swagger.Controllers
         {
             try
             {
-                us.InsertUser(db, user);
+                User user1 = us.GetUserByName(db, user.Username);
+                User user2 = us.GetUserByMac(db, user.MacAddress);
+                if (user1 != null)
+                {
+                    return StatusCode(400, "A user already exists with that username");
+                }
+                else if (user2 != null)
+                {
+                    return StatusCode(400, "A user already exists with that mac address");
+                }
+                else
+                {
+                    us.InsertUser(db, user);
+                }
+               
             }
             catch (Exception e)
             {
