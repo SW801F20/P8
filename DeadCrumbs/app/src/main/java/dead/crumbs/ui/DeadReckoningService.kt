@@ -16,7 +16,7 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
-class DeadReckoningService : Service(), SensorEventListener{
+class DeadReckoningService : Service(), SensorEventListener {
     private var accelerometer: Sensor? = null
     private lateinit var sensorManager: SensorManager
     var orientationCallback: ((Float) -> Unit)? = null
@@ -54,12 +54,13 @@ class DeadReckoningService : Service(), SensorEventListener{
         accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         rotationVectorSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
 
-        sensorManager.registerListener(this, rotationVectorSensor, SensorManager.SENSOR_DELAY_FASTEST)
+        sensorManager.registerListener(
+            this,
+            rotationVectorSensor,
+            SensorManager.SENSOR_DELAY_FASTEST
+        )
         sensorManager.registerListener(this, magnetometerSensor, SensorManager.SENSOR_DELAY_FASTEST)
-        sensorManager.registerListener(this, accelerometerSensor, SensorManager.SENSOR_DELAY_FASTEST)
-
-        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME)
+        sensorManager.registerListener(this, accelerometerSensor, SensorManager.SENSOR_DELAY_GAME)
 
     }
 
@@ -91,37 +92,33 @@ class DeadReckoningService : Service(), SensorEventListener{
 
 
     // Step detection and step length estimation fields
-    //TODO: Rename to accelerometerZReadings
     private val accArraySize: Int = 10000
-    private var accelerometerZs = arrayOfNulls<Pair<Float, Double>>(accArraySize)
+
+    private var accelerometerZReadings = arrayOfNulls<Pair<Float, Double>>(accArraySize)
     private var accBufferIndex: Int = 0
     private var gravitationalAccel: Double = 9.72
     private var firstTimestamp: Double = 0.0
     private var previousStepTimestamp: Double = 0.0
-    //TODO: Remove this
-    private var accelerometerZReadings = mutableListOf<Pair<Long, Float>>()
 
     // This is called whenever this class (SensorEventListener) detects a new sensor value
     // from a sensor it is listening to (registerListener)
     override fun onSensorChanged(event: SensorEvent) {
         when (event.sensor.type) {
+
             Sensor.TYPE_MAGNETIC_FIELD, Sensor.TYPE_ACCELEROMETER -> {
-                // For step length estimation
+
                 if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-                    accelerometerZReadings.add(Pair(event.timestamp, event.values[2]))
+                    processAndRecordReading(event)
+                    var estimatedStepLength: Double = 0.0
+                    if (isStep(accelerometerZReadings)) {
+                        val accelerometerValues: MutableList<Float> =
+                            getAccelReadingsDuringStep(accelerometerZReadings, event)
+                        estimatedStepLength = estimateStepLength(accelerometerValues)
+                        accelerometerZReadings = removeOldAccelReadings(accelerometerZReadings)
+                        stepCallback?.let { it(estimatedStepLength) }
+                    }
+
                 }
-
-                processAndRecordReading(event)
-                var estimatedStepLength : Double = 0.0
-                if (isStep(accelerometerZs)) {
-                    val accelerometerValues: MutableList<Float> =
-                        getAccelReadingsDuringStep(accelerometerZs, event)
-                    estimatedStepLength = estimateStepLength(accelerometerValues)
-                    accelerometerZs = removeOldAccelReadings(accelerometerZs)
-                }
-
-//                stepCallback?.let { it(estimatedStepLength) }
-
                 //Only use mag and acc if rotation vector sensor isn't available
                 if (!useRotationVectorSensor) {
                     updateYawMagAcc(event)
@@ -146,7 +143,7 @@ class DeadReckoningService : Service(), SensorEventListener{
         // If array is full (reached accArraySize), reset the array
         if (accBufferIndex > accArraySize - 1) {
             accBufferIndex = 0
-            accelerometerZs = arrayOfNulls(accArraySize)
+            accelerometerZReadings = arrayOfNulls(accArraySize)
         }
 
         // High pass filter to remove influence of earth's gravity
@@ -156,12 +153,12 @@ class DeadReckoningService : Service(), SensorEventListener{
         if (firstTimestamp == 0.0)
             firstTimestamp = event.timestamp.toDouble()
         // Add accelerometer value and timestamp to array
-        accelerometerZs[accBufferIndex] =
+        accelerometerZReadings[accBufferIndex] =
             Pair(accelReading, (event.timestamp - firstTimestamp) / 1_000_000_000.0)
         accBufferIndex++
 
         // Low pass filter to remove high frequency noise
-        accelerometerZs = lowPassFilter(accelerometerZs, accBufferIndex)
+        accelerometerZReadings = lowPassFilter(accelerometerZReadings, accBufferIndex)
     }
 
     // Performs a high pass filter on an accelerometer reading
@@ -219,7 +216,6 @@ class DeadReckoningService : Service(), SensorEventListener{
         // determine if it is a peak
         val n = 10
 
-        var isPeak = false
         // Each reading is compared to its neighbouring readings to see if it is the largest in the
         // window of 'n' readings
         for (t in n / 2..accBufferIndex - n / 2) {
@@ -229,14 +225,15 @@ class DeadReckoningService : Service(), SensorEventListener{
                 // Check if current accel reading is larger than its n/2 neighbouring/local readings
                 val current = accelReadings[t]!!.first
                 val local = accelReadings[t + i]!!.first
-                // Check if not peak
+                // Check if peak
                 if (current > local && current > peakLowerThresh && current < peakUpperThresh) {
-                    isPeak = true
-                    break
+                    //TODO: Remove me at some point
+                    Log.v("Peak: ", "Peak found. Value: ${accelReadings[t]!!.first}")
+                    return true
                 }
             }
         }
-        return isPeak
+        return false
     }
 
     // Extracts the accelerometer readings which occurred during the current step to be used for
@@ -366,7 +363,6 @@ class DeadReckoningService : Service(), SensorEventListener{
     }
 
 
-
     private fun updateYawRotationVector(event: SensorEvent) {
         val orientation = FloatArray(3)
 
@@ -445,7 +441,6 @@ class DeadReckoningService : Service(), SensorEventListener{
 
         return yawDegrees
     }
-
 
 
     //NOTE: This might be unnecessary
