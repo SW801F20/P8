@@ -112,6 +112,79 @@ namespace IO.Swagger.Controllers
         }
 
         /// <summary>
+        /// updates location of a user
+        /// </summary>
+        /// <param name="username"> unique string username>
+        /// <param name="orientation"> yaw orientation>
+        /// <param name="dist"> distance walked>
+        /// <param name="timeStamp"> timestamp of location update>
+        /// <response code="201">Successful request! Created new location</response>
+        /// <response code="400">Bad request! Location not added</response>
+        [HttpPost]
+        [Route("/Location/{username}/{orientation}/{dist}/{timeStamp}")]
+        [ValidateModelState]
+        [SwaggerOperation("PostLocation")]
+        [SwaggerResponse(statusCode: 201)]
+        public virtual IActionResult UpdateLocation([FromRoute][Required]string username,
+            [FromRoute][Required]double orientation,
+            [FromRoute][Required]double dist,
+            [FromRoute][Required]DateTime timeStamp)
+        {
+            try
+            {
+                User user = us.GetUserByName(db, username);
+
+                if (user == null)
+                {
+                    return StatusCode(400, "Unknown user!");
+                }
+
+                Func<double, double> toRadians = (degrees) => { return degrees * Math.PI / 180; };
+                Func<double, double> toDegrees = (radians) => { return radians * (180 / Math.PI); };
+
+                var heading = toRadians(orientation);
+                var R = 6378.1; //Radius of the Earth
+                var kmDist = dist / 1000; //Convert distance from meters to km
+
+                var curLoc = ls.GetNewestLocation(db, username);
+
+                if (curLoc == null)
+                {
+                    return StatusCode(400, "User has no locations!");
+                }
+                var lat1 = toRadians(curLoc.Position.Coordinates[0]); //Current lat point converted to radians
+                var lng1 = toRadians(curLoc.Position.Coordinates[1]); //Current lat point converted to radians
+
+                //Formula from
+                //https://www.movable-type.co.uk/scripts/latlong.html "Destination point given distance and bearing from start point"
+
+                var lat2 = Math.Asin(Math.Sin(lat1) * Math.Cos(kmDist / R) +
+                Math.Cos(lat1) * Math.Sin(kmDist / R) * Math.Cos(heading));
+
+                var lng2 = lng1 + Math.Atan2(
+                Math.Sin(heading) * Math.Sin(kmDist / R) * Math.Cos(lat1),
+                Math.Cos(kmDist / R) - Math.Sin(lat1) * Math.Sin(lat2));
+
+                lat2 = toDegrees(lat2);
+                lng2 = toDegrees(lng2);
+
+                var pos = new Position()
+                {
+                    Type = "Point",
+                    Coordinates = new List<double>() { lat2, lng2 }
+                };
+                var loc = new Location(username, orientation, pos, timeStamp);
+                ls.InsertLocation(db, loc);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(400, e.Message);
+            }
+
+            return StatusCode(201);
+        }
+
+        /// <summary>
         /// adds a new location
         /// </summary>
         /// <param name="location">a JSON object of a location</param>
@@ -194,7 +267,10 @@ namespace IO.Swagger.Controllers
         /// <summary>
         /// Updates locations of two users
         /// </summary>
-        /// <param name="user">a JSON object of a location</param>
+        /// <param name="username"> unique string username>
+        /// <param name="targetMac"> target bluetooth mac address>
+        /// <param name="rssiDist"> proximated rssi distance>
+        /// <param name="timeStamp"> timestamp of bluetooth sync>
         /// <response code="201">Successful request! Created new user</response>
         /// <response code="400">Sync failed. User or location does not exist</response>
         [HttpPost]
