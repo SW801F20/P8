@@ -16,7 +16,7 @@ import io.swagger.client.models.User
 
 import io.swagger.client.infrastructure.*
 
-class DeadCrumbsApi(basePath: kotlin.String = "/") : ApiClient(basePath) {
+class DefaultApi(basePath: kotlin.String = "/") : ApiClient(basePath) {
 
     /**
      * returns the location associated with username
@@ -134,8 +134,7 @@ class DeadCrumbsApi(basePath: kotlin.String = "/") : ApiClient(basePath) {
                 "/Location"
         )
         val response = request<Any?>(
-                localVariableConfig,
-                localVariableBody
+                localVariableConfig
         )
 
         return when (response.responseType) {
@@ -160,12 +159,39 @@ class DeadCrumbsApi(basePath: kotlin.String = "/") : ApiClient(basePath) {
                 "/User"
         )
         val response = request<Any?>(
-                localVariableConfig,
-                localVariableBody
+                localVariableConfig
         )
 
         return when (response.responseType) {
             ResponseType.Success -> Unit
+            ResponseType.Informational -> TODO()
+            ResponseType.Redirection -> TODO()
+            ResponseType.ClientError -> throw ClientException((response as ClientError<*>).body as? String ?: "Client error")
+            ResponseType.ServerError -> throw ServerException((response as ServerError<*>).message ?: "Server error")
+        }
+    }
+    /**
+     * updates location of a user
+     * 
+     * @param username The username of the user. 
+     * @param orientation orientation of user 
+     * @param dist step length 
+     * @param timeStamp The time. 
+     * @return Location
+     */
+    @Suppress("UNCHECKED_CAST")
+    fun updateLocation(username: kotlin.String, orientation: kotlin.Double, dist: kotlin.Double, timeStamp: kotlin.String): Location {
+        
+        val localVariableConfig = RequestConfig(
+                RequestMethod.POST,
+                "/Location/{username}/{orientation}/{dist}/{timeStamp}".replace("{" + "username" + "}", "$username").replace("{" + "orientation" + "}", "$orientation").replace("{" + "dist" + "}", "$dist").replace("{" + "timeStamp" + "}", "$timeStamp")
+        )
+        val response = request<Location>(
+                localVariableConfig
+        )
+
+        return when (response.responseType) {
+            ResponseType.Success -> (response as Success<*>).data as Location
             ResponseType.Informational -> TODO()
             ResponseType.Redirection -> TODO()
             ResponseType.ClientError -> throw ClientException((response as ClientError<*>).body as? String ?: "Client error")
