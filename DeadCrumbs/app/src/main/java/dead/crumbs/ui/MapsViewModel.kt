@@ -183,30 +183,11 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
 
                 //TODO(maybe post/update current user's position in the db since this is a good place to do it - "Tobias W. Boegedal")
                 //This commented code below can be used to help with that
-
                 /*mFusedLocationClient.lastLocation.addOnCompleteListener() { task ->
                     location = task.result
                     if (location == null) {
                         requestNewLocationData(activity)
                     } else {
-
-                        val currYear =
-                            Calendar.getInstance().get(Calendar.YEAR).toString().padStart(4, '0')
-                        val currMonth = (Calendar.getInstance().get(Calendar.MONTH) + 1).toString()
-                            .padStart(2, '0')
-                        val currDate =
-                            Calendar.getInstance().get(Calendar.DATE).toString().padStart(2, '0')
-                        val currHour =
-                            Calendar.getInstance().get(Calendar.HOUR).toString().padStart(2, '0')
-                        val currMinute =
-                            Calendar.getInstance().get(Calendar.MINUTE).toString().padStart(2, '0')
-                        val currSecond =
-                            Calendar.getInstance().get(Calendar.SECOND).toString().padStart(2, '0')
-                        val dateTimeString =
-                            currYear + "-" + currMonth + "-" + currDate + "T" + currHour + ":" + currMinute + ":" + currSecond
-
-                        Log.v("gps", "Coordinate latitude:" + location!!.latitude.toString())
-                        Log.v("gps", "Coordinate longitude:" + location!!.longitude.toString())
                     }
                 }*/
 
@@ -241,7 +222,8 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
     }
 
     fun updateMapPositions(context: Context, activity: Activity){
-
+        var ownLat: Double = 0.0
+        var ownLong: Double = 0.0
         try {
             var users = getUsers();
             var newLocations : MutableList<LiveData<io.swagger.client.models.Location>> = arrayListOf()
@@ -265,19 +247,27 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
                      meMarker = map.addMarker(newMarker(LatLng(user.value!!.position.coordinates!![0],
                          user.value!!.position.coordinates!![1]), name = "Me", icon = R.mipmap.my_picture))
                      newMarkerList.add(meMarker!!)
+                     ownLat = user.value!!.position.coordinates!![0]
+                     ownLong = user.value!!.position.coordinates!![1]
                  }
+            }
+
+            for (user in newLocations) {
+                if(user.value!!.user_ref == loggedInUser){
+                   continue
+                }
                 else {
-                     var marker = map.addMarker(
-                         newMarker(
-                             LatLng(
-                                 user.value!!.position.coordinates!![0],
-                                 user.value!!.position.coordinates!![1]
-                             ), user.value!!.user_ref, 20.0,
-                             R.mipmap.my_picture
-                         )
-                     )
-                     newMarkerList.add(marker)
-                 }
+                    var marker = map.addMarker(
+                        newMarker(
+                            LatLng(
+                                user.value!!.position.coordinates!![0],
+                                user.value!!.position.coordinates!![1]
+                            ), user.value!!.user_ref, distanceInKm(ownLat, ownLong, user.value!!.position.coordinates!![0], user.value!!.position.coordinates!![1]),
+                            R.mipmap.my_picture
+                        )
+                    )
+                    newMarkerList.add(marker)
+                }
             }
             markerList = newMarkerList
         }
@@ -309,4 +299,26 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
     fun getUser(userName: String) = mapsRepository.getUser(userName)
     fun getLocation(userName: String) = mapsRepository.getLocation(userName)
     fun postLocation(location : io.swagger.client.models.Location) = mapsRepository.postLocation(location)
+
+
+    fun toRadians(degrees : Double) : Double{
+        return degrees * Math.PI / 180.0
+    }
+
+    fun distanceInKm(lat1 : Double, long1 : Double, lat2 : Double, long2 : Double) : Double{
+        var earthRadiusKm = 6371;
+
+        var dLat = toRadians(lat2 - lat1)
+        var dLong = toRadians(long2 - long1)
+
+        var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.sin(dLong/2) * Math.sin(dLong/2) *
+                Math.cos(lat1) * Math.cos(lat2)
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+        return earthRadiusKm * c
+    }
+
+
+
+
+
 }
