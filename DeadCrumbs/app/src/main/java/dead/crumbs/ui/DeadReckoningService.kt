@@ -98,7 +98,7 @@ class DeadReckoningService : Service(), SensorEventListener {
     private var accelerometerZReadings = arrayOfNulls<Pair<Float, Double>>(accArraySize)
     // Index of the next free slot in accelerometerZReadings
     private var accBufferIndex: Int = 0
-    private var gravitationalAccel: Double = 9.72
+    private var gravitationalAccel: Double = 9.80665
     // Timestamp of the first accelerometer reading collected
     private var firstTimestamp: Double = 0.0
     // Timestamp of the previous step taken
