@@ -52,12 +52,7 @@ class Maps_DAO {
     fun getLocation(userName: String) : LiveData<Location> {
         var location: Location? = null
         val thread = thread (start = true){
-            try {
-                location = client.getLocation(userName)
-            }catch (e: Exception){
-
-            }
-
+            location = client.getLocation(userName)
         }
         thread.join()
         if(location == null){

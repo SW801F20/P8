@@ -19,6 +19,8 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
 import dead.crumbs.R
 import dead.crumbs.data.MapsRepository
+import io.swagger.client.models.Position
+import java.util.*
 import kotlin.math.asin
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -31,6 +33,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
     var markerList = mutableListOf<Marker>()
     var mapIsInitialized = false
     val PERMISSION_ID = 42
+    val loggedInUser : String = "Jacob2"
 
 
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
@@ -168,6 +171,11 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
                 if(location == null)
                     location = locMan.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
 
+                //need to know if we should post or patch
+                var swaggerLocation : io.swagger.client.models.Location = io.swagger.client.models.
+                    Location(loggedInUser, 10.0, Position("Point", arrayOf(location.latitude, location.longitude)), getTime())
+                postLocation(swaggerLocation)
+
                 Log.v("gps", "Coordinate latitude:" + location!!.latitude.toString())
                 Log.v("gps", "Coordinate longitude:" + location!!.longitude.toString())
 
@@ -233,6 +241,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
     }
 
     fun updateMapPositions(context: Context, activity: Activity){
+
         try {
             var users = getUsers();
             var newLocations : MutableList<LiveData<io.swagger.client.models.Location>> = arrayListOf()
@@ -248,19 +257,52 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
 
             //assign meMarker for easier update of orientation
             var newMarkerList = mutableListOf<Marker>()
-            newMarkerList.add(meMarker!!)
+            //newMarkerList.add(meMarker!!)
 
+            map.clear()
             for (user in newLocations) {
-                var marker = map.addMarker(newMarker(LatLng(user.value!!.position.coordinates!![0],
-                    user.value!!.position.coordinates!![1]), user.value!!.user_ref,20.0,
-                    R.mipmap.my_picture))
-                newMarkerList.add(marker)
+                 if(user.value!!.user_ref == loggedInUser){
+                     meMarker = map.addMarker(newMarker(LatLng(user.value!!.position.coordinates!![0],
+                         user.value!!.position.coordinates!![1]), name = "Me", icon = R.mipmap.my_picture))
+                     newMarkerList.add(meMarker!!)
+                 }
+                else {
+                     var marker = map.addMarker(
+                         newMarker(
+                             LatLng(
+                                 user.value!!.position.coordinates!![0],
+                                 user.value!!.position.coordinates!![1]
+                             ), user.value!!.user_ref, 20.0,
+                             R.mipmap.my_picture
+                         )
+                     )
+                     newMarkerList.add(marker)
+                 }
             }
             markerList = newMarkerList
         }
         catch(e: java.lang.Exception){
             Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
         }
+    }
+
+    private fun getTime(): String{
+        val currYear =
+            Calendar.getInstance().get(Calendar.YEAR).toString().padStart(4, '0')
+        val currMonth = (Calendar.getInstance().get(Calendar.MONTH) + 1).toString()
+            .padStart(2, '0')
+        val currDate =
+            Calendar.getInstance().get(Calendar.DATE).toString().padStart(2, '0')
+        val currHour =
+            Calendar.getInstance().get(Calendar.HOUR).toString().padStart(2, '0')
+        val currMinute =
+            Calendar.getInstance().get(Calendar.MINUTE).toString().padStart(2, '0')
+        val currSecond =
+            Calendar.getInstance().get(Calendar.SECOND).toString().padStart(2, '0')
+        val dateTimeString =
+            currYear + "-" + currMonth + "-" + currDate + "T" + currHour + ":" + currMinute + ":" + currSecond
+
+        return dateTimeString
     }
 
     fun getUsers() = mapsRepository.getUsers()
