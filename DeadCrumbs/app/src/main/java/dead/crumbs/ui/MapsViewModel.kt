@@ -21,10 +21,7 @@ import dead.crumbs.R
 import dead.crumbs.data.MapsRepository
 import io.swagger.client.models.Position
 import java.util.*
-import kotlin.math.asin
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
+import kotlin.math.*
 
 
 class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
@@ -34,7 +31,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
     var mapIsInitialized = false
     val PERMISSION_ID = 42
     val loggedInUser : String = "Jacob2"
-
+    private var meMarker: Marker? = null
 
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
 
@@ -44,8 +41,6 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
             meMarker!!.rotation=degrees
         }
     }
-
-    private var meMarker: Marker? = null
 
     fun setupMap(googleMap: GoogleMap, context: Context, activity: Activity){
         if (!mapIsInitialized)
@@ -63,7 +58,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
     private fun addMarkers(context: Context, activity: Activity)
     {
         try {
-            var loc = getLastLocation(context, activity)
+            var loc = getGPSLocation(context, activity)
             var users = getUsers();
             var locList : MutableList<LiveData<io.swagger.client.models.Location>> = arrayListOf()
             if(users.value != null)
@@ -83,8 +78,11 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
             //TODO(distance set to 20.0, however we have no idea of the influence of this, find out)
             for (user in locList) {
                 var marker = map.addMarker(newMarker(LatLng(user.value!!.position.coordinates!![0],
-                    user.value!!.position.coordinates!![1]), user.value!!.user_ref,20.0,
+                    user.value!!.position.coordinates!![1]), user.value!!.user_ref,
+                    distanceInM(loc.latitude, loc.longitude, user.value!!.position.coordinates!![0],
+                        user.value!!.position.coordinates!![1]),
                     R.mipmap.my_picture))
+                //marker.rotation = user.value!!.yaw.toFloat()
                 markerList.add(marker)
             }
         }
@@ -162,7 +160,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
     }
 
     @SuppressLint("MissingPermission")
-    public fun getLastLocation(context: Context, activity: Activity): Location? {
+    public fun getGPSLocation(context: Context, activity: Activity): Location? {
         var locMan : LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         var location: Location ?= null
         if (checkPermissions(context)) {
@@ -173,7 +171,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
 
                 //need to know if we should post or patch
                 var swaggerLocation : io.swagger.client.models.Location = io.swagger.client.models.
-                    Location(loggedInUser, 10.0, Position("Point", arrayOf(location.latitude, location.longitude)), getTime())
+                    Location(loggedInUser, 0.0, Position("Point", arrayOf(location.latitude, location.longitude)), getTime())
                 postLocation(swaggerLocation)
 
                 Log.v("gps", "Coordinate latitude:" + location!!.latitude.toString())
@@ -242,6 +240,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
             //newMarkerList.add(meMarker!!)
 
             map.clear()
+            //for loop used to find the current user
             for (user in newLocations) {
                  if(user.value!!.user_ref == loggedInUser){
                      meMarker = map.addMarker(newMarker(LatLng(user.value!!.position.coordinates!![0],
@@ -252,6 +251,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
                  }
             }
 
+            //for loop used to add the other users to the map, map replacing the markerList
             for (user in newLocations) {
                 if(user.value!!.user_ref == loggedInUser){
                    continue
@@ -262,10 +262,11 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
                             LatLng(
                                 user.value!!.position.coordinates!![0],
                                 user.value!!.position.coordinates!![1]
-                            ), user.value!!.user_ref, distanceInKm(ownLat, ownLong, user.value!!.position.coordinates!![0], user.value!!.position.coordinates!![1]),
+                            ), user.value!!.user_ref, distanceInM(ownLat, ownLong, user.value!!.position.coordinates!![0], user.value!!.position.coordinates!![1]),
                             R.mipmap.my_picture
                         )
                     )
+                    marker.rotation = user.value!!.yaw.toFloat()
                     newMarkerList.add(marker)
                 }
             }
@@ -305,8 +306,8 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         return degrees * Math.PI / 180.0
     }
 
-    fun distanceInKm(lat1 : Double, long1 : Double, lat2 : Double, long2 : Double) : Double{
-        var earthRadiusKm = 6371;
+    fun distanceInM(lat1 : Double, long1 : Double, lat2 : Double, long2 : Double) : Double{
+        var earthRadiusM = 6371000;
 
         var dLat = toRadians(lat2 - lat1)
         var dLong = toRadians(long2 - long1)
@@ -314,7 +315,8 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.sin(dLong/2) * Math.sin(dLong/2) *
                 Math.cos(lat1) * Math.cos(lat2)
         var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
-        return earthRadiusKm * c
+        val rounded = Math.round((earthRadiusM * c) * 10.0)/ 10.0 // for conversion
+        return rounded
     }
 
 
