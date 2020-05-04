@@ -173,15 +173,17 @@ namespace IO.Swagger.Controllers
                     Type = "Point",
                     Coordinates = new List<double>() { lat2, lng2 }
                 };
-                var loc = new Location(username, orientation, pos, timeStamp);
-                ls.InsertLocation(db, loc);
+                var newLoc = new Location(username, orientation, pos, timeStamp);
+                ls.InsertLocation(db, newLoc);
+
+
+                return new ObjectResult(newLoc) { StatusCode = 201 };
+
             }
             catch (Exception e)
             {
                 return StatusCode(400, e.Message);
-            }
-
-            return StatusCode(201);
+            }            
         }
 
         /// <summary>
