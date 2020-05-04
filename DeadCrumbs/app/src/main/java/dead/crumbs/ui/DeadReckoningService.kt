@@ -92,12 +92,16 @@ class DeadReckoningService : Service(), SensorEventListener {
 
 
     // Step detection and step length estimation fields
+    // Number of readings kept track of before wiping
     private val accArraySize: Int = 10000
-
+    // Contains accelerometer (Z-axis) readings with value , timestamp
     private var accelerometerZReadings = arrayOfNulls<Pair<Float, Double>>(accArraySize)
+    // Index of the next free slot in accelerometerZReadings
     private var accBufferIndex: Int = 0
     private var gravitationalAccel: Double = 9.72
+    // Timestamp of the first accelerometer reading collected
     private var firstTimestamp: Double = 0.0
+    // Timestamp of the previous step taken
     private var previousStepTimestamp: Double = 0.0
 
     // This is called whenever this class (SensorEventListener) detects a new sensor value
@@ -138,6 +142,8 @@ class DeadReckoningService : Service(), SensorEventListener {
         // Do nothing
     }
 
+
+    // -------------- Step detection and step length estimation -------------- //
     private fun processAndRecordReading(event: SensorEvent) {
         var accelReading = event.values[2]
         // If array is full (reached accArraySize), reset the array
@@ -361,6 +367,8 @@ class DeadReckoningService : Service(), SensorEventListener {
 
         return accelerometerZs
     }
+
+    // -------------- End of step detection and step length estimation -------------- //
 
 
     private fun updateYawRotationVector(event: SensorEvent) {
