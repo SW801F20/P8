@@ -38,10 +38,10 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
 
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
 
-    fun updateOrientation(degrees: Double){
+    fun updateOrientation(degrees: Float){
         if(markerList.size != 0)
         {
-            meMarker!!.rotation=Math.toDegrees(degrees).toFloat()
+            meMarker!!.rotation=degrees
         }
     }
 
