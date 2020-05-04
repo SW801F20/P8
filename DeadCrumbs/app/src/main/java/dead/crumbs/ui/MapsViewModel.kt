@@ -7,6 +7,8 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
 import dead.crumbs.R
 import dead.crumbs.data.MapsRepository
+import dead.crumbs.data.RSSIDist
+import java.util.*
 import kotlin.math.asin
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -77,33 +79,18 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
     }
 
     //Moves in markers current heading/direction
-    fun moveMeMarker(distance: Double){
-        moveMarker(meMarker!!, distance)
-    }
+    fun moveMeMarker(username: String, dist: Double){
+        val orientation = Math.toRadians(meMarker!!.rotation.toDouble())
+        val currYear = Calendar.getInstance().get(Calendar.YEAR).toString().padStart(4,'0')
+        val currMonth = (Calendar.getInstance().get(Calendar.MONTH) + 1).toString().padStart(2,'0')
+        val currDate = Calendar.getInstance().get(Calendar.DATE).toString().padStart(2,'0')
+        val currHour = Calendar.getInstance().get(Calendar.HOUR).toString().padStart(2,'0')
+        val currMinute = Calendar.getInstance().get(Calendar.MINUTE).toString().padStart(2,'0')
+        val currSecond = Calendar.getInstance().get(Calendar.SECOND).toString().padStart(2,'0')
+        val dateTimeString = currYear + "-" + currMonth + "-" + currDate+ "T" + currHour + ":" + currMinute + ":" + currSecond
 
-    //Updates the location of a marker based on the length of
-    //the newest detected step and the current orientation of the marker.
-    //Expects length to be in meters.
-    private fun moveMarker(marker: Marker, mDist: Double){
-        val heading = Math.toRadians(marker.rotation.toDouble())
-        val R = 6378.1 //Radius of the Earth
-        val kmDist= mDist / 1000 //Convert distance from meters to km
-
-        val lat1 = Math.toRadians(marker.position.latitude) //Current lat point converted to radians
-        val lng1 = Math.toRadians(marker.position.longitude) //Current lat point converted to radians
-
-        //Formula from
-        //https://www.movable-type.co.uk/scripts/latlong.html "Destination point given distance and bearing from start point"
-        var lat2 = asin( sin(lat1) * cos(kmDist/R) +
-                cos(lat1) * sin(kmDist/R) * cos(heading))
-
-        var lng2 = lng1 + atan2(
-            sin(heading) * sin(kmDist/R) * cos(lat1),
-            cos(kmDist/R) - sin(lat1) * sin(lat2))
-
-        lat2 = Math.toDegrees(lat2)
-        lng2 = Math.toDegrees(lng2)
-
-        marker.position = LatLng(lat2, lng2)
+        val newLocation = mapsRepository.updateLocation(username, orientation, dist, dateTimeString)
+        meMarker!!.position = LatLng(newLocation.value?.position!!.coordinates?.get(0)!!,
+                                 newLocation.value?.position!!.coordinates?.get(1)!!)
     }
 }

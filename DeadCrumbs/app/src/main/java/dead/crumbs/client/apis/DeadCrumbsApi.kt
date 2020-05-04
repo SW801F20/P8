@@ -134,7 +134,8 @@ class DeadCrumbsApi(basePath: kotlin.String = "/") : ApiClient(basePath) {
                 "/Location"
         )
         val response = request<Any?>(
-                localVariableConfig
+                localVariableConfig,
+                localVariableBody
         )
 
         return when (response.responseType) {
@@ -159,9 +160,9 @@ class DeadCrumbsApi(basePath: kotlin.String = "/") : ApiClient(basePath) {
                 "/User"
         )
         val response = request<Any?>(
-                localVariableConfig
+                localVariableConfig,
+                localVariableBody
         )
-
         return when (response.responseType) {
             ResponseType.Success -> Unit
             ResponseType.Informational -> TODO()

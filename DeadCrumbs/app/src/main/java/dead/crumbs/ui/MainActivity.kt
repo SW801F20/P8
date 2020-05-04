@@ -21,7 +21,10 @@ import dead.crumbs.utilities.InjectorUtils
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 
-
+//TODO: this should be set doing login or something
+//Hardcode the username here. Note must exist in DB with correct bluetooth mac address!
+val username = "jacob6565"
+val friends_macs = arrayOf("A8:87:B3:ED:DF:7E");
 
 class MainActivity : AppCompatActivity() {
     private val REQUEST_ENABLE_BT = 1
@@ -120,7 +123,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updatePostition(stepLength: Double){
-        mapsViewModel!!.moveMeMarker(stepLength)
+        mapsViewModel!!.moveMeMarker(username, stepLength)
     }
 
     //Call the function in the viewmodel to update the orientation
@@ -212,20 +215,16 @@ class MainActivity : AppCompatActivity() {
     private val connectionBluetoothService = object : ServiceConnection {
 
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
-            //TODO: this should be set doing login or something
-            //Hardcode the username here. Note must exist in DB with correct bluetooth mac address!
-            val username = "jacob6565"
-
             // We've bound to BluetoothService, cast the IBinder and get LocalService instance
             val binder = service as BluetoothService.LocalBinder
             bluetoothService = binder.getService()
             bluetoothService.callback = fun(target_mac: String, rssi: Double) {       //callback function
                 val rssi_dist = rssiProximity.distanceFromRSSI(rssi)
                 val dist_threshold = 2
-                if (rssi_dist < dist_threshold){
+                //if the mac adress matches one of the users friends and distance is under threshold.
+                if (friends_macs.contains(target_mac) && rssi_dist < dist_threshold){
                     rssiViewModel!!.bluetoothSync(username, target_mac, rssi_dist);
                 }
-
             }
 
             boundBluetoothService = true
