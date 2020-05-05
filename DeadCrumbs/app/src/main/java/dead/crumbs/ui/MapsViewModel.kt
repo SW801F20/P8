@@ -89,17 +89,21 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
 
     //Moves in markers current heading/direction
     fun moveMeMarker(username: String, dist: Double){
-        val orientation = Math.toRadians(meMarker!!.rotation.toDouble())
-        val currYear = Calendar.getInstance().get(Calendar.YEAR).toString().padStart(4,'0')
-        val currMonth = (Calendar.getInstance().get(Calendar.MONTH) + 1).toString().padStart(2,'0')
-        val currDate = Calendar.getInstance().get(Calendar.DATE).toString().padStart(2,'0')
-        val currHour = Calendar.getInstance().get(Calendar.HOUR).toString().padStart(2,'0')
-        val currMinute = Calendar.getInstance().get(Calendar.MINUTE).toString().padStart(2,'0')
-        val currSecond = Calendar.getInstance().get(Calendar.SECOND).toString().padStart(2,'0')
-        val dateTimeString = currYear + "-" + currMonth + "-" + currDate+ "T" + currHour + ":" + currMinute + ":" + currSecond
+        // This nullcheck prevents the app from crashing if a step is detected outside of the map
+        if (meMarker != null){
 
-        val newLocation = mapsRepository.updateLocation(username, orientation, dist, dateTimeString)
-        meMarker!!.position = LatLng(newLocation.value?.position!!.coordinates?.get(0)!!,
-                                 newLocation.value?.position!!.coordinates?.get(1)!!)
+            val orientation = Math.toRadians(meMarker!!.rotation.toDouble())
+            val currYear = Calendar.getInstance().get(Calendar.YEAR).toString().padStart(4,'0')
+            val currMonth = (Calendar.getInstance().get(Calendar.MONTH) + 1).toString().padStart(2,'0')
+            val currDate = Calendar.getInstance().get(Calendar.DATE).toString().padStart(2,'0')
+            val currHour = Calendar.getInstance().get(Calendar.HOUR).toString().padStart(2,'0')
+            val currMinute = Calendar.getInstance().get(Calendar.MINUTE).toString().padStart(2,'0')
+            val currSecond = Calendar.getInstance().get(Calendar.SECOND).toString().padStart(2,'0')
+            val dateTimeString = currYear + "-" + currMonth + "-" + currDate+ "T" + currHour + ":" + currMinute + ":" + currSecond
+
+            val newLocation = mapsRepository.updateLocation(username, orientation, dist, dateTimeString)
+            meMarker!!.position = LatLng(newLocation.value?.position!!.coordinates?.get(0)!!,
+                                     newLocation.value?.position!!.coordinates?.get(1)!!)
+        }
     }
 }
