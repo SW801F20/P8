@@ -72,7 +72,8 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
                     }
                 }
             //adding the meMarker to the map
-            val marker = map.addMarker(newMarker( loc = LatLng(loc!!.latitude, loc.longitude), name = "Me", icon = R.mipmap.my_picture))
+            val marker = map.addMarker(newMarker( loc = LatLng(loc!!.latitude, loc.longitude),
+                name = "Me", icon = R.mipmap.my_picture))
             markerList.add(marker)
             //assign meMarker for easier update of orientation
             meMarker = marker
@@ -169,9 +170,13 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
     //check if gps or network is enabled
     private fun isLocationEnabled(context: Context): Boolean {
         val locationManager: LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(
-            LocationManager.NETWORK_PROVIDER
-        )
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+    }
+
+    //check if gps or network is enabled
+    private fun isNetworkEnabled(context: Context): Boolean {
+        val locationManager: LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
 
     @SuppressLint("MissingPermission")
@@ -179,27 +184,32 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         val locMan : LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         var location: Location ?= null
         if (checkPermissions(context)) {
-            if (isLocationEnabled(context)) {
+            if (isLocationEnabled(context)) {  //this case if the GPS is enabled
                 location = locMan.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-                if(location == null)
-                    location = locMan.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-
                 val swaggerLocation : io.swagger.client.models.Location = io.swagger.client.models.
                     Location(loggedInUser, 0.0, Position("Point", arrayOf(location.latitude, location.longitude)), getDateTime())
                 postLocation(swaggerLocation)
-
+                return location
+            }
+            else if(isNetworkEnabled(context)){ //this case if the GPS is not enabled and the network is
+                location = locMan.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+                val swaggerLocation : io.swagger.client.models.Location = io.swagger.client.models.
+                    Location(loggedInUser, 0.0, Position("Point", arrayOf(location.latitude, location.longitude)), getDateTime())
+                postLocation(swaggerLocation)
                 return location
             }
         } else {
-            requestPermissions(activity)
+            requestPermissions(activity) //if the user has not given permission we request it
         }
         throw Exception()
     }
 
     //Updates the markers on the map
     fun updateMapPositions(context: Context, activity: Activity){
+        //latitude and longitude of logged in user
         var ownLat: Double = 0.0
         var ownLong: Double = 0.0
+
         try {
             val users = getUsers();
             val newLocations : MutableList<LiveData<io.swagger.client.models.Location>> = arrayListOf()
