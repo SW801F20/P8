@@ -3,10 +3,20 @@ package dead.crumbs.ui
 import androidx.lifecycle.ViewModel
 import dead.crumbs.data.RSSIDist
 import dead.crumbs.data.RSSIRepository
+import dead.crumbs.data.UserRepository
 import java.util.*
 
-class RSSIViewModel(private val rssiRepository: RSSIRepository)
+class RSSIViewModel(private val rssiRepository: RSSIRepository, private val userRepository: UserRepository)
     : ViewModel() {
+
+    fun getMacs():MutableList<String>{
+        var users = userRepository.getUsers()
+        var mac_adresses = mutableListOf<String>();
+        for(user in users.value!!){
+            mac_adresses.add(user.mac_address)
+        }
+        return mac_adresses
+    }
 
     fun bluetoothSync(my_username : String, target_mac : String, distance : Double){
         val currYear = Calendar.getInstance().get(Calendar.YEAR).toString().padStart(4,'0')

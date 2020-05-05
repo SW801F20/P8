@@ -3,6 +3,7 @@ package dead.crumbs.data
 import dead.crumbs.data.DAO.Location_DAO
 import dead.crumbs.data.DAO.Maps_DAO
 import dead.crumbs.data.DAO.RSSI_DAO
+import dead.crumbs.data.DAO.User_DAO
 import io.swagger.client.apis.DeadCrumbsApi
 
 class Database private constructor() {
@@ -17,6 +18,9 @@ class Database private constructor() {
         private set
 
     var locationDao = Location_DAO(client)
+        private set
+
+    var userDao = User_DAO(client)
         private set
 
     companion object {

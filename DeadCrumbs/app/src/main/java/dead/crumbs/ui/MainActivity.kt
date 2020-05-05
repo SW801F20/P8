@@ -2,11 +2,13 @@ package dead.crumbs.ui
 
 //import com.jakewharton.threetenabp.AndroidThreeTen
 
+import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.widget.Toast
@@ -24,7 +26,7 @@ import java.util.*
 //TODO: this should be set doing login or something
 //Hardcode the username here. Note must exist in DB with correct bluetooth mac address!
 val username = "jacob6565"
-val friends_macs = arrayOf("A8:87:B3:ED:DF:7E");
+var friends_macs = mutableListOf<String>();
 
 class MainActivity : AppCompatActivity() {
     private val REQUEST_ENABLE_BT = 1
@@ -35,11 +37,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var gpsViewModel: GPSViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         //AndroidThreeTen.init(this)
         setContentView(R.layout.activity_main)
 
         //Checks locations permissions, which are necessary for
-        //checkLocationPermissions()
+        checkLocationPermissions()
 
         initializeBluetoothScan()
         initializeMapsViewModel() //Must be called before "startDeadReckoning()"
@@ -145,7 +148,7 @@ class MainActivity : AppCompatActivity() {
         rssiViewModel = ViewModelProviders.of(this, factory)
             .get(RSSIViewModel::class.java)
 
-        //showBluetoothRSSIList() //include for debugging/testing of rssi
+        friends_macs = rssiViewModel!!.getMacs()
 
         //Enables bluetooth
         enableBluetooth()
@@ -165,8 +168,6 @@ class MainActivity : AppCompatActivity() {
         startActivity(discoverableIntent)
     }
 
-    //can remove this function
-    /*
     private fun checkLocationPermissions() {
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
             var permissionCheck =
@@ -185,7 +186,7 @@ class MainActivity : AppCompatActivity() {
                 ) //Any number
             }
         }
-    }*/
+    }
 
     private fun enableBluetooth(){
         if (bluetoothAdapter == null) {

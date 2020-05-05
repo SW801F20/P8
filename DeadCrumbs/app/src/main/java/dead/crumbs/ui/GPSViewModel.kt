@@ -13,12 +13,13 @@ import androidx.core.app.ActivityCompat
 import androidx.lifecycle.ViewModel
 import com.google.android.gms.location.*
 import dead.crumbs.data.LocationRepository
+import dead.crumbs.data.UserRepository
 import io.swagger.client.models.Position
 //import java.time.LocalDateTime
 
 import java.util.Calendar
 
-class GPSViewModel (private val locationRepository : LocationRepository) : ViewModel(){
+class GPSViewModel (private val locationRepository : LocationRepository, private val userRepository: UserRepository) : ViewModel(){
 
     val PERMISSION_ID = 42;
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
@@ -103,8 +104,8 @@ class GPSViewModel (private val locationRepository : LocationRepository) : ViewM
         }
     }
 
-    fun getUsers() = locationRepository.getUsers()
-    fun getUser(userName: String) = locationRepository.getUser(userName)
+    fun getUsers() = userRepository.getUsers()
+    fun getUser(userName: String) = userRepository.getUser(userName)
     fun getLocation(userName: String) = locationRepository.getLocation(userName)
     fun postLocation(location : io.swagger.client.models.Location) = locationRepository.postLocation(location)
 
