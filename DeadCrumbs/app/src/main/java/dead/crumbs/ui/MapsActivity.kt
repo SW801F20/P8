@@ -28,7 +28,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     var handler = Handler()
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     var viewModel : MapsViewModel? = null
-    //var locationViewModel : GPSViewModel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,12 +38,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         mapFragment.getMapAsync(this)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-
         initializeViewModel()
-        //initializes the locationViewModel, used to get users and their positions
-        //val locationFactory = InjectorUtils.provideLocation()
-        //locationViewModel = ViewModelProviders.of(this, locationFactory)
-        //    .get(GPSViewModel::class.java)
     }
 
     override fun onDestroy() {
@@ -76,6 +70,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
 
         viewModel!!.setupMap(googleMap, this, this@MapsActivity)
         viewModel!!.map.setOnMarkerClickListener(this)
+
+        //Runnable makes call to updateMapPositions every 5 seconds
         var context : Context = this
         var runnable = object : Runnable {
             override fun run(){
@@ -88,6 +84,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
 
     override fun onPause() {
         super.onPause()
+        //when leaving the map, the handlers callbacks (the runnable) is removed
         handler.removeCallbacksAndMessages(null)
     }
 

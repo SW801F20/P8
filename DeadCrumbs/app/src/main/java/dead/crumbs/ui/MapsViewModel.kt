@@ -27,11 +27,11 @@ import kotlin.math.*
 class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
 
     lateinit var map: GoogleMap
-    var markerList = mutableListOf<Marker>()
+    var markerList = mutableListOf<Marker>() // the list of markers that are displayed on the map
     var mapIsInitialized = false
-    val PERMISSION_ID = 42
-    val loggedInUser : String = "Jacob2"
-    private var meMarker: Marker? = null
+    val PERMISSION_ID = 42 //a value to check if the users gives permission to what we ask for
+    val loggedInUser : String = "Jacob2" //currently the user we use as logged in user
+    private var meMarker: Marker? = null //the marker corresponding to your own location
 
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
 
@@ -54,13 +54,14 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         }
     }
 
-    //Fills in dummy data
+    //fills in markers on initialization of map
     private fun addMarkers(context: Context, activity: Activity)
     {
+        //getting all the locations from the db
         try {
-            var loc = getGPSLocation(context, activity)
-            var users = getUsers();
-            var locList : MutableList<LiveData<io.swagger.client.models.Location>> = arrayListOf()
+            val loc = getGPSLocation(context, activity)
+            val users = getUsers();
+            val locList : MutableList<LiveData<io.swagger.client.models.Location>> = arrayListOf()
             if(users.value != null)
                 for(user in users.value!!) {
                     try {
@@ -70,20 +71,30 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
                         Toast.makeText(context, e.message , Toast.LENGTH_LONG).show()
                     }
                 }
-            var marker = map.addMarker(newMarker( loc = LatLng(loc!!.latitude, loc.longitude), name = "Me", icon = R.mipmap.my_picture))
+            //adding the meMarker to the map
+            val marker = map.addMarker(newMarker( loc = LatLng(loc!!.latitude, loc.longitude), name = "Me", icon = R.mipmap.my_picture))
             markerList.add(marker)
             //assign meMarker for easier update of orientation
             meMarker = marker
 
-            //TODO(distance set to 20.0, however we have no idea of the influence of this, find out)
+            //Making all the other markers for the map
             for (user in locList) {
-                var marker = map.addMarker(newMarker(LatLng(user.value!!.position.coordinates!![0],
-                    user.value!!.position.coordinates!![1]), user.value!!.user_ref,
-                    distanceInM(loc.latitude, loc.longitude, user.value!!.position.coordinates!![0],
-                        user.value!!.position.coordinates!![1]),
-                    R.mipmap.my_picture))
-                //marker.rotation = user.value!!.yaw.toFloat()
-                markerList.add(marker)
+                if (user.value!!.user_ref != loggedInUser) {
+                    val marker = map.addMarker(
+                        newMarker(
+                            LatLng(
+                                user.value!!.position.coordinates!![0],
+                                user.value!!.position.coordinates!![1]
+                            ), user.value!!.user_ref,
+                            distanceInM(
+                                loc.latitude, loc.longitude, user.value!!.position.coordinates!![0],
+                                user.value!!.position.coordinates!![1]
+                            ),
+                            R.mipmap.my_picture
+                        )
+                    )
+                    markerList.add(marker)
+                }
             }
         }
         catch(e: java.lang.Exception){
@@ -91,6 +102,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         }
     }
 
+    //function for making a marker
     private fun newMarker(loc: LatLng, name: String, distance: Double? = null, icon: Int): MarkerOptions {
         // If no distance is given, just display name
         val title: String = if (distance != null) name + " " + distance + "m" else name
@@ -134,8 +146,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         marker.position = LatLng(lat2, lng2)
     }
 
-
-    //gpsViewModel
+    //check if user allows to access hers/his location
     private fun checkPermissions(context: Context): Boolean {
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
             ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
@@ -144,6 +155,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         return false
     }
 
+    //ask for permission
     private fun requestPermissions(activity: Activity) {
         ActivityCompat.requestPermissions(
             activity,
@@ -152,16 +164,17 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         )
     }
 
+    //check if gps or network is enabled
     private fun isLocationEnabled(context: Context): Boolean {
-        var locationManager: LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val locationManager: LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(
             LocationManager.NETWORK_PROVIDER
         )
     }
 
     @SuppressLint("MissingPermission")
-    public fun getGPSLocation(context: Context, activity: Activity): Location? {
-        var locMan : LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    fun getGPSLocation(context: Context, activity: Activity): Location? {
+        val locMan : LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         var location: Location ?= null
         if (checkPermissions(context)) {
             if (isLocationEnabled(context)) {
@@ -169,62 +182,25 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
                 if(location == null)
                     location = locMan.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
 
-                //need to know if we should post or patch
-                var swaggerLocation : io.swagger.client.models.Location = io.swagger.client.models.
-                    Location(loggedInUser, 0.0, Position("Point", arrayOf(location.latitude, location.longitude)), getTime())
+                val swaggerLocation : io.swagger.client.models.Location = io.swagger.client.models.
+                    Location(loggedInUser, 0.0, Position("Point", arrayOf(location.latitude, location.longitude)), getDateTime())
                 postLocation(swaggerLocation)
 
-                Log.v("gps", "Coordinate latitude:" + location!!.latitude.toString())
-                Log.v("gps", "Coordinate longitude:" + location!!.longitude.toString())
-
                 return location
-
-                //TODO(maybe post/update current user's position in the db since this is a good place to do it - "Tobias W. Boegedal")
-                //This commented code below can be used to help with that
-                /*mFusedLocationClient.lastLocation.addOnCompleteListener() { task ->
-                    location = task.result
-                    if (location == null) {
-                        requestNewLocationData(activity)
-                    } else {
-                    }
-                }*/
-
-            } else { }
+            }
         } else {
             requestPermissions(activity)
         }
         throw Exception()
     }
 
-    @SuppressLint("MissingPermission")
-    private fun requestNewLocationData(activity: Activity) {
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity)
-        var mLocationRequest = LocationRequest()
-        mLocationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        mLocationRequest.interval = 0
-        mLocationRequest.fastestInterval = 0
-        mLocationRequest.numUpdates = 1
-
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity)
-        mFusedLocationClient!!.requestLocationUpdates(
-            mLocationRequest, mLocationCallback,
-            Looper.myLooper()
-        )
-    }
-
-    private val mLocationCallback = object : LocationCallback() {
-        override fun onLocationResult(locationResult: LocationResult) {
-            var mLastLocation: Location = locationResult.lastLocation
-
-        }
-    }
-
+    //Updates the markers on the map
     fun updateMapPositions(context: Context, activity: Activity){
         var ownLat: Double = 0.0
         var ownLong: Double = 0.0
         try {
-            var users = getUsers();
-            var newLocations : MutableList<LiveData<io.swagger.client.models.Location>> = arrayListOf()
+            val users = getUsers();
+            val newLocations : MutableList<LiveData<io.swagger.client.models.Location>> = arrayListOf()
             if(users.value != null) {
                 for (user in users.value!!) {
                     try {
@@ -236,9 +212,9 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
             }
 
             //assign meMarker for easier update of orientation
-            var newMarkerList = mutableListOf<Marker>()
-            //newMarkerList.add(meMarker!!)
+            val newMarkerList = mutableListOf<Marker>()
 
+            //clear map to be able to update it with new values
             map.clear()
             //for loop used to find the current user
             for (user in newLocations) {
@@ -257,7 +233,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
                    continue
                 }
                 else {
-                    var marker = map.addMarker(
+                    val marker = map.addMarker(
                         newMarker(
                             LatLng(
                                 user.value!!.position.coordinates!![0],
@@ -277,7 +253,8 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         }
     }
 
-    private fun getTime(): String{
+    //gets the current date and time
+    private fun getDateTime(): String{
         val currYear =
             Calendar.getInstance().get(Calendar.YEAR).toString().padStart(4, '0')
         val currMonth = (Calendar.getInstance().get(Calendar.MONTH) + 1).toString()
@@ -301,26 +278,22 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
     fun getLocation(userName: String) = mapsRepository.getLocation(userName)
     fun postLocation(location : io.swagger.client.models.Location) = mapsRepository.postLocation(location)
 
-
+    //function for convertion degrees to Radians
     fun toRadians(degrees : Double) : Double{
         return degrees * Math.PI / 180.0
     }
 
+    //function for getting the distance between two GPS-coordinates
     fun distanceInM(lat1 : Double, long1 : Double, lat2 : Double, long2 : Double) : Double{
-        var earthRadiusM = 6371000;
+        val earthRadiusM = 6371000;
 
-        var dLat = toRadians(lat2 - lat1)
-        var dLong = toRadians(long2 - long1)
+        val dLat = toRadians(lat2 - lat1)
+        val dLong = toRadians(long2 - long1)
 
-        var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.sin(dLong/2) * Math.sin(dLong/2) *
+        val a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.sin(dLong/2) * Math.sin(dLong/2) *
                 Math.cos(lat1) * Math.cos(lat2)
-        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+        val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
         val rounded = Math.round((earthRadiusM * c) * 10.0)/ 10.0 // for conversion
         return rounded
     }
-
-
-
-
-
 }
