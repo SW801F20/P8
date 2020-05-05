@@ -13,7 +13,6 @@ import android.os.Bundle
 import android.os.IBinder
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -21,7 +20,6 @@ import dead.crumbs.R
 import dead.crumbs.data.RSSIDist
 import dead.crumbs.utilities.InjectorUtils
 import kotlinx.android.synthetic.main.activity_main.*
-import java.util.*
 
 //TODO: this should be set doing login or something
 //Hardcode the username here. Note must exist in DB with correct bluetooth mac address!
@@ -30,7 +28,7 @@ import java.util.*
 class MainActivity : AppCompatActivity() {
     var friends_macs = mutableListOf<String>();
     companion object{
-        const val username = "jacob6565"
+        const val my_username = "jacob6565"
     }
 
     private val REQUEST_ENABLE_BT = 1
@@ -130,7 +128,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updatePostition(stepLength: Double){
-        mapsViewModel!!.moveMeMarker(username, stepLength)
+        mapsViewModel!!.moveMeMarker(my_username, stepLength)
     }
 
     //Call the function in the viewmodel to update the orientation
@@ -228,7 +226,7 @@ class MainActivity : AppCompatActivity() {
                 val dist_threshold = 2
                 //if the mac adress matches one of the users friends and distance is under threshold.
                 if (friends_macs.contains(target_mac) && rssi_dist < dist_threshold){
-                    var new_locs = rssiViewModel!!.bluetoothSync(username, target_mac, rssi_dist);
+                    var new_locs = rssiViewModel!!.bluetoothSync(my_username, target_mac, rssi_dist);
                         for(loc in new_locs){
                             mapsViewModel?.updateLocation(loc.user_ref,
                                 loc.position.coordinates!![0],

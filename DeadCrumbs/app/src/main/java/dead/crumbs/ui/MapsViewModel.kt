@@ -7,13 +7,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
 import dead.crumbs.R
 import dead.crumbs.data.MapsRepository
-import dead.crumbs.ui.MainActivity
-import dead.crumbs.data.RSSIDist
 import java.util.*
-import kotlin.math.asin
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
 
 
 class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
@@ -55,7 +49,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
     //Fills in dummy data
     private fun addMarkers()
     {
-        var marker = map.addMarker(newMarker( loc = LatLng(57.041480, 9.935950), name = MainActivity.username, icon = R.mipmap.my_picture))
+        var marker = map.addMarker(newMarker( loc = LatLng(57.041480, 9.935950), name = MainActivity.my_username, icon = R.mipmap.my_picture))
         markerList.add(marker)
 
         //Assign "Me marker" for easier update of orientation
@@ -81,7 +75,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         val marker = MarkerOptions()
             .position(loc)
             .title(title)
-        if(marker.title == MainActivity.username)
+        if(marker.title == MainActivity.my_username)
             marker.icon(BitmapDescriptorFactory.fromResource(R.mipmap.arrow))
 
         return marker
