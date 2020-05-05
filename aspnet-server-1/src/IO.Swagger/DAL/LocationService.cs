@@ -17,6 +17,8 @@ namespace IO.Swagger.DAL
             {
                 return null;
             }
+
+            //We want the newest - determined by timestamp
             locations.Sort((loc1, loc2) => loc2.Timestamp.CompareTo(loc1.Timestamp));
             return locations[0]; //newest location
         }

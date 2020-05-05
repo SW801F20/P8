@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
     //Hardcode the username here. Note must exist in DB with correct bluetooth mac address!
     var friends_macs = mutableListOf<String>();
     companion object{
-        const val username = "jacob6565"
+        const val my_username = "jacob6565"
     }
 
     private val REQUEST_ENABLE_BT = 1
@@ -123,7 +123,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updatePosition(stepLength: Double){
-        mapsViewModel!!.moveMeMarker(username, stepLength)
+        mapsViewModel!!.moveMeMarker(my_username, stepLength)
     }
 
     //Call the function in the viewmodel to update the orientation
@@ -222,7 +222,7 @@ class MainActivity : AppCompatActivity() {
                 //if the mac adress matches one of the users friends and distance is under threshold
                 //we sync the two users and update their markers on the map.
                 if (friends_macs.contains(target_mac) && rssi_dist < dist_threshold){
-                    var new_locs = rssiViewModel!!.bluetoothSync(username, target_mac, rssi_dist);
+                    var new_locs = rssiViewModel!!.bluetoothSync(my_username, target_mac, rssi_dist);
                         for(loc in new_locs){
                             mapsViewModel?.updateLocation(loc.user_ref,
                                 loc.position.coordinates!![0],
