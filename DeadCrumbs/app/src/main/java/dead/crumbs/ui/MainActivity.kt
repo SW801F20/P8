@@ -25,10 +25,14 @@ import java.util.*
 
 //TODO: this should be set doing login or something
 //Hardcode the username here. Note must exist in DB with correct bluetooth mac address!
-val username = "jacob6565"
-var friends_macs = mutableListOf<String>();
+
 
 class MainActivity : AppCompatActivity() {
+    var friends_macs = mutableListOf<String>();
+    companion object{
+        const val username = "jacob6565"
+    }
+
     private val REQUEST_ENABLE_BT = 1
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
 
@@ -224,7 +228,13 @@ class MainActivity : AppCompatActivity() {
                 val dist_threshold = 2
                 //if the mac adress matches one of the users friends and distance is under threshold.
                 if (friends_macs.contains(target_mac) && rssi_dist < dist_threshold){
-                    rssiViewModel!!.bluetoothSync(username, target_mac, rssi_dist);
+                    var new_locs = rssiViewModel!!.bluetoothSync(username, target_mac, rssi_dist);
+                        for(loc in new_locs){
+                            mapsViewModel?.updateLocation(loc.user_ref,
+                                loc.position.coordinates!![0],
+                                loc.position.coordinates!![1]
+                            )
+                    }
                 }
             }
 

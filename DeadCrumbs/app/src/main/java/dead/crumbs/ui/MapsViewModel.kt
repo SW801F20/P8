@@ -7,6 +7,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
 import dead.crumbs.R
 import dead.crumbs.data.MapsRepository
+import dead.crumbs.ui.MainActivity
 import dead.crumbs.data.RSSIDist
 import java.util.*
 import kotlin.math.asin
@@ -29,6 +30,14 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         }
     }
 
+    fun updateLocation(username: String, lat: Double, lng: Double){
+        for(marker in markerList){
+            if(marker.title == username){
+                marker.position = LatLng(lat,lng)
+            }
+        }
+    }
+
     private var meMarker: Marker? = null
 
     fun setupMap(googleMap: GoogleMap){
@@ -46,7 +55,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
     //Fills in dummy data
     private fun addMarkers()
     {
-        var marker = map.addMarker(newMarker( loc = LatLng(57.041480, 9.935950), name = "Me", icon = R.mipmap.my_picture))
+        var marker = map.addMarker(newMarker( loc = LatLng(57.041480, 9.935950), name = MainActivity.username, icon = R.mipmap.my_picture))
         markerList.add(marker)
 
         //Assign "Me marker" for easier update of orientation
@@ -72,7 +81,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         val marker = MarkerOptions()
             .position(loc)
             .title(title)
-        if(marker.title == "Me")
+        if(marker.title == MainActivity.username)
             marker.icon(BitmapDescriptorFactory.fromResource(R.mipmap.arrow))
 
         return marker

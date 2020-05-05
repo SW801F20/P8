@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import dead.crumbs.data.RSSIDist
 import dead.crumbs.data.RSSIRepository
 import dead.crumbs.data.UserRepository
+import io.swagger.client.models.Location
 import java.util.*
 
 class RSSIViewModel(private val rssiRepository: RSSIRepository, private val userRepository: UserRepository)
@@ -18,7 +19,7 @@ class RSSIViewModel(private val rssiRepository: RSSIRepository, private val user
         return mac_adresses
     }
 
-    fun bluetoothSync(my_username : String, target_mac : String, distance : Double){
+    fun bluetoothSync(my_username : String, target_mac : String, distance : Double): Array<Location> {
         val currYear = Calendar.getInstance().get(Calendar.YEAR).toString().padStart(4,'0')
         val currMonth = (Calendar.getInstance().get(Calendar.MONTH) + 1).toString().padStart(2,'0')
         val currDate = Calendar.getInstance().get(Calendar.DATE).toString().padStart(2,'0')
@@ -26,7 +27,7 @@ class RSSIViewModel(private val rssiRepository: RSSIRepository, private val user
         val currMinute = Calendar.getInstance().get(Calendar.MINUTE).toString().padStart(2,'0')
         val currSecond = Calendar.getInstance().get(Calendar.SECOND).toString().padStart(2,'0')
         val dateTimeString = currYear + "-" + currMonth + "-" + currDate+ "T" + currHour + ":" + currMinute + ":" + currSecond
-        rssiRepository.bluetoothSync(RSSIDist(my_username, target_mac, distance, dateTimeString))
+        return rssiRepository.bluetoothSync(RSSIDist(my_username, target_mac, distance, dateTimeString))
     }
 
 
