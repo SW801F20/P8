@@ -6,11 +6,9 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import dead.crumbs.data.RSSIDist
 import android.app.Service
 import android.os.Binder
 import android.os.IBinder
-import android.provider.Settings
 
 //factory: RSSIViewModelFactory, viewModel: RSSIViewModel
 class BluetoothService() : Service(){

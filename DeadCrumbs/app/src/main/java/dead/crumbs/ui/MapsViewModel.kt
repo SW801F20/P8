@@ -7,13 +7,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
 import dead.crumbs.R
 import dead.crumbs.data.MapsRepository
-import dead.crumbs.ui.MainActivity
-import dead.crumbs.data.RSSIDist
 import java.util.*
-import kotlin.math.asin
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
 
 
 class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){

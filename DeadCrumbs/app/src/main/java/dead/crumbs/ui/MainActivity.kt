@@ -1,7 +1,5 @@
 package dead.crumbs.ui
 
-//import com.jakewharton.threetenabp.AndroidThreeTen
-
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.content.ComponentName
@@ -11,23 +9,18 @@ import android.content.ServiceConnection
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import dead.crumbs.R
-import dead.crumbs.data.RSSIDist
 import dead.crumbs.utilities.InjectorUtils
 import kotlinx.android.synthetic.main.activity_main.*
-import java.util.*
-
-//TODO: this should be set doing login or something
-//Hardcode the username here. Note must exist in DB with correct bluetooth mac address!
-
 
 class MainActivity : AppCompatActivity() {
+
+    //TODO: this should be set doing login or something
+    //Hardcode the username here. Note must exist in DB with correct bluetooth mac address!
     var friends_macs = mutableListOf<String>();
     companion object{
         const val username = "jacob6565"
@@ -120,7 +113,7 @@ class MainActivity : AppCompatActivity() {
                 updateOrientation(yaw)
             }
             drService.stepCallback = fun(stepLength: Double) {       //callback function
-                updatePostition(stepLength)
+                updatePosition(stepLength)
             }
         }
 
@@ -129,7 +122,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun updatePostition(stepLength: Double){
+    private fun updatePosition(stepLength: Double){
         mapsViewModel!!.moveMeMarker(username, stepLength)
     }
 
@@ -226,13 +219,14 @@ class MainActivity : AppCompatActivity() {
             bluetoothService.callback = fun(target_mac: String, rssi: Double) {       //callback function
                 val rssi_dist = rssiProximity.distanceFromRSSI(rssi)
                 val dist_threshold = 2
-                //if the mac adress matches one of the users friends and distance is under threshold.
+                //if the mac adress matches one of the users friends and distance is under threshold
+                //we sync the two users and update their markers on the map.
                 if (friends_macs.contains(target_mac) && rssi_dist < dist_threshold){
                     var new_locs = rssiViewModel!!.bluetoothSync(username, target_mac, rssi_dist);
                         for(loc in new_locs){
                             mapsViewModel?.updateLocation(loc.user_ref,
                                 loc.position.coordinates!![0],
-                                loc.position.coordinates!![1]
+                                loc.position.coordinates[1]
                             )
                     }
                 }
@@ -245,10 +239,4 @@ class MainActivity : AppCompatActivity() {
             boundBluetoothService = false
         }
     }
-
-    //printDeviceDistance is for debugging/testing rssi distance calculations
-    private fun printDeviceDistance(rssiDist: RSSIDist, dist: Double){
-        Toast.makeText(this@MainActivity, "${rssiDist.target_mac_address}'s distance is\n $dist m", Toast.LENGTH_LONG).show()
-    }
-
 }

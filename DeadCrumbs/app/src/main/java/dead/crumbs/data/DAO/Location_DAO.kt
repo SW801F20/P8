@@ -1,16 +1,15 @@
 package dead.crumbs.data.DAO
-
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import io.swagger.client.apis.DeadCrumbsApi
 import io.swagger.client.models.Location
-import io.swagger.client.models.User
+
+import java.lang.Exception
 import kotlin.concurrent.thread
-//This class should be the one that calls the api
+
 class Location_DAO (val client : DeadCrumbsApi) {
 
-    // Adds a location to the local representation
-    // and updates database
+    //Adds a location to the database
     fun postLocation(location: Location) {
         val thread = thread(start = true){
             client.postLocation(body=location)
@@ -18,7 +17,7 @@ class Location_DAO (val client : DeadCrumbsApi) {
         thread.join()
     }
 
-    // Returns the first locations that matches the deviceId
+    // Returns the newest location for a user
     fun getLocation(userName: String) : LiveData<Location>{
         var location: Location? = null
         val thread = thread (start = true){
@@ -26,11 +25,9 @@ class Location_DAO (val client : DeadCrumbsApi) {
         }
         thread.join()
         if(location == null){
-            //throw error here
-            return MutableLiveData(location)
+            throw Exception("Call to getLocation failed")
         }else{
             return MutableLiveData(location)
         }
-
     }
 }
