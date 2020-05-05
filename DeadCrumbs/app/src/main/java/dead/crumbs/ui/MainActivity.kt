@@ -166,21 +166,10 @@ class MainActivity : AppCompatActivity() {
                     TODO("VERSION.SDK_INT < M")
                 }
             permissionCheck += checkSelfPermission("Manifest.permission.ACCESS_COARSE_LOCATION")
-            permissionCheck += checkSelfPermission("Manifest.permission.BLUETOOTH")
-            permissionCheck += checkSelfPermission("Manifest.permission.BLUETOOTH_ADMIN")
-            permissionCheck += checkSelfPermission("Manifest.permission.ACCESS_BACKGROUND_LOCATION")
-            permissionCheck += checkSelfPermission("Manifest.permission.ACCESS_COARSE_LOCATION")
-            permissionCheck += checkSelfPermission("Manifest.permission.ACCESS_COARSE_LOCATION")
-            permissionCheck += checkSelfPermission("Manifest.permission.ACCESS_COARSE_LOCATION")
-            permissionCheck += checkSelfPermission("Manifest.permission.ACCESS_COARSE_LOCATION")
             if (permissionCheck != 0) {
                 requestPermissions(
                     arrayOf(
                         Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION,
-                        Manifest.permission.BLUETOOTH,
-                        Manifest.permission.BLUETOOTH_ADMIN,
-                        Manifest.permission.ACCESS_BACKGROUND_LOCATION,
                         Manifest.permission.ACCESS_COARSE_LOCATION
                     ), 1001
                 ) //Any number
