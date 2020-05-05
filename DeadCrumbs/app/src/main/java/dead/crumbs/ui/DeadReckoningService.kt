@@ -13,10 +13,11 @@ import android.os.IBinder
 import android.view.Surface.*
 import android.view.WindowManager
 import kotlin.math.abs
+import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 class DeadReckoningService : Service(), SensorEventListener {
-
+    private var accelerometer: Sensor? = null
     private lateinit var sensorManager: SensorManager
     var orientationCallback: ((Float) -> Unit)? = null
 
@@ -53,14 +54,14 @@ class DeadReckoningService : Service(), SensorEventListener {
         accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         rotationVectorSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
 
-        sensorManager.registerListener(this, rotationVectorSensor, SensorManager.SENSOR_DELAY_FASTEST)
+        sensorManager.registerListener(
+            this,
+            rotationVectorSensor,
+            SensorManager.SENSOR_DELAY_FASTEST
+        )
         sensorManager.registerListener(this, magnetometerSensor, SensorManager.SENSOR_DELAY_FASTEST)
-        sensorManager.registerListener(this, accelerometerSensor, SensorManager.SENSOR_DELAY_FASTEST)
+        sensorManager.registerListener(this, accelerometerSensor, SensorManager.SENSOR_DELAY_GAME)
 
-        //Step counter
-        val stepCounterSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-        //TODO: Consider SENSOR_DELAY_FASTEST
-        sensorManager.registerListener(this, stepCounterSensor, SensorManager.SENSOR_DELAY_NORMAL)
     }
 
 
@@ -90,44 +91,38 @@ class DeadReckoningService : Service(), SensorEventListener {
     }
 
 
-    // Step detection fields
-    private var stepCounterInitial: Int = 0
-    private var stepCounter: Int = 0
-
-    // Step length estimation fields
-    private var accelerometerZReadings = mutableListOf<Pair<Long, Float>>()
+    // Step detection and step length estimation fields
+    // Number of readings kept track of before wiping
+    private val accArraySize: Int = 10000
+    // Contains accelerometer (Z-axis) readings with value , timestamp
+    private var accelerometerZReadings = arrayOfNulls<Pair<Float, Double>>(accArraySize)
+    // Index of the next free slot in accelerometerZReadings
+    private var accBufferIndex: Int = 0
+    private var gravitationalAccel: Double = 9.80665
+    // Timestamp of the first accelerometer reading collected
+    private var firstTimestamp: Double = 0.0
+    // Timestamp of the previous step taken
+    private var previousStepTimestamp: Double = 0.0
 
     // This is called whenever this class (SensorEventListener) detects a new sensor value
     // from a sensor it is listening to (registerListener)
     override fun onSensorChanged(event: SensorEvent) {
         when (event.sensor.type) {
-            Sensor.TYPE_STEP_COUNTER -> {
-                val sensorValue = event.values[0]
-                // Set initial count value upon first reading
-                if (stepCounterInitial < 1)
-                    stepCounterInitial = sensorValue.toInt()
-                // Update counter with #steps taken since initial value
-                stepCounter = sensorValue.toInt() - stepCounterInitial
 
-                //TODO: Find out how and where to pass value on to
-                // See LogCat in Android Studio, make sure Verbose is selected
-                // and then search for stepCounter
-                Log.d("stepCounter: ", stepCounter.toString())
-
-                //TODO: Find out how and where to pass value on to
-                // Step length estimation
-                val stepLength = estimateStepLength(event.timestamp)
-                // See LogCat in Android Studio, make sure Verbose is selected
-                // and then search for stepLength
-                Log.d("stepLength: ", stepLength.toString())
-                stepCallback?.let { it(stepLength) }
-            }
             Sensor.TYPE_MAGNETIC_FIELD, Sensor.TYPE_ACCELEROMETER -> {
-                // For step length estimation
-                if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-                    accelerometerZReadings.add(Pair(event.timestamp, event.values[2]))
-                }
 
+                if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+                    processAndRecordReading(event)
+                    var estimatedStepLength: Double = 0.0
+                    if (isStep(accelerometerZReadings)) {
+                        val accelerometerValues: MutableList<Float> =
+                            getAccelReadingsDuringStep(accelerometerZReadings, event)
+                        estimatedStepLength = estimateStepLength(accelerometerValues)
+                        accelerometerZReadings = removeOldAccelReadings(accelerometerZReadings)
+                        stepCallback?.let { it(estimatedStepLength) }
+                    }
+
+                }
                 //Only use mag and acc if rotation vector sensor isn't available
                 if (!useRotationVectorSensor) {
                     updateYawMagAcc(event)
@@ -147,36 +142,164 @@ class DeadReckoningService : Service(), SensorEventListener {
         // Do nothing
     }
 
-    private fun estimateStepLength(stepTimestamp: Long): Double {
-        val accelerometerValues = mutableListOf<Float>()
-        // Extract relevant accelerometer values
-        // TODO: Make sure we extract the right values
-        // TODO: Research around which time in the step the STEP_COUNTER detects a step
-        for (value in accelerometerZReadings) {
-            // Take all accel values before current step timestamp unless they are more than a second old
-            if (value.first < stepTimestamp && stepTimestamp - value.first < 1000000000) {
-                accelerometerValues.add(value.second)
+
+    // -------------- Step detection and step length estimation -------------- //
+    private fun processAndRecordReading(event: SensorEvent) {
+        var accelReading = event.values[2]
+        // If array is full (reached accArraySize), reset the array
+        if (accBufferIndex > accArraySize - 1) {
+            accBufferIndex = 0
+            accelerometerZReadings = arrayOfNulls(accArraySize)
+        }
+
+        // High pass filter to remove influence of earth's gravity
+        accelReading = highPassFilter(accelReading)
+
+        // Save the first reading's timestamp and use to make timestamps count from 0 and up
+        if (firstTimestamp == 0.0)
+            firstTimestamp = event.timestamp.toDouble()
+        // Add accelerometer value and timestamp to array
+        accelerometerZReadings[accBufferIndex] =
+            Pair(accelReading, (event.timestamp - firstTimestamp) / 1_000_000_000.0)
+        accBufferIndex++
+
+        // Low pass filter to remove high frequency noise
+        accelerometerZReadings = lowPassFilter(accelerometerZReadings, accBufferIndex)
+    }
+
+    // Performs a high pass filter on an accelerometer reading
+    private fun highPassFilter(accelReading: Float): Float {
+        val alpha = 0.95 // Should be between 0.9 and 1.0, so we just set it in between
+        gravitationalAccel =
+            alpha * gravitationalAccel + (1 - alpha) * accelReading // Equation 4 in SmartPDR
+        return (accelReading - gravitationalAccel).toFloat() // Equation 5 in SmartPDR
+    }
+
+    /* Perform a low pass filter to remove high frequency noise
+       This function only uses the readings, not the timestamps, but extracting the readings
+       and passing them to this function would require two for loops iterating over the array,
+       which is bad for performance.
+     */
+    private fun lowPassFilter(
+        accelReadings: Array<Pair<Float, Double>?>,
+        arrayIndex: Int
+    ): Array<Pair<Float, Double>?> {
+        // Low pass filter from equation 6 in SmartPDR
+        // We tried few tests with w = 3, 9, 11 and 15, where 9 and 11 seemed to be best
+        val w = 11.0 // Window size
+        // Filter if there are enough readings for averaging over w readings
+        if (arrayIndex > w - 1) {
+            // For storing the result of the summation
+            var temp = 0.0F
+            // Bounds for the summation
+            val lower = (-(w - 1) / 2).roundToInt()
+            val upper = ((w - 1) / 2).roundToInt()
+
+            // Iterate over the w newest readings in accelReadings and calculate sum
+            for (i in lower..upper)
+                temp += accelReadings[arrayIndex + lower - 1 + i]!!.first
+            // Perform the filtering
+            val filteredAcc = ((1 / w) * temp).toFloat()
+            // The middle element of the window will be overwritten with the filtered reading
+            val windowMiddle = arrayIndex - ((w - 1) / 2).roundToInt() - 1
+            // Use copy to make a new pair since we cannot reassign values in pair
+            accelReadings[windowMiddle] = accelReadings[windowMiddle]!!.copy(first = filteredAcc)
+        }
+        return accelReadings
+    }
+
+    private fun isStep(accelReadings: Array<Pair<Float, Double>?>): Boolean {
+        return isPeak(accelReadings)
+    }
+
+    // Implementation of equation 7a in SmartPDR
+    private fun isPeak(accelReadings: Array<Pair<Float, Double>?>): Boolean {
+        // Threshold for not considering small peaks as peaks. SmartPDR sets it to 0.5.
+        val peakLowerThresh = 2.0
+        val peakUpperThresh = 6.5
+
+        // Defines how many accelerometer readings the current reading is compared to, in order to
+        // determine if it is a peak
+        val n = 10
+
+        // Each reading is compared to its neighbouring readings to see if it is the largest in the
+        // window of 'n' readings
+        for (t in n / 2..accBufferIndex - n / 2) {
+            for (i in -n / 2..n / 2 - 1) {
+                // If i == 0 current and local will be the same reading
+                if (i == 0) continue
+                // Check if current accel reading is larger than its n/2 neighbouring/local readings
+                val current = accelReadings[t]!!.first
+                val local = accelReadings[t + i]!!.first
+                // Check if peak
+                if (current > local && current > peakLowerThresh && current < peakUpperThresh) {
+                    //TODO: Remove me at some point
+                    Log.v("Peak: ", "Peak found. Value: ${accelReadings[t]!!.first}")
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    // Extracts the accelerometer readings which occurred during the current step to be used for
+    // step length estimation
+    private fun getAccelReadingsDuringStep(
+        accelerometerZs: Array<Pair<Float, Double>?>,
+        event: SensorEvent
+    ): MutableList<Float> {
+        // The timestamp of the newest event (now) in seconds
+        val nowSeconds: Double = (event.timestamp - firstTimestamp) / 1_000_000_000.0
+        // How many seconds before the current event to look for accelerometer values if the
+        // previous step was a long time ago (longer ago than lookback)
+        val lookback: Double = 2.0
+
+        // If too much time has passed since previous step
+        if (nowSeconds - previousStepTimestamp > lookback) {
+            // Extract accelerometer readings from 'lookback' seconds ago
+            previousStepTimestamp = nowSeconds - lookback
+
+            // previousStepTimestamp is set to be the timestamp of an actual reading, closest
+            // to 'lookback' seconds ago (right after)
+            for (readingPair in accelerometerZs) {
+                if (readingPair!!.second > previousStepTimestamp) {
+                    previousStepTimestamp = readingPair.second
+                    break
+                }
             }
         }
 
-        // Estimate step length using Scarlet approach
-        val simpleDist = simpleScarletEstimation(accelerometerValues)
-        val scarletDist = scarletEstimation(accelerometerValues)
+        // Find the index of the previous peak (peaks correspond to steps)
+        val startIndex =
+            accelerometerZs.indexOf(accelerometerZs.find { it!!.second == previousStepTimestamp })
 
-        // Clear old accelerometer readings
-        // TODO: Make sure we're removing the right values
-        accelerometerZReadings =
-            accelerometerZReadings.filter { it.first >= stepTimestamp } as MutableList<Pair<Long, Float>>
+        // Extract everything from the previous peak (step) until now
+        val accelerometerValues = mutableListOf<Float>()
+        for (i in startIndex..accBufferIndex - 1) {
+            accelerometerValues.add(accelerometerZs[i]!!.first)
+        }
+        previousStepTimestamp = nowSeconds
 
-        return scarletDist
+        return accelerometerValues
     }
 
-    // TODO: Doesn't provide accurate distances at the moment
+    private fun estimateStepLength(accelerometerValues: MutableList<Float>): Double {
+        var simpleDist = 0.0
+        var scarletDist = 0.0
+        var weinbergDist = 0.0
+
+        // Estimate step length
+        if (!accelerometerValues.isEmpty()) {
+//            simpleDist = simpleScarletEstimation(accelerometerValues)
+//            scarletDist = scarletEstimation(accelerometerValues)
+            weinbergDist = weinbergEstimation(accelerometerValues)
+        }
+        return weinbergDist
+    }
+
     private fun simpleScarletEstimation(accelerometerValues: MutableList<Float>): Double {
         // walkfudge from Jim Scarlet's code
-        val k = 0.0249
-        if(accelerometerValues.isEmpty())
-            return 0.0;
+        val k = 2.15 // This value works well for David
         val min = accelerometerValues.min()
         val max = accelerometerValues.max()
         val avg = accelerometerValues.average()
@@ -209,7 +332,8 @@ class DeadReckoningService : Service(), SensorEventListener {
 
     //This function calculates the distance of a step with the Weinberg method
     private fun weinbergEstimation(accelerometerValues: MutableList<Float>): Double {
-        val k = 0.41 //Constant for scaling the step length, based on the Weinberg paper
+//        val k = 0.41 //Constant for scaling the step length, based on the Weinberg paper
+        val k = 0.485 // This value works well for David
         val min = accelerometerValues.min()
         val max = accelerometerValues.max()
 
@@ -232,6 +356,19 @@ class DeadReckoningService : Service(), SensorEventListener {
         return g1
     }
 
+    private fun removeOldAccelReadings(accelerometerZs: Array<Pair<Float, Double>?>): Array<Pair<Float, Double>?> {
+        // Remove everything in the array apart from the last reading, which is moved to the front
+        accelerometerZs[0] = accelerometerZs[accBufferIndex - 1]
+        for (i in 1..accBufferIndex - 1) {
+            accelerometerZs[i] = null
+        }
+        // Reset index to point to the next available spot in the array
+        accBufferIndex = 1
+
+        return accelerometerZs
+    }
+
+    // -------------- End of step detection and step length estimation -------------- //
 
 
     private fun updateYawRotationVector(event: SensorEvent) {
@@ -312,7 +449,6 @@ class DeadReckoningService : Service(), SensorEventListener {
 
         return yawDegrees
     }
-
 
 
     //NOTE: This might be unnecessary
