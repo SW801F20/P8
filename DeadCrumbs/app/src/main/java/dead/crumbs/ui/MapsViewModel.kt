@@ -105,7 +105,9 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
 
     //Moves in markers current heading/direction
     fun moveMeMarker(distance: Double){
-        moveMarker(meMarker!!, distance)
+        // This nullcheck prevents the app from crashing if a step is detected outside of the map
+        if (meMarker != null)
+            moveMarker(meMarker!!, distance)
     }
 
     //Updates the location of a marker based on the length of
