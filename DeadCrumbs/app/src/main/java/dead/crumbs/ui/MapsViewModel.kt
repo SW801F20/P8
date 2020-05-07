@@ -169,9 +169,13 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
     //check if gps or network is enabled
     private fun isLocationEnabled(context: Context): Boolean {
         val locationManager: LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(
-            LocationManager.NETWORK_PROVIDER
-        )
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)// || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+    }
+
+    //check if gps or network is enabled
+    private fun isNetworkEnabled(context: Context): Boolean {
+        val locationManager: LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
 
     @SuppressLint("MissingPermission")
@@ -181,7 +185,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         if (checkPermissions(context)) {
             if (isLocationEnabled(context)) {
                 location = locMan.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-                if(location == null)
+                if(location == null && isNetworkEnabled(context))
                     location = locMan.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
 
                 val swaggerLocation : io.swagger.client.models.Location = io.swagger.client.models.
