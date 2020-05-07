@@ -30,7 +30,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
     var markerList = mutableListOf<Marker>() // the list of markers that are displayed on the map
     var mapIsInitialized = false
     val PERMISSION_ID = 42 //a value to check if the users gives permission to what we ask for
-    val loggedInUser : String = "Jacob2" //currently the user we use as logged in user
+    val loggedInUser : String = "kris271c" //currently the user we use as logged in user
     private var meMarker: Marker? = null //the marker corresponding to your own location
 
     fun updateOrientation(degrees: Float){
@@ -266,7 +266,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         val currDate =
             Calendar.getInstance().get(Calendar.DATE).toString().padStart(2, '0')
         val currHour =
-            Calendar.getInstance().get(Calendar.HOUR).toString().padStart(2, '0')
+            Calendar.getInstance().get(Calendar.HOUR_OF_DAY).toString().padStart(2, '0')
         val currMinute =
             Calendar.getInstance().get(Calendar.MINUTE).toString().padStart(2, '0')
         val currSecond =
