@@ -33,8 +33,6 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
     val loggedInUser : String = "Jacob2" //currently the user we use as logged in user
     private var meMarker: Marker? = null //the marker corresponding to your own location
 
-    private lateinit var mFusedLocationClient: FusedLocationProviderClient
-
     fun updateOrientation(degrees: Float){
         if(markerList.size != 0)
         {
@@ -169,7 +167,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
     //check if gps or network is enabled
     private fun isLocationEnabled(context: Context): Boolean {
         val locationManager: LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)// || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
     }
 
     //check if gps or network is enabled
