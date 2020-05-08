@@ -18,13 +18,15 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
 import dead.crumbs.R
-import dead.crumbs.data.MapsRepository
+import dead.crumbs.data.LocationRepository
+import dead.crumbs.data.UserRepository
 import io.swagger.client.models.Position
 import java.util.*
 import kotlin.math.*
 
 
-class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
+class MapsViewModel (private val locationRepository: LocationRepository,
+                     private val userRepository: UserRepository) : ViewModel(){
 
     lateinit var map: GoogleMap
     var markerList = mutableListOf<Marker>() // the list of markers that are displayed on the map
@@ -129,7 +131,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
             val currSecond = Calendar.getInstance().get(Calendar.SECOND).toString().padStart(2,'0')
             val dateTimeString = currYear + "-" + currMonth + "-" + currDate+ "T" + currHour + ":" + currMinute + ":" + currSecond
 
-            val newLocation = mapsRepository.updateLocation(username, orientation, dist, dateTimeString)
+            val newLocation = locationRepository.updateLocation(username, orientation, dist, dateTimeString)
             meMarker!!.position = LatLng(newLocation.value?.position!!.coordinates?.get(0)!!,
                                      newLocation.value?.position!!.coordinates?.get(1)!!)
         }
@@ -197,7 +199,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         var ownLat: Double = 0.0
         var ownLong: Double = 0.0
         try {
-            val users = getUsers();
+            val users = getUsers()
             val newLocations : MutableList<LiveData<io.swagger.client.models.Location>> = arrayListOf()
             if(users.value != null) {
                 for (user in users.value!!) {
@@ -267,10 +269,10 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         return dateTimeString
     }
 
-    fun getUsers() = mapsRepository.getUsers()
-    fun getUser(userName: String) = mapsRepository.getUser(userName)
-    fun getLocation(userName: String) = mapsRepository.getLocation(userName)
-    fun postLocation(location : io.swagger.client.models.Location) = mapsRepository.postLocation(location)
+    fun getUsers() = userRepository.getUsers()
+    fun getUser(userName: String) = userRepository.getUser(userName)
+    fun getLocation(userName: String) = locationRepository.getLocation(userName)
+    fun postLocation(location : io.swagger.client.models.Location) = locationRepository.postLocation(location)
 
     //function for convertion degrees to Radians
     fun toRadians(degrees : Double) : Double{

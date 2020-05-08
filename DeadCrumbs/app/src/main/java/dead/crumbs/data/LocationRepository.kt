@@ -5,18 +5,20 @@ import dead.crumbs.data.DAO.Location_DAO
 import io.swagger.client.models.Location
 import io.swagger.client.models.User
 
-class LocationRepository private constructor(private val locationDao: Location_DAO){
+class LocationRepository private constructor(private val locationDAO: Location_DAO){
 
-    fun getLocation(userName: String) = locationDao.getLocation(userName);
-    fun postLocation(location: Location) = locationDao.postLocation(location)
-
+    fun getLocation(userName: String) = locationDAO.getLocation(userName);
+    fun postLocation(location: Location) = locationDAO.postLocation(location)
+    fun updateLocation(userName: String, orientation: Double, dist: Double, timeStamp: String) =
+        locationDAO.updateLocation(userName, orientation, dist, timeStamp)
+    
     companion object {
         // Singleton instantiation you already know and love
         @Volatile private var instance: LocationRepository? = null
 
-        fun getInstance(locationDao: Location_DAO) =
+        fun getInstance(locationDAO: Location_DAO) =
             instance ?: synchronized(this) {
-                instance ?: LocationRepository(locationDao).also { instance = it }
+                instance ?: LocationRepository(locationDAO).also { instance = it }
             }
     }
 }
