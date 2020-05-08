@@ -7,13 +7,11 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
-import android.os.Looper
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
@@ -22,7 +20,6 @@ import dead.crumbs.data.LocationRepository
 import dead.crumbs.data.UserRepository
 import io.swagger.client.models.Position
 import java.util.*
-import kotlin.math.*
 
 
 class MapsViewModel (private val locationRepository: LocationRepository,

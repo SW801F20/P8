@@ -1,6 +1,6 @@
 package dead.crumbs.data.DAO
 
-import io.swagger.client.apis.DeadCrumbsApi
+import dead.crumbs.client.apis.DeadCrumbsApi
 import io.swagger.client.models.Location
 import kotlin.concurrent.thread
 

@@ -1,7 +1,6 @@
 package dead.crumbs.data
 
 import dead.crumbs.data.DAO.RSSI_DAO
-import io.swagger.client.models.Location
 
 class RSSIRepository private constructor(private val rssiDao: RSSI_DAO) {
 

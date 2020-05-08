@@ -3,7 +3,7 @@ package dead.crumbs.data
 import dead.crumbs.data.DAO.Location_DAO
 import dead.crumbs.data.DAO.RSSI_DAO
 import dead.crumbs.data.DAO.User_DAO
-import io.swagger.client.apis.DeadCrumbsApi
+import dead.crumbs.client.apis.DeadCrumbsApi
 
 class Database private constructor() {
 

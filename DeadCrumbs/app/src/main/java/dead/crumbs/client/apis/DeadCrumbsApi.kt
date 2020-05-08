@@ -9,7 +9,7 @@
  * https://github.com/swagger-api/swagger-codegen.git
  * Do not edit the class manually.
  */
-package io.swagger.client.apis
+package dead.crumbs.client.apis
 
 import io.swagger.client.models.Location
 import io.swagger.client.models.User

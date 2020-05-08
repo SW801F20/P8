@@ -1,6 +1,5 @@
 package dead.crumbs.ui
 
-import android.view.View
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import dead.crumbs.data.LocationRepository

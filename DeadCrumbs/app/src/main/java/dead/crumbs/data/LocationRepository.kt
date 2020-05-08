@@ -1,9 +1,7 @@
 package dead.crumbs.data
 
-import androidx.lifecycle.LiveData
 import dead.crumbs.data.DAO.Location_DAO
 import io.swagger.client.models.Location
-import io.swagger.client.models.User
 
 class LocationRepository private constructor(private val locationDAO: Location_DAO){
 
