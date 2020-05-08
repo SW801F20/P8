@@ -33,14 +33,9 @@ class MainActivity : AppCompatActivity() {
     private val REQUEST_ENABLE_BT = 1
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
     lateinit var mFusedLocationClient: FusedLocationProviderClient
-    //private lateinit var gpsViewModel: GPSViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //AndroidThreeTen.init(this)
         setContentView(R.layout.activity_main)
-
-        //Checks locations permissions, which are necessary for
-        //checkLocationPermissions()
 
         initializeBluetoothScan()
         initializeMapsViewModel() //Must be called before "startDeadReckoning()"
@@ -224,6 +219,8 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this@MainActivity, "${rssi.target_mac_address}'s distance is\n $dist m", Toast.LENGTH_LONG).show()
     }
 
+    //This function checks if the user has high accuracy GPS enabled and prompts them to turn it
+    //on if they do not.
     fun createLocationRequest() {
         val locationRequest = LocationRequest.create()?.apply {
             interval = 10000
