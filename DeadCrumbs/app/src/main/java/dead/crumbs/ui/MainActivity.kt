@@ -219,7 +219,7 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this@MainActivity, "${rssi.target_mac_address}'s distance is\n $dist m", Toast.LENGTH_LONG).show()
     }
 
-    //This function checks if the user has high accuracy GPS enabled and prompts them to turn it
+    //This function checks that the user has high accuracy GPS enabled and prompts them to turn it
     //on if they do not.
     fun createLocationRequest() {
         val locationRequest = LocationRequest.create()?.apply {
