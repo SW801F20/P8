@@ -230,7 +230,7 @@ class MainActivity : AppCompatActivity() {
                         for(loc in new_locs){
                             mapsViewModel?.updateLocation(loc.user_ref,
                                 loc.position.coordinates!![0],
-                                loc.position.coordinates[1]
+                                loc.position.coordinates!![1]
                             )
                     }
                 }

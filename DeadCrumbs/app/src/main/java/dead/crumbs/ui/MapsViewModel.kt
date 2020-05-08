@@ -290,4 +290,12 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         val rounded = Math.round((earthRadiusM * c) * 10.0)/ 10.0 // for conversion
         return rounded
     }
+
+    fun updateLocation(username: String, lat: Double, lng: Double){
+        for(marker in markerList){
+            if(marker.title == username){
+                marker.position = LatLng(lat,lng)
+            }
+        }
+    }
 }
