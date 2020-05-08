@@ -86,7 +86,9 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         // This nullcheck prevents the app from crashing if a step is detected outside of the map
         if (meMarker != null){
 
-            val orientation = Math.toRadians(meMarker!!.rotation.toDouble())
+            //API expects orientation in degrees so no need for radian conversion
+            val orientation = meMarker!!.rotation.toDouble()
+
             val currYear = Calendar.getInstance().get(Calendar.YEAR).toString().padStart(4,'0')
             val currMonth = (Calendar.getInstance().get(Calendar.MONTH) + 1).toString().padStart(2,'0')
             val currDate = Calendar.getInstance().get(Calendar.DATE).toString().padStart(2,'0')
