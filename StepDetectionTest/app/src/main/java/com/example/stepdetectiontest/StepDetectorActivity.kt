@@ -46,7 +46,9 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
     // For showing the effects of filtering
     val anyChartNotFiltered = mutableListOf<Float>()
     val anyChartHighPassFiltered = mutableListOf<Float>()
+    var tempLowPass = arrayOfNulls<Pair<Float, Double>>(accArraySize)
     var anyChartLowPassFiltered = mutableListOf<Float>()
+    var anyChartBothFiltered = mutableListOf<Float>()
 
     var sdViewModel: StepDetectorViewModel? = null
 
@@ -117,6 +119,45 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
             startActivity(intent)
         }
 
+        button_AnyChartFilter.setOnClickListener {
+            button_AnyChartFilter.isClickable = false
+            val intent = Intent(this, AnyChartFilterActivity::class.java)
+
+
+            // Data to pass to the chart
+            val anyChartTimestampsArray = DoubleArray(accArraySize)
+            val anyChartNotFilteredArray = DoubleArray(accArraySize)
+            val anyChartLowFilteredArray = DoubleArray(accArraySize)
+            val anyChartHighFilteredArray = DoubleArray(accArraySize)
+            val anyChartBothFilteredArray = DoubleArray(accArraySize)
+
+            // Copy the data
+            for (i in anyChartTimestamps.indices) {
+                anyChartTimestampsArray[i] = anyChartTimestamps[i]
+            }
+            for (i in anyChartNotFiltered.indices) {
+                anyChartNotFilteredArray[i] = anyChartNotFiltered[i].toDouble()
+            }
+            for (i in anyChartLowPassFiltered.indices) {
+                anyChartLowFilteredArray[i] = anyChartLowPassFiltered[i].toDouble()
+            }
+            for (i in anyChartHighPassFiltered.indices) {
+                anyChartHighFilteredArray[i] = anyChartHighPassFiltered[i].toDouble()
+            }
+            for (i in anyChartBothFiltered.indices) {
+                anyChartBothFilteredArray[i] = anyChartBothFiltered[i].toDouble()
+            }
+
+            // Pass the data to the chart
+            intent.putExtra("TIME_STAMPS", anyChartTimestampsArray)
+            intent.putExtra("NO_FILTER", anyChartNotFilteredArray)
+            intent.putExtra("LOW_FILTER", anyChartLowFilteredArray)
+            intent.putExtra("HIGH_FILTER", anyChartHighFilteredArray)
+            intent.putExtra("BOTH_FILTER", anyChartBothFilteredArray)
+
+            startActivity(intent)
+        }
+
         // Button for seeing the filter chart
 //        button_AnyChartFilter.setOnClickListener {
 //            button_AnyChartFilter.isClickable = false
@@ -166,6 +207,9 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
         // Remove everything in the array apart from the last reading, which is moved to the front
         accelerometerZs[0] = accelerometerZs[accBufferIndex - 1]
         for (i in 1..accBufferIndex - 1) {
+            anyChartLowPassFiltered.add(tempLowPass[i]!!.first)
+            tempLowPass[i] = null
+            anyChartBothFiltered.add(accelerometerZs[i]!!.first)
             accelerometerZs[i] = null
         }
         // Reset index to point to the next available spot in the array
@@ -409,12 +453,14 @@ class StepDetectorActivity : AppCompatActivity(), SensorEventListener {
         // Add accelerometer value and timestamp to array
         accelerometerZs[accBufferIndex] =
             Pair(accelReading, (event.timestamp - firstTimestamp) / 1_000_000_000.0)
+        tempLowPass[accBufferIndex] =
+            Pair(anyChartNotFiltered.last(), (event.timestamp - firstTimestamp) / 1_000_000_000.0)
         accBufferIndex++
 
 
         // Low pass filter to remove high frequency noise
         accelerometerZs = lowPassFilter(accelerometerZs, accBufferIndex)
-
+        tempLowPass = lowPassFilter(tempLowPass, accBufferIndex)
         // Log the reading in logcat
         Log.v(
             "Z-axis new value: " + ((event.timestamp - firstTimestamp) / 1_000_000_000.0).toString() + " ",
