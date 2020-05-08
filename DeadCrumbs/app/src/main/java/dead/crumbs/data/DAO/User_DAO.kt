@@ -1,8 +1,7 @@
 package dead.crumbs.data.DAO
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import io.swagger.client.apis.DeadCrumbsApi
-import io.swagger.client.models.Location
+import dead.crumbs.client.apis.DeadCrumbsApi
 import io.swagger.client.models.User
 import java.lang.Exception
 import kotlin.concurrent.thread
