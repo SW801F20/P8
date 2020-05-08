@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId "dead.crumbs"
-        minSdkVersion 23
+        minSdkVersion 21
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"

@@ -24,4 +24,31 @@ class Maps_DAO (val client : DeadCrumbsApi)  {
             return MutableLiveData(location)
         }
     }
+
+    // Adds a location to the local representation
+    // and updates database
+    fun postLocation(location: Location) {
+        val thread = thread(start = true){
+            client.postLocation(body=location)
+        }
+        thread.join()
+    }
+
+    // Returns the first locations that matches the deviceId
+    fun getLocation(userName: String) : LiveData<Location> {
+        var location: Location? = null
+        val thread = thread (start = true){
+            location = client.getLocation(userName)
+        }
+        thread.join()
+        if(location == null){
+            //throw error here
+            //return MutableLiveData(location)
+            throw(java.lang.Exception("$userName has no recorded locations."))
+        }else{
+            return MutableLiveData(location)
+        }
+
+    }
+
 }

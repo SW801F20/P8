@@ -1,7 +1,9 @@
 package dead.crumbs.utilities
 
+import dead.crumbs.data.Database
+import dead.crumbs.data.MapsRepository
+import dead.crumbs.data.RSSIRepository
 import dead.crumbs.data.*
-import dead.crumbs.ui.LocationViewModelFactory
 import dead.crumbs.ui.SingletonMapsViewModelFactory
 import dead.crumbs.ui.RSSIViewModelFactory
 
@@ -28,11 +30,5 @@ object InjectorUtils {
             singletonMapsViewModelFactory = SingletonMapsViewModelFactory(mapsRepository)
         }
         return singletonMapsViewModelFactory as SingletonMapsViewModelFactory
-    }
-
-    fun provideLocation(): LocationViewModelFactory{
-        val locationRepository = LocationRepository.getInstance(Database.getInstance().locationDao)
-        val userRepository = UserRepository.getInstance(Database.getInstance().userDao)
-        return LocationViewModelFactory(locationRepository, userRepository)
     }
 }

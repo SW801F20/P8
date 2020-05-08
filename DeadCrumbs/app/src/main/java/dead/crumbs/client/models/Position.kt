@@ -20,6 +20,6 @@ package io.swagger.client.models
 data class Position (
 
     val type: kotlin.String? = null,
-    val coordinates: kotlin.Array<kotlin.Double>? = null
+    var coordinates: kotlin.Array<kotlin.Double>? = null
 ) {
 }

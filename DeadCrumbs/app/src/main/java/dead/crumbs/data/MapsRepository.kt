@@ -1,9 +1,14 @@
 package dead.crumbs.data
 
 import dead.crumbs.data.DAO.Maps_DAO
-import dead.crumbs.data.DAO.RSSI_DAO
+import io.swagger.client.models.Location
 
-class MapsRepository private constructor(private val mapsDao: Maps_DAO) {
+class MapsRepository private constructor(private val mapsDAO: Maps_DAO) {
+
+    fun getLocation(userName: String) = mapsDAO.getLocation(userName);
+    fun getUsers() = mapsDAO.getUsers()
+    fun postLocation(location: Location) = mapsDAO.postLocation(location)
+    fun getUser(userName: String) = mapsDAO.getUser(userName)
 
     fun updateLocation(userName: String, orientation: Double, dist: Double, timeStamp: String) =
                        mapsDao.updateLocation(userName, orientation, dist, timeStamp)
