@@ -72,7 +72,7 @@ class MapsViewModel (private val locationRepository: LocationRepository,
                 }
             //adding the meMarker to the map
             val marker = map.addMarker(newMarker( loc = LatLng(loc!!.latitude, loc.longitude),
-                name = "Me", icon = R.mipmap.my_picture))
+                name = MainActivity.my_username, icon = R.mipmap.arrow))
             markerList.add(marker)
             //assign meMarker for easier update of orientation
             meMarker = marker
@@ -220,7 +220,7 @@ class MapsViewModel (private val locationRepository: LocationRepository,
             for (user in newLocations) {
                  if(user.value!!.user_ref == MainActivity.my_username){
                      meMarker = map.addMarker(newMarker(LatLng(user.value!!.position.coordinates!![0],
-                         user.value!!.position.coordinates!![1]), name = "Me", icon = R.mipmap.my_picture))
+                         user.value!!.position.coordinates!![1]), name = MainActivity.my_username, icon = R.mipmap.arrow))
                      newMarkerList.add(meMarker!!)
                      ownLat = user.value!!.position.coordinates!![0]
                      ownLong = user.value!!.position.coordinates!![1]
