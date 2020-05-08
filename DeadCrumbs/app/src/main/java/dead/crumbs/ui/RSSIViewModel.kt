@@ -7,7 +7,7 @@ import dead.crumbs.data.RSSIRepository
 class RSSIViewModel(private val rssiRepository: RSSIRepository)
     : ViewModel() {
 
-
+    
     fun getRSSIs() = rssiRepository.getRSSIs()
 
     fun addRSSI(rssi: BluetoothRSSI) = rssiRepository.addRSSI(rssi)
