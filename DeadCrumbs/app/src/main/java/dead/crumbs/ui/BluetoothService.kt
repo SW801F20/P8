@@ -113,9 +113,10 @@ class BluetoothService() : Service(){
             bluetoothAdapter.startDiscovery()
         }
         else{
-            //Start discovery
-            if(!bluetoothAdapter.startDiscovery())
-                throw java.lang.Exception("Bluetooth StartDiscovery Failed")
+            //Keep trying to start discovery (Requires user to "allow")
+            while(!bluetoothAdapter.startDiscovery()){
+                Thread.sleep(1000)
+            }
         }
     }
 
