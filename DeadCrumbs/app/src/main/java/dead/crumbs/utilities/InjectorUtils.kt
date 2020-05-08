@@ -29,9 +29,4 @@ object InjectorUtils {
         }
         return singletonMapsViewModelFactory as SingletonMapsViewModelFactory
     }
-/*
-    fun provideLocation(): LocationViewModelFactory{
-        val locationRepository = LocationRepository.getInstance(Database.getInstance().locationDao)
-        return LocationViewModelFactory(locationRepository)
-    }*/
 }

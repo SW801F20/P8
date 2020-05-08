@@ -70,23 +70,24 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
                     }
                 }
             //adding the meMarker to the map
-            val marker = map.addMarker(newMarker( loc = LatLng(loc!!.latitude, loc.longitude), name = "Me", icon = R.mipmap.my_picture))
+            val marker = map.addMarker(newMarker( loc = LatLng(loc!!.latitude, loc.longitude),
+                name = "Me", icon = R.mipmap.my_picture))
             markerList.add(marker)
             //assign meMarker for easier update of orientation
             meMarker = marker
 
             //Making all the other markers for the map
-            for (user in locList) {
-                if (user.value!!.user_ref != loggedInUser) {
+            for (location in locList) {
+                if (location.value!!.user_ref != loggedInUser) {
                     val marker = map.addMarker(
                         newMarker(
                             LatLng(
-                                user.value!!.position.coordinates!![0],
-                                user.value!!.position.coordinates!![1]
-                            ), user.value!!.user_ref,
+                                location.value!!.position.coordinates!![0],
+                                location.value!!.position.coordinates!![1]
+                            ), location.value!!.user_ref,
                             distanceInM(
-                                loc.latitude, loc.longitude, user.value!!.position.coordinates!![0],
-                                user.value!!.position.coordinates!![1]
+                                loc.latitude, loc.longitude, location.value!!.position.coordinates!![0],
+                                location.value!!.position.coordinates!![1]
                             ),
                             R.mipmap.my_picture
                         )
@@ -164,13 +165,13 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         )
     }
 
-    //check if gps or network is enabled
+    //check if gps is enabled
     private fun isLocationEnabled(context: Context): Boolean {
         val locationManager: LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
     }
 
-    //check if gps or network is enabled
+    //check if network is enabled
     private fun isNetworkEnabled(context: Context): Boolean {
         val locationManager: LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         return locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
@@ -179,13 +180,18 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
     @SuppressLint("MissingPermission")
     fun getGPSLocation(context: Context, activity: Activity): Location? {
         val locMan : LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        var location: Location ?= null
+        var location: Location? = null
         if (checkPermissions(context)) {
             if (isLocationEnabled(context)) {
                 location = locMan.getLastKnownLocation(LocationManager.GPS_PROVIDER)
                 if(location == null && isNetworkEnabled(context))
                     location = locMan.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
 
+                if(location == null)
+                    throw Exception("Could not get current GPS location.")
+                //yaw is hardcoded to be 0.0 since it is hard to ascertain the heading of the user
+                //at this point. Will be updated with correct heading in the db 5 seconds after the
+                //user starts the map.
                 val swaggerLocation : io.swagger.client.models.Location = io.swagger.client.models.
                     Location(loggedInUser, 0.0, Position("Point", arrayOf(location.latitude, location.longitude)), getDateTime())
                 postLocation(swaggerLocation)
@@ -195,7 +201,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         } else {
             requestPermissions(activity)
         }
-        throw Exception()
+        throw Exception("Could not get the correct GPS permissions.")
     }
 
     //Updates the markers on the map
@@ -229,27 +235,23 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
                      ownLat = user.value!!.position.coordinates!![0]
                      ownLong = user.value!!.position.coordinates!![1]
                  }
+                 else {
+                     val marker = map.addMarker(
+                         newMarker(
+                             LatLng(
+                                 user.value!!.position.coordinates!![0],
+                                 user.value!!.position.coordinates!![1]
+                             ), user.value!!.user_ref,
+                             distanceInM(ownLat, ownLong, user.value!!.position.coordinates!![0],
+                                 user.value!!.position.coordinates!![1]),
+                             R.mipmap.my_picture
+                         )
+                     )
+                     marker.rotation = user.value!!.yaw.toFloat()
+                     newMarkerList.add(marker)
+                 }
             }
 
-            //for loop used to add the other users to the map, map replacing the markerList
-            for (user in newLocations) {
-                if(user.value!!.user_ref == loggedInUser){
-                   continue
-                }
-                else {
-                    val marker = map.addMarker(
-                        newMarker(
-                            LatLng(
-                                user.value!!.position.coordinates!![0],
-                                user.value!!.position.coordinates!![1]
-                            ), user.value!!.user_ref, distanceInM(ownLat, ownLong, user.value!!.position.coordinates!![0], user.value!!.position.coordinates!![1]),
-                            R.mipmap.my_picture
-                        )
-                    )
-                    marker.rotation = user.value!!.yaw.toFloat()
-                    newMarkerList.add(marker)
-                }
-            }
             markerList = newMarkerList
         }
         catch(e: java.lang.Exception){

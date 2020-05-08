@@ -23,7 +23,6 @@ import androidx.lifecycle.ViewModelProviders
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.tasks.Task
-//import com.jakewharton.threetenabp.AndroidThreeTen
 import dead.crumbs.R
 import dead.crumbs.data.BluetoothRSSI
 import dead.crumbs.utilities.InjectorUtils
@@ -58,12 +57,6 @@ class MainActivity : AppCompatActivity() {
         createLocationRequest()
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        /*
-        var locationViewModel : GPSViewModel? = null
-        val locationFactory = InjectorUtils.provideLocation()
-        locationViewModel = ViewModelProviders.of(this, locationFactory)
-            .get(GPSViewModel::class.java)
-        locationViewModel.getLastLocation(this, this@MainActivity)*/
     }
 
     override fun onResume() {
@@ -181,27 +174,6 @@ class MainActivity : AppCompatActivity() {
         startActivity(discoverableIntent)
     }
 
-    //can remove this function
-    /*
-    private fun checkLocationPermissions() {
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
-            var permissionCheck =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    checkSelfPermission("Manifest.permission.ACCESS_FINE_LOCATION")
-                } else {
-                    TODO("VERSION.SDK_INT < M")
-                }
-            permissionCheck += checkSelfPermission("Manifest.permission.ACCESS_COARSE_LOCATION")
-            if (permissionCheck != 0) {
-                requestPermissions(
-                    arrayOf(
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
-                    ), 1001
-                ) //Any number
-            }
-        }
-    }*/
 
     private fun enableBluetooth(){
         if (bluetoothAdapter == null) {
