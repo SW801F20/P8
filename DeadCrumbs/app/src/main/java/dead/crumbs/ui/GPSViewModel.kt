@@ -14,10 +14,10 @@ import androidx.lifecycle.ViewModel
 import com.google.android.gms.location.*
 import dead.crumbs.data.LocationRepository
 import dead.crumbs.data.UserRepository
+import dead.crumbs.utilities.UtilFunctions
 import io.swagger.client.models.Position
 //import java.time.LocalDateTime
 
-import java.util.Calendar
 
 class GPSViewModel (private val locationRepository : LocationRepository, private val userRepository: UserRepository) : ViewModel(){
 
@@ -59,14 +59,7 @@ class GPSViewModel (private val locationRepository : LocationRepository, private
                     if (location == null) {
                         requestNewLocationData(activity)
                     } else {
-                        //getUsers()
-                        val currYear = Calendar.getInstance().get(Calendar.YEAR).toString().padStart(4,'0')
-                        val currMonth = (Calendar.getInstance().get(Calendar.MONTH) + 1).toString().padStart(2,'0')
-                        val currDate = Calendar.getInstance().get(Calendar.DATE).toString().padStart(2,'0')
-                        val currHour = Calendar.getInstance().get(Calendar.HOUR).toString().padStart(2,'0')
-                        val currMinute = Calendar.getInstance().get(Calendar.MINUTE).toString().padStart(2,'0')
-                        val currSecond = Calendar.getInstance().get(Calendar.SECOND).toString().padStart(2,'0')
-                        val dateTimeString = currYear + "-" + currMonth + "-" + currDate+ "T" + currHour + ":" + currMinute + ":" + currSecond
+                        val dateTimeString = UtilFunctions.getDatetime()
 
                         postLocation(io.swagger.client.models.Location("jacob6565", 6.0, Position("point", arrayOf(10.0, 12.0)),
                             dateTimeString))

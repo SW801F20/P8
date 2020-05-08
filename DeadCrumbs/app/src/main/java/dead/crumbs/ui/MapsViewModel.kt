@@ -20,6 +20,7 @@ import com.google.android.gms.maps.model.*
 import dead.crumbs.R
 import dead.crumbs.data.LocationRepository
 import dead.crumbs.data.UserRepository
+import dead.crumbs.utilities.UtilFunctions
 import io.swagger.client.models.Position
 import java.util.*
 import kotlin.math.*
@@ -123,14 +124,7 @@ class MapsViewModel (private val locationRepository: LocationRepository,
             //API expects orientation in degrees so no need for radian conversion
             val orientation = meMarker!!.rotation.toDouble()
 
-            val currYear = Calendar.getInstance().get(Calendar.YEAR).toString().padStart(4,'0')
-            val currMonth = (Calendar.getInstance().get(Calendar.MONTH) + 1).toString().padStart(2,'0')
-            val currDate = Calendar.getInstance().get(Calendar.DATE).toString().padStart(2,'0')
-            val currHour = Calendar.getInstance().get(Calendar.HOUR).toString().padStart(2,'0')
-            val currMinute = Calendar.getInstance().get(Calendar.MINUTE).toString().padStart(2,'0')
-            val currSecond = Calendar.getInstance().get(Calendar.SECOND).toString().padStart(2,'0')
-            val dateTimeString = currYear + "-" + currMonth + "-" + currDate+ "T" + currHour + ":" + currMinute + ":" + currSecond
-
+            val dateTimeString = UtilFunctions.getDatetime()
             val newLocation = locationRepository.updateLocation(username, orientation, dist, dateTimeString)
             meMarker!!.position = LatLng(newLocation.value?.position!!.coordinates?.get(0)!!,
                                      newLocation.value?.position!!.coordinates?.get(1)!!)
@@ -183,7 +177,7 @@ class MapsViewModel (private val locationRepository: LocationRepository,
                 //at this point. Will be updated with correct heading in the db 5 seconds after the
                 //user starts the map.
                 val swaggerLocation : io.swagger.client.models.Location = io.swagger.client.models.
-                    Location(MainActivity.my_username, 0.0, Position("Point", arrayOf(location.latitude, location.longitude)), getDateTime())
+                    Location(MainActivity.my_username, 0.0, Position("Point", arrayOf(location.latitude, location.longitude)), UtilFunctions.getDatetime())
                 postLocation(swaggerLocation)
 
                 return location
@@ -247,26 +241,6 @@ class MapsViewModel (private val locationRepository: LocationRepository,
         catch(e: java.lang.Exception){
             Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
         }
-    }
-
-    //gets the current date and time
-    private fun getDateTime(): String{
-        val currYear =
-            Calendar.getInstance().get(Calendar.YEAR).toString().padStart(4, '0')
-        val currMonth = (Calendar.getInstance().get(Calendar.MONTH) + 1).toString()
-            .padStart(2, '0')
-        val currDate =
-            Calendar.getInstance().get(Calendar.DATE).toString().padStart(2, '0')
-        val currHour =
-            Calendar.getInstance().get(Calendar.HOUR_OF_DAY).toString().padStart(2, '0')
-        val currMinute =
-            Calendar.getInstance().get(Calendar.MINUTE).toString().padStart(2, '0')
-        val currSecond =
-            Calendar.getInstance().get(Calendar.SECOND).toString().padStart(2, '0')
-        val dateTimeString =
-            currYear + "-" + currMonth + "-" + currDate + "T" + currHour + ":" + currMinute + ":" + currSecond
-
-        return dateTimeString
     }
 
     fun getUsers() = userRepository.getUsers()
