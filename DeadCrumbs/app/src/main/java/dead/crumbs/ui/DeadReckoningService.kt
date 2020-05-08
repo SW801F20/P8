@@ -219,18 +219,26 @@ class DeadReckoningService : Service(), SensorEventListener {
         // Each reading is compared to its neighbouring readings to see if it is the largest in the
         // window of 'n' readings
         for (t in n / 2..accBufferIndex - n / 2) {
+            var peak = true
             for (i in -n / 2..n / 2 - 1) {
+
                 // If i == 0 current and local will be the same reading
                 if (i == 0) continue
                 // Check if current accel reading is larger than its n/2 neighbouring/local readings
                 val current = accelReadings[t]!!.first
                 val local = accelReadings[t + i]!!.first
                 // Check if peak
-                if (current > local && current > peakLowerThresh && current < peakUpperThresh) {
-                    //TODO: Remove me at some point
-                    Log.v("Peak: ", "Peak found. Value: ${accelReadings[t]!!.first}")
-                    return true
+                if (current <= local || current <= peakLowerThresh || current >= peakUpperThresh) {
+                    peak = false
+                    break
+
                 }
+            }
+            if (peak)
+            {
+                //TODO: Remove me at some point
+                Log.v("Peak: ", "Peak found. Value: ${accelReadings[t]!!.first}")
+                return true
             }
         }
         return false
