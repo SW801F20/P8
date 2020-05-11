@@ -19,7 +19,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    //TODO: this should be set doing login or something
+    //TODO: this should be set during login or something
     //Hardcode the username here. Note must exist in DB with correct bluetooth mac address!
     var friends_macs = mutableListOf<String>();
     companion object{
@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity() {
         //Checks permissions
         checkPermissions()
 
-        initializeBluetoothScan()
+        //initializeBluetoothScan()
         initializeMapsViewModel() //Must be called before "startDeadReckoning()"
 
         // Dead Reckoning

@@ -268,6 +268,7 @@ class MapsViewModel (private val locationRepository: LocationRepository,
         for(marker in markerList){
             if(marker.title == username){
                 marker.position = LatLng(lat,lng)
+                return
             }
         }
     }
