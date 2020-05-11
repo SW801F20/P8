@@ -9,14 +9,14 @@
  * https://github.com/swagger-api/swagger-codegen.git
  * Do not edit the class manually.
  */
-package io.swagger.client.apis
+package dead.crumbs.client.apis
 
 import io.swagger.client.models.Location
 import io.swagger.client.models.User
 
 import io.swagger.client.infrastructure.*
 
-class DefaultApi(basePath: kotlin.String = "/") : ApiClient(basePath) {
+class DeadCrumbsApi(basePath: kotlin.String = "/") : ApiClient(basePath) {
 
     /**
      * returns the location associated with username
@@ -95,25 +95,25 @@ class DefaultApi(basePath: kotlin.String = "/") : ApiClient(basePath) {
     /**
      * updates locations based on bluetooth sync
      * 
-     * @param mac1 The mac address of a user1. 
-     * @param mac2 The mac address of a user2. 
+     * @param username The username of the user. 
+     * @param targetMac The mac address of another user. 
      * @param rssiDist distance estimated from RSSI 
      * @param timeStamp The time. 
-     * @return User
+     * @return kotlin.Array<Location>
      */
     @Suppress("UNCHECKED_CAST")
-    fun postBluetoothSync(mac1: kotlin.String, mac2: kotlin.String, rssiDist: kotlin.Double, timeStamp: kotlin.String): User {
+    fun postBluetoothSync(username: kotlin.String, targetMac: kotlin.String, rssiDist: kotlin.Double, timeStamp: kotlin.String): kotlin.Array<Location> {
         
         val localVariableConfig = RequestConfig(
                 RequestMethod.POST,
-                "/RSSI/{mac1}/{mac2}/{rssiDist}/{timeStamp}".replace("{" + "mac1" + "}", "$mac1").replace("{" + "mac2" + "}", "$mac2").replace("{" + "rssiDist" + "}", "$rssiDist").replace("{" + "timeStamp" + "}", "$timeStamp")
+                "/RSSI/{username}/{targetMac}/{rssiDist}/{timeStamp}".replace("{" + "username" + "}", "$username").replace("{" + "targetMac" + "}", "$targetMac").replace("{" + "rssiDist" + "}", "$rssiDist").replace("{" + "timeStamp" + "}", "$timeStamp")
         )
-        val response = request<User>(
+        val response = request<kotlin.Array<Location>>(
                 localVariableConfig
         )
 
         return when (response.responseType) {
-            ResponseType.Success -> (response as Success<*>).data as User
+            ResponseType.Success -> (response as Success<*>).data as kotlin.Array<Location>
             ResponseType.Informational -> TODO()
             ResponseType.Redirection -> TODO()
             ResponseType.ClientError -> throw ClientException((response as ClientError<*>).body as? String ?: "Client error")
@@ -134,7 +134,8 @@ class DefaultApi(basePath: kotlin.String = "/") : ApiClient(basePath) {
                 "/Location"
         )
         val response = request<Any?>(
-                localVariableConfig, localVariableBody
+                localVariableConfig,
+                localVariableBody
         )
 
         return when (response.responseType) {
@@ -159,11 +160,39 @@ class DefaultApi(basePath: kotlin.String = "/") : ApiClient(basePath) {
                 "/User"
         )
         val response = request<Any?>(
+                localVariableConfig,
+                localVariableBody
+        )
+        return when (response.responseType) {
+            ResponseType.Success -> Unit
+            ResponseType.Informational -> TODO()
+            ResponseType.Redirection -> TODO()
+            ResponseType.ClientError -> throw ClientException((response as ClientError<*>).body as? String ?: "Client error")
+            ResponseType.ServerError -> throw ServerException((response as ServerError<*>).message ?: "Server error")
+        }
+    }
+    /**
+     * updates location of a user
+     * 
+     * @param username The username of the user. 
+     * @param orientation orientation of user 
+     * @param dist step length 
+     * @param timeStamp The time. 
+     * @return Location
+     */
+    @Suppress("UNCHECKED_CAST")
+    fun updateLocation(username: kotlin.String, orientation: kotlin.Double, dist: kotlin.Double, timeStamp: kotlin.String): Location {
+        
+        val localVariableConfig = RequestConfig(
+                RequestMethod.POST,
+                "/Location/{username}/{orientation}/{dist}/{timeStamp}".replace("{" + "username" + "}", "$username").replace("{" + "orientation" + "}", "$orientation").replace("{" + "dist" + "}", "$dist").replace("{" + "timeStamp" + "}", "$timeStamp")
+        )
+        val response = request<Location>(
                 localVariableConfig
         )
 
         return when (response.responseType) {
-            ResponseType.Success -> Unit
+            ResponseType.Success -> (response as Success<*>).data as Location
             ResponseType.Informational -> TODO()
             ResponseType.Redirection -> TODO()
             ResponseType.ClientError -> throw ClientException((response as ClientError<*>).body as? String ?: "Client error")

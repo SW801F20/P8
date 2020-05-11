@@ -107,7 +107,7 @@
             "description" : "location added successfully"
           },
           "400" : {
-            "description" : "location added unsuccessfully"
+            "description": "location added unsuccessfully"
           }
         }
       }

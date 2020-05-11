@@ -7,30 +7,29 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
-import android.os.Looper
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
 import dead.crumbs.R
-import dead.crumbs.data.MapsRepository
+import dead.crumbs.data.LocationRepository
+import dead.crumbs.data.UserRepository
+import dead.crumbs.utilities.UtilFunctions
 import io.swagger.client.models.Position
 import java.util.*
-import kotlin.math.*
 
 
-class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
+class MapsViewModel (private val locationRepository: LocationRepository,
+                     private val userRepository: UserRepository) : ViewModel(){
 
     lateinit var map: GoogleMap
     var markerList = mutableListOf<Marker>() // the list of markers that are displayed on the map
     var mapIsInitialized = false
     val PERMISSION_ID = 42 //a value to check if the users gives permission to what we ask for
-    val loggedInUser : String = "kris271c" //currently the user we use as logged in user
     private var meMarker: Marker? = null //the marker corresponding to your own location
 
     fun updateOrientation(degrees: Float){
@@ -71,14 +70,14 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
                 }
             //adding the meMarker to the map
             val marker = map.addMarker(newMarker( loc = LatLng(loc!!.latitude, loc.longitude),
-                name = "Me", icon = R.mipmap.my_picture))
+                name = MainActivity.my_username, icon = R.mipmap.arrow))
             markerList.add(marker)
             //assign meMarker for easier update of orientation
             meMarker = marker
 
             //Making all the other markers for the map
             for (location in locList) {
-                if (location.value!!.user_ref != loggedInUser) {
+                if (location.value!!.user_ref != MainActivity.my_username) {
                     val marker = map.addMarker(
                         newMarker(
                             LatLng(
@@ -108,43 +107,25 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         val marker = MarkerOptions()
             .position(loc)
             .title(title)
-        if(marker.title == "Me")
+        if(marker.title == MainActivity.my_username)
             marker.icon(BitmapDescriptorFactory.fromResource(R.mipmap.arrow))
 
         return marker
     }
 
     //Moves in markers current heading/direction
-    fun moveMeMarker(distance: Double){
+    fun moveMeMarker(username: String, dist: Double){
         // This nullcheck prevents the app from crashing if a step is detected outside of the map
-        if (meMarker != null)
-            moveMarker(meMarker!!, distance)
-    }
+        if (meMarker != null){
 
-    //Updates the location of a marker based on the length of
-    //the newest detected step and the current orientation of the marker.
-    //Expects length to be in meters.
-    private fun moveMarker(marker: Marker, mDist: Double){
-        val heading = Math.toRadians(marker.rotation.toDouble())
-        val R = 6378.1 //Radius of the Earth
-        val kmDist= mDist / 1000 //Convert distance from meters to km
+            //API expects orientation in degrees so no need for radian conversion
+            val orientation = meMarker!!.rotation.toDouble()
 
-        val lat1 = Math.toRadians(marker.position.latitude) //Current lat point converted to radians
-        val lng1 = Math.toRadians(marker.position.longitude) //Current lat point converted to radians
-
-        //Formula from
-        //https://www.movable-type.co.uk/scripts/latlong.html "Destination point given distance and bearing from start point"
-        var lat2 = asin( sin(lat1) * cos(kmDist/R) +
-                cos(lat1) * sin(kmDist/R) * cos(heading))
-
-        var lng2 = lng1 + atan2(
-            sin(heading) * sin(kmDist/R) * cos(lat1),
-            cos(kmDist/R) - sin(lat1) * sin(lat2))
-
-        lat2 = Math.toDegrees(lat2)
-        lng2 = Math.toDegrees(lng2)
-
-        marker.position = LatLng(lat2, lng2)
+            val dateTimeString = UtilFunctions.getDatetime()
+            val newLocation = locationRepository.updateLocation(username, orientation, dist, dateTimeString)
+            meMarker!!.position = LatLng(newLocation.value?.position!!.coordinates?.get(0)!!,
+                                     newLocation.value?.position!!.coordinates?.get(1)!!)
+        }
     }
 
     //check if user allows to access hers/his location
@@ -193,7 +174,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
                 //at this point. Will be updated with correct heading in the db 5 seconds after the
                 //user starts the map.
                 val swaggerLocation : io.swagger.client.models.Location = io.swagger.client.models.
-                    Location(loggedInUser, 0.0, Position("Point", arrayOf(location.latitude, location.longitude)), getDateTime())
+                    Location(MainActivity.my_username, 0.0, Position("Point", arrayOf(location.latitude, location.longitude)), UtilFunctions.getDatetime())
                 postLocation(swaggerLocation)
 
                 return location
@@ -209,7 +190,7 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         var ownLat: Double = 0.0
         var ownLong: Double = 0.0
         try {
-            val users = getUsers();
+            val users = getUsers()
             val newLocations : MutableList<LiveData<io.swagger.client.models.Location>> = arrayListOf()
             if(users.value != null) {
                 for (user in users.value!!) {
@@ -228,9 +209,9 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
             map.clear()
             //for loop used to find the current user
             for (user in newLocations) {
-                 if(user.value!!.user_ref == loggedInUser){
+                 if(user.value!!.user_ref == MainActivity.my_username){
                      meMarker = map.addMarker(newMarker(LatLng(user.value!!.position.coordinates!![0],
-                         user.value!!.position.coordinates!![1]), name = "Me", icon = R.mipmap.my_picture))
+                         user.value!!.position.coordinates!![1]), name = MainActivity.my_username, icon = R.mipmap.arrow))
                      newMarkerList.add(meMarker!!)
                      ownLat = user.value!!.position.coordinates!![0]
                      ownLong = user.value!!.position.coordinates!![1]
@@ -259,30 +240,10 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         }
     }
 
-    //gets the current date and time
-    private fun getDateTime(): String{
-        val currYear =
-            Calendar.getInstance().get(Calendar.YEAR).toString().padStart(4, '0')
-        val currMonth = (Calendar.getInstance().get(Calendar.MONTH) + 1).toString()
-            .padStart(2, '0')
-        val currDate =
-            Calendar.getInstance().get(Calendar.DATE).toString().padStart(2, '0')
-        val currHour =
-            Calendar.getInstance().get(Calendar.HOUR_OF_DAY).toString().padStart(2, '0')
-        val currMinute =
-            Calendar.getInstance().get(Calendar.MINUTE).toString().padStart(2, '0')
-        val currSecond =
-            Calendar.getInstance().get(Calendar.SECOND).toString().padStart(2, '0')
-        val dateTimeString =
-            currYear + "-" + currMonth + "-" + currDate + "T" + currHour + ":" + currMinute + ":" + currSecond
-
-        return dateTimeString
-    }
-
-    fun getUsers() = mapsRepository.getUsers()
-    fun getUser(userName: String) = mapsRepository.getUser(userName)
-    fun getLocation(userName: String) = mapsRepository.getLocation(userName)
-    fun postLocation(location : io.swagger.client.models.Location) = mapsRepository.postLocation(location)
+    fun getUsers() = userRepository.getUsers()
+    fun getUser(userName: String) = userRepository.getUser(userName)
+    fun getLocation(userName: String) = locationRepository.getLocation(userName)
+    fun postLocation(location : io.swagger.client.models.Location) = locationRepository.postLocation(location)
 
     //function for convertion degrees to Radians
     fun toRadians(degrees : Double) : Double{
@@ -301,5 +262,14 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
         val rounded = Math.round((earthRadiusM * c) * 10.0)/ 10.0 // for conversion
         return rounded
+    }
+
+    fun updateLocation(username: String, lat: Double, lng: Double){
+        for(marker in markerList){
+            if(marker.title == username){
+                marker.position = LatLng(lat,lng)
+                return
+            }
+        }
     }
 }

@@ -3,6 +3,8 @@ package io.swagger.client.infrastructure
 import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 
 open class ApiClient(val baseUrl: String) {
@@ -25,7 +27,7 @@ open class ApiClient(val baseUrl: String) {
 
     protected inline fun <reified T> requestBody(content: T, mediaType: String = JsonMediaType): RequestBody =
             when {
-                content is File -> RequestBody.create(mediaType.toMediaTypeOrNull(), content)
+                content is File -> content.asRequestBody(mediaType.toMediaTypeOrNull())
 
                 mediaType == FormDataMediaType -> {
                     var builder = FormBody.Builder()
@@ -36,9 +38,8 @@ open class ApiClient(val baseUrl: String) {
                     }
                     builder.build()
                 }
-                mediaType == JsonMediaType -> RequestBody.create(
-                    mediaType.toMediaTypeOrNull(), Serializer.moshi.adapter(T::class.java).toJson(content)
-                )
+                mediaType == JsonMediaType -> Serializer.moshi.adapter(T::class.java).toJson(content)
+                    .toRequestBody(mediaType.toMediaTypeOrNull())
                 mediaType == XmlMediaType -> TODO("xml not currently supported.")
 
                 // TODO: this should be extended with other serializers
@@ -50,7 +51,7 @@ open class ApiClient(val baseUrl: String) {
         mediaType: String = JsonMediaType,
         code: Int
     ): T? {
-        if (body == null ||code == 201) return null
+        if (body == null ||body.contentLength() == 0.toLong()) return null
         return when (mediaType) {
             JsonMediaType -> Serializer.moshi.adapter(T::class.java).fromJson(body.source())
             else -> TODO()

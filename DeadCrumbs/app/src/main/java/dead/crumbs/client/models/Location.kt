@@ -15,7 +15,7 @@ import io.swagger.client.models.Position
 
 /**
  * 
- * @param userRef 
+ * @param user_ref
  * @param yaw 
  * @param position 
  * @param timestamp 

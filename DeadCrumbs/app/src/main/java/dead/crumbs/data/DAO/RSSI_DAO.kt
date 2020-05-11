@@ -1,31 +1,27 @@
 package dead.crumbs.data.DAO
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import dead.crumbs.data.BluetoothRSSI
+import dead.crumbs.client.apis.DeadCrumbsApi
+import io.swagger.client.models.Location
+import kotlin.concurrent.thread
 
-class RSSI_DAO {
-    // A fake database table
-    private val rssiList = mutableListOf<BluetoothRSSI>()
-    // MutableLiveData is from the Architecture Components Library
-    // LiveData can be observed for changes
-    private val rssis = MutableLiveData<List<BluetoothRSSI>>()
+class RSSI_DAO (val client : DeadCrumbsApi) {
 
-    init {
-        // Immediately connect the now empty quoteList
-        // to the MutableLiveData which can be observed
-        rssis.value = rssiList
+    //Updates the location of two users that are
+    //in Bluetooth range of each other and returns
+    //the updated locations.
+    fun bluetoothSync(my_username : String, target_mac : String,
+                      distance : Double, dateTimeString : String): Array<Location> {
+        var res: Array<Location>? = null
+        val thread = thread(start = true){
+            res = client.postBluetoothSync(my_username, target_mac,
+                distance, dateTimeString)
+        }
+        thread.join()
+        if (res == null){
+            throw Exception("Call to postBluetoothSync failed ")
+        } else
+        {
+            return res!!;
+        }
     }
-
-    fun add_rssi(rssi_val: BluetoothRSSI) {
-        rssiList.add(rssi_val)
-        // After adding a rssi to the "database",
-        // update the value of MutableLiveData
-        // which will notify its active observers
-        rssis.value = rssiList
-    }
-
-    // Casting MutableLiveData to LiveData because its value
-    // shouldn't be changed from other classes
-    fun getRSSIs() = rssis as LiveData<List<BluetoothRSSI>>
 }

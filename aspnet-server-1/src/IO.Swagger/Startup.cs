@@ -22,6 +22,7 @@ using IO.Swagger.Filters;
 
 
 using Microsoft.AspNetCore.Authentication;
+using IO.Swagger.DAL;
 
 namespace IO.Swagger
 {
@@ -52,6 +53,8 @@ namespace IO.Swagger
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<MongoConnectionService>();
+            services.AddSingleton<LocationService>();
+            services.AddSingleton<UserService>();
             // Add framework services.
             services
                 .AddMvc()

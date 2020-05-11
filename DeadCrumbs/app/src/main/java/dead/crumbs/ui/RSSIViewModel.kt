@@ -1,16 +1,31 @@
 package dead.crumbs.ui
 
 import androidx.lifecycle.ViewModel
-import dead.crumbs.data.BluetoothRSSI
 import dead.crumbs.data.RSSIRepository
+import dead.crumbs.data.UserRepository
+import dead.crumbs.utilities.UtilFunctions
+import io.swagger.client.models.Location
+import java.util.*
 
-class RSSIViewModel(private val rssiRepository: RSSIRepository)
+class RSSIViewModel(private val rssiRepository: RSSIRepository, private val userRepository: UserRepository)
     : ViewModel() {
 
-    
-    fun getRSSIs() = rssiRepository.getRSSIs()
+    //Returns all the bluetooth mac addresse stored in the db
+    fun getMacs():MutableList<String>{
+        var users = userRepository.getUsers()
+        var mac_adresses = mutableListOf<String>();
+        for(user in users.value!!){
+            mac_adresses.add(user.mac_address)
+        }
+        return mac_adresses
+    }
 
-    fun addRSSI(rssi: BluetoothRSSI) = rssiRepository.addRSSI(rssi)
+
+    //Bluetooth synchronization between my_username and target device with target bluetooth mac address
+    fun bluetoothSync(my_username : String, target_mac : String, distance : Double): Array<Location> {
+        val dateTimeString = UtilFunctions.getDatetime()
+        return rssiRepository.bluetoothSync(my_username, target_mac, distance, dateTimeString)
+    }
 
 
 }
