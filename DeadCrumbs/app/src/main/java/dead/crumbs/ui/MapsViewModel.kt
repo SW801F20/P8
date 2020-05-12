@@ -23,8 +23,15 @@ import io.swagger.client.models.Position
 import java.util.*
 
 
+
+
+
 class MapsViewModel (private val locationRepository: LocationRepository,
                      private val userRepository: UserRepository) : ViewModel(){
+
+    val customlat = 57.034884
+    val customlng = 9.933633
+
 
     lateinit var map: GoogleMap
     var markerList = mutableListOf<Marker>() // the list of markers that are displayed on the map
@@ -45,7 +52,7 @@ class MapsViewModel (private val locationRepository: LocationRepository,
             Log.i("MapDebug", "Initializing map")
             map = googleMap
             addMarkers(context, activity)
-            map.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(57.041480, 9.935950), 14f))
+            map.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(customlat, customlng), 14f))
             map.uiSettings.isZoomControlsEnabled = true
             mapIsInitialized = true
         }
@@ -174,9 +181,10 @@ class MapsViewModel (private val locationRepository: LocationRepository,
                 //at this point. Will be updated with correct heading in the db 5 seconds after the
                 //user starts the map.
                 val swaggerLocation : io.swagger.client.models.Location = io.swagger.client.models.
-                    Location(MainActivity.my_username, 0.0, Position("Point", arrayOf(location.latitude, location.longitude)), UtilFunctions.getDatetime())
+                    Location(MainActivity.my_username, 0.0, Position("Point", arrayOf(customlat, customlng)), UtilFunctions.getDatetime())
                 postLocation(swaggerLocation)
-
+                location.latitude = customlat
+                location.longitude = customlng
                 return location
             }
         } else {
