@@ -209,28 +209,37 @@ class MapsViewModel (private val locationRepository: LocationRepository,
             map.clear()
             //for loop used to find the current user
             for (user in newLocations) {
-                 if(user.value!!.user_ref == MainActivity.my_username){
-                     meMarker = map.addMarker(newMarker(LatLng(user.value!!.position.coordinates!![0],
-                         user.value!!.position.coordinates!![1]), name = MainActivity.my_username, icon = R.mipmap.arrow))
-                     newMarkerList.add(meMarker!!)
-                     ownLat = user.value!!.position.coordinates!![0]
-                     ownLong = user.value!!.position.coordinates!![1]
-                 }
-                 else {
-                     val marker = map.addMarker(
-                         newMarker(
-                             LatLng(
-                                 user.value!!.position.coordinates!![0],
-                                 user.value!!.position.coordinates!![1]
-                             ), user.value!!.user_ref,
-                             distanceInM(ownLat, ownLong, user.value!!.position.coordinates!![0],
-                                 user.value!!.position.coordinates!![1]),
-                             R.mipmap.my_picture
-                         )
-                     )
-                     marker.rotation = user.value!!.yaw.toFloat()
-                     newMarkerList.add(marker)
-                 }
+                if (user.value!!.user_ref == MainActivity.my_username) {
+                    meMarker = map.addMarker(
+                        newMarker(
+                            LatLng(
+                                user.value!!.position.coordinates!![0],
+                                user.value!!.position.coordinates!![1]
+                            ), name = MainActivity.my_username, icon = R.mipmap.arrow
+                        )
+                    )
+                    newMarkerList.add(meMarker!!)
+                    ownLat = user.value!!.position.coordinates!![0]
+                    ownLong = user.value!!.position.coordinates!![1]
+                    break
+                }
+            }
+            for (user in newLocations) {
+                if (user.value!!.user_ref != MainActivity.my_username) {
+                    val marker = map.addMarker(
+                        newMarker(
+                            LatLng(
+                                user.value!!.position.coordinates!![0],
+                                user.value!!.position.coordinates!![1]
+                            ), user.value!!.user_ref,
+                            distanceInM(ownLat, ownLong, user.value!!.position.coordinates!![0],
+                                user.value!!.position.coordinates!![1]),
+                            R.mipmap.my_picture
+                        )
+                    )
+                    marker.rotation = user.value!!.yaw.toFloat()
+                    newMarkerList.add(marker)
+                }
             }
 
             markerList = newMarkerList
