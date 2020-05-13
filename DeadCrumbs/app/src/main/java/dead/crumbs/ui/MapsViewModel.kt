@@ -45,7 +45,17 @@ class MapsViewModel (private val locationRepository: LocationRepository,
             Log.i("MapDebug", "Initializing map")
             map = googleMap
             addMarkers(context, activity)
-            map.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(57.041480, 9.935950), 14f))
+            if (meMarker != null) //meMarker is null if addMarkers fails.
+            {
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                    LatLng(meMarker!!.position.latitude,
+                           meMarker!!.position.longitude), 14f))
+            }
+            else
+            {
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                    LatLng(0.0, 0.0), 14f))
+            }
             map.uiSettings.isZoomControlsEnabled = true
             mapIsInitialized = true
         }
@@ -107,6 +117,7 @@ class MapsViewModel (private val locationRepository: LocationRepository,
         val marker = MarkerOptions()
             .position(loc)
             .title(title)
+            .flat(true) //This prevents the marker from rotating together with the map.
         if(marker.title == MainActivity.my_username)
             marker.icon(BitmapDescriptorFactory.fromResource(R.mipmap.arrow))
 
