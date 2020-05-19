@@ -20,7 +20,6 @@ import dead.crumbs.data.LocationRepository
 import dead.crumbs.data.UserRepository
 import dead.crumbs.utilities.UtilFunctions
 import io.swagger.client.models.Position
-import java.util.*
 
 
 class MapsViewModel (private val locationRepository: LocationRepository,

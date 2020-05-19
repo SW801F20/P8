@@ -5,7 +5,6 @@ import dead.crumbs.data.RSSIRepository
 import dead.crumbs.data.UserRepository
 import dead.crumbs.utilities.UtilFunctions
 import io.swagger.client.models.Location
-import java.util.*
 
 class RSSIViewModel(private val rssiRepository: RSSIRepository, private val userRepository: UserRepository)
     : ViewModel() {
