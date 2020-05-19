@@ -8,8 +8,10 @@
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
 /.idea/vcs.xml
+.idea/misc.xml
 .DS_Store
 /build
 /captures
 .externalNativeBuild
 .cxx
+/.idea/misc.xml

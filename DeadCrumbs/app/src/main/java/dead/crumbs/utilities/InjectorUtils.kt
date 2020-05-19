@@ -1,8 +1,10 @@
 package dead.crumbs.utilities
 
-import dead.crumbs.data.FakeDatabase
-import dead.crumbs.data.MapsRepository
+import android.location.Location
+import dead.crumbs.data.Database
+import dead.crumbs.data.LocationRepository
 import dead.crumbs.data.RSSIRepository
+import dead.crumbs.data.*
 import dead.crumbs.ui.SingletonMapsViewModelFactory
 import dead.crumbs.ui.RSSIViewModelFactory
 
@@ -12,8 +14,9 @@ object InjectorUtils {
     fun provideRSSIViewModelFactory(): RSSIViewModelFactory {
         // ViewModelFactory needs a repository, which in turn needs a DAO from a database
         // The whole dependency tree is constructed right here, in one place
-        val rssiRepository = RSSIRepository.getInstance(FakeDatabase.getInstance().rssiDao)
-        return RSSIViewModelFactory(rssiRepository)
+        val rssiRepository = RSSIRepository.getInstance(Database.getInstance().rssiDao)
+        val userRepository = UserRepository.getInstance(Database.getInstance().userDao)
+        return RSSIViewModelFactory(rssiRepository, userRepository)
     }
 
     var singletonMapsViewModelFactory: SingletonMapsViewModelFactory? = null
@@ -24,8 +27,9 @@ object InjectorUtils {
         {
             // ViewModelFactory needs a repository, which in turn needs a DAO from a database
             // The whole dependency tree is constructed right here, in one place
-            val mapsRepository = MapsRepository.getInstance(FakeDatabase.getInstance().mapsDao)
-            singletonMapsViewModelFactory = SingletonMapsViewModelFactory(mapsRepository)
+            val locationRepository = LocationRepository.getInstance(Database.getInstance().locationDao)
+            val userRepository = UserRepository.getInstance(Database.getInstance().userDao)
+            singletonMapsViewModelFactory = SingletonMapsViewModelFactory(locationRepository, userRepository)
         }
         return singletonMapsViewModelFactory as SingletonMapsViewModelFactory
     }

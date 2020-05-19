@@ -4,13 +4,10 @@ import dead.crumbs.data.DAO.RSSI_DAO
 
 class RSSIRepository private constructor(private val rssiDao: RSSI_DAO) {
 
-    // This may seem redundant.
-    // Imagine a code which also updates and checks the backend.
-    fun addRSSI(rssi: BluetoothRSSI) {
-        rssiDao.add_rssi(rssi)
-    }
+    fun bluetoothSync(my_username : String, target_mac: String,
+                      distance : Double, dateTimeString: String) =
+                    rssiDao.bluetoothSync(my_username, target_mac, distance, dateTimeString)
 
-    fun getRSSIs() = rssiDao.getRSSIs()
 
     companion object {
         // Singleton instantiation you already know and love

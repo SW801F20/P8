@@ -1,20 +1,27 @@
 package dead.crumbs.data
 
-import dead.crumbs.data.DAO.Maps_DAO
+import dead.crumbs.data.DAO.Location_DAO
 import dead.crumbs.data.DAO.RSSI_DAO
+import dead.crumbs.data.DAO.User_DAO
+import dead.crumbs.client.apis.DeadCrumbsApi
 
-class FakeDatabase private constructor() {
+class Database private constructor() {
 
+
+    val client = DeadCrumbsApi("http://130.225.57.95:8393/")
     // All the DAOs go here!
-    var rssiDao = RSSI_DAO()
+    var rssiDao = RSSI_DAO(client)
         private set
 
-    var mapsDao = Maps_DAO()
+    var locationDao = Location_DAO(client)
+        private set
+
+    var userDao = User_DAO(client)
         private set
 
     companion object {
         // @Volatile - Writes to this property are immediately visible to other threads
-        @Volatile private var instance: FakeDatabase? = null
+        @Volatile private var instance: Database? = null
 
         // The only way to get hold of the FakeDatabase object
         fun getInstance() =
@@ -23,7 +30,7 @@ class FakeDatabase private constructor() {
             instance ?: synchronized(this) {
                 // If it's still not instantiated, finally create an object
                 // also set the "instance" property to be the currently created one
-                instance ?: FakeDatabase().also { instance = it }
+                instance ?: Database().also { instance = it }
             }
     }
 }

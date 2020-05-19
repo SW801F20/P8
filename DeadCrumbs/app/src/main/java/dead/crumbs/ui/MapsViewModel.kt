@@ -1,24 +1,35 @@
 package dead.crumbs.ui
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Context
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
 import android.util.Log
+import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
 import dead.crumbs.R
-import dead.crumbs.data.MapsRepository
-import kotlin.math.asin
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
+import dead.crumbs.data.LocationRepository
+import dead.crumbs.data.UserRepository
+import dead.crumbs.utilities.UtilFunctions
+import io.swagger.client.models.Position
 
 
-class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
+class MapsViewModel (private val locationRepository: LocationRepository,
+                     private val userRepository: UserRepository) : ViewModel(){
+
     lateinit var map: GoogleMap
-
-    var markerList = mutableListOf<Marker>()
-
+    var markerList = mutableListOf<Marker>() // the list of markers that are displayed on the map
     var mapIsInitialized = false
+    val PERMISSION_ID = 42 //a value to check if the users gives permission to what we ask for
+    private var meMarker: Marker? = null //the marker corresponding to your own location
 
     fun updateOrientation(degrees: Float){
         if(markerList.size != 0)
@@ -27,83 +38,257 @@ class MapsViewModel (private val mapsRepository: MapsRepository) : ViewModel(){
         }
     }
 
-    private var meMarker: Marker? = null
-
-    fun setupMap(googleMap: GoogleMap){
+    fun setupMap(googleMap: GoogleMap, context: Context, activity: Activity){
         if (!mapIsInitialized)
         {
             Log.i("MapDebug", "Initializing map")
             map = googleMap
-            addMarkers()
-            map.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(57.041480, 9.935950), 14f))
+            addMarkers(context, activity)
+            if (meMarker != null) //meMarker is null if addMarkers fails.
+            {
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                    LatLng(meMarker!!.position.latitude,
+                           meMarker!!.position.longitude), 14f))
+            }
+            else
+            {
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                    LatLng(0.0, 0.0), 14f))
+            }
             map.uiSettings.isZoomControlsEnabled = true
             mapIsInitialized = true
         }
     }
 
-    //Fills in dummy data
-    private fun addMarkers()
+    //fills in markers on initialization of map
+    private fun addMarkers(context: Context, activity: Activity)
     {
-        var marker = map.addMarker(newMarker( loc = LatLng(57.041480, 9.935950), name = "Me", icon = R.mipmap.my_picture))
-        markerList.add(marker)
-
-        //Assign "Me marker" for easier update of orientation
-        meMarker = marker
-
-        val locations = arrayOf(
-            LatLng(57.030972, 9.933032),
-            LatLng(57.040919, 9.947623)
-        )
-        val titles = arrayOf("Adam", "Marie")
-        val distances = arrayOf(15.0, 20.0)
-        val pictures = arrayOf(R.mipmap.my_picture, R.mipmap.my_picture)
-
-        for (i in locations.indices) {
-            var marker = map.addMarker(newMarker(locations[i], titles[i], distances[i], pictures[i]))
+        //getting all the locations from the db
+        try {
+            val loc = getGPSLocation(context, activity)
+            val users = getUsers();
+            val locList : MutableList<LiveData<io.swagger.client.models.Location>> = arrayListOf()
+            if(users.value != null)
+                for(user in users.value!!) {
+                    try {
+                        locList.add(getLocation(user.username))
+                    }
+                    catch (e: java.lang.Exception){
+                        Toast.makeText(context, e.message , Toast.LENGTH_LONG).show()
+                    }
+                }
+            //adding the meMarker to the map
+            val marker = map.addMarker(newMarker( loc = LatLng(loc!!.latitude, loc.longitude),
+                name = MainActivity.my_username, icon = R.mipmap.arrow))
             markerList.add(marker)
+            //assign meMarker for easier update of orientation
+            meMarker = marker
+
+            //Making all the other markers for the map
+            for (location in locList) {
+                if (location.value!!.user_ref != MainActivity.my_username) {
+                    val marker = map.addMarker(
+                        newMarker(
+                            LatLng(
+                                location.value!!.position.coordinates!![0],
+                                location.value!!.position.coordinates!![1]
+                            ), location.value!!.user_ref,
+                            distanceInM(
+                                loc.latitude, loc.longitude, location.value!!.position.coordinates!![0],
+                                location.value!!.position.coordinates!![1]
+                            ),
+                            R.mipmap.my_picture
+                        )
+                    )
+                    markerList.add(marker)
+                }
+            }
+        }
+        catch(e: java.lang.Exception){
+            Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
         }
     }
 
+    //function for making a marker
     private fun newMarker(loc: LatLng, name: String, distance: Double? = null, icon: Int): MarkerOptions {
         // If no distance is given, just display name
         val title: String = if (distance != null) name + " " + distance + "m" else name
         val marker = MarkerOptions()
             .position(loc)
             .title(title)
-        if(marker.title == "Me")
+            .flat(true) //This prevents the marker from rotating together with the map.
+        if(marker.title == MainActivity.my_username)
             marker.icon(BitmapDescriptorFactory.fromResource(R.mipmap.arrow))
 
         return marker
     }
 
     //Moves in markers current heading/direction
-    fun moveMeMarker(distance: Double){
-        moveMarker(meMarker!!, distance)
+    fun moveMeMarker(username: String, dist: Double){
+        // This nullcheck prevents the app from crashing if a step is detected outside of the map
+        if (meMarker != null){
+
+            //API expects orientation in degrees so no need for radian conversion
+            val orientation = meMarker!!.rotation.toDouble()
+
+            val dateTimeString = UtilFunctions.getDatetime()
+            val newLocation = locationRepository.updateLocation(username, orientation, dist, dateTimeString)
+            meMarker!!.position = LatLng(newLocation.value?.position!!.coordinates?.get(0)!!,
+                                     newLocation.value?.position!!.coordinates?.get(1)!!)
+        }
     }
 
-    //Updates the location of a marker based on the length of
-    //the newest detected step and the current orientation of the marker.
-    //Expects length to be in meters.
-    private fun moveMarker(marker: Marker, mDist: Double){
-        val heading = Math.toRadians(marker.rotation.toDouble())
-        val R = 6378.1 //Radius of the Earth
-        val kmDist= mDist / 1000 //Convert distance from meters to km
+    //check if user allows to access hers/his location
+    private fun checkPermissions(context: Context): Boolean {
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
+            return true
+        }
+        return false
+    }
 
-        val lat1 = Math.toRadians(marker.position.latitude) //Current lat point converted to radians
-        val lng1 = Math.toRadians(marker.position.longitude) //Current lat point converted to radians
+    //ask for permission
+    private fun requestPermissions(activity: Activity) {
+        ActivityCompat.requestPermissions(
+            activity,
+            arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION),
+            PERMISSION_ID
+        )
+    }
 
-        //Formula from
-        //https://www.movable-type.co.uk/scripts/latlong.html "Destination point given distance and bearing from start point"
-        var lat2 = asin( sin(lat1) * cos(kmDist/R) +
-                cos(lat1) * sin(kmDist/R) * cos(heading))
+    //check if gps is enabled
+    private fun isLocationEnabled(context: Context): Boolean {
+        val locationManager: LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+    }
 
-        var lng2 = lng1 + atan2(
-            sin(heading) * sin(kmDist/R) * cos(lat1),
-            cos(kmDist/R) - sin(lat1) * sin(lat2))
+    //check if network is enabled
+    private fun isNetworkEnabled(context: Context): Boolean {
+        val locationManager: LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+    }
 
-        lat2 = Math.toDegrees(lat2)
-        lng2 = Math.toDegrees(lng2)
+    @SuppressLint("MissingPermission")
+    fun getGPSLocation(context: Context, activity: Activity): Location? {
+        val locMan : LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        var location: Location? = null
+        if (checkPermissions(context)) {
+            if (isLocationEnabled(context)) {
+                location = locMan.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                if(location == null && isNetworkEnabled(context))
+                    location = locMan.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
 
-        marker.position = LatLng(lat2, lng2)
+                if(location == null)
+                    throw Exception("Could not get current GPS location.")
+                //yaw is hardcoded to be 0.0 since it is hard to ascertain the heading of the user
+                //at this point. Will be updated with correct heading in the db 5 seconds after the
+                //user starts the map.
+                val swaggerLocation : io.swagger.client.models.Location = io.swagger.client.models.
+                    Location(MainActivity.my_username, 0.0, Position("Point", arrayOf(location.latitude, location.longitude)), UtilFunctions.getDatetime())
+                postLocation(swaggerLocation)
+
+                return location
+            }
+        } else {
+            requestPermissions(activity)
+        }
+        throw Exception("Could not get the correct GPS permissions.")
+    }
+
+    //Updates the markers on the map
+    fun updateMapPositions(context: Context, activity: Activity){
+        var ownLat: Double = 0.0
+        var ownLong: Double = 0.0
+        try {
+            val users = getUsers()
+            val newLocations : MutableList<LiveData<io.swagger.client.models.Location>> = arrayListOf()
+            if(users.value != null) {
+                for (user in users.value!!) {
+                    try {
+                        newLocations.add(getLocation(user.username))
+                    } catch (e: java.lang.Exception) {
+                        Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+
+            //assign meMarker for easier update of orientation
+            val newMarkerList = mutableListOf<Marker>()
+
+            //clear map to be able to update it with new values
+            map.clear()
+            //for loop used to find the current user
+            for (user in newLocations) {
+                if (user.value!!.user_ref == MainActivity.my_username) {
+                    meMarker = map.addMarker(
+                        newMarker(
+                            LatLng(
+                                user.value!!.position.coordinates!![0],
+                                user.value!!.position.coordinates!![1]
+                            ), name = MainActivity.my_username, icon = R.mipmap.arrow
+                        )
+                    )
+                    newMarkerList.add(meMarker!!)
+                    ownLat = user.value!!.position.coordinates!![0]
+                    ownLong = user.value!!.position.coordinates!![1]
+                    break
+                }
+            }
+            for (user in newLocations) {
+                if (user.value!!.user_ref != MainActivity.my_username) {
+                    val marker = map.addMarker(
+                        newMarker(
+                            LatLng(
+                                user.value!!.position.coordinates!![0],
+                                user.value!!.position.coordinates!![1]
+                            ), user.value!!.user_ref,
+                            distanceInM(ownLat, ownLong, user.value!!.position.coordinates!![0],
+                                user.value!!.position.coordinates!![1]),
+                            R.mipmap.my_picture
+                        )
+                    )
+                    marker.rotation = user.value!!.yaw.toFloat()
+                    newMarkerList.add(marker)
+                }
+            }
+
+            markerList = newMarkerList
+        }
+        catch(e: java.lang.Exception){
+            Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    fun getUsers() = userRepository.getUsers()
+    fun getUser(userName: String) = userRepository.getUser(userName)
+    fun getLocation(userName: String) = locationRepository.getLocation(userName)
+    fun postLocation(location : io.swagger.client.models.Location) = locationRepository.postLocation(location)
+
+    //function for convertion degrees to Radians
+    fun toRadians(degrees : Double) : Double{
+        return degrees * Math.PI / 180.0
+    }
+
+    //function for getting the distance between two GPS-coordinates
+    fun distanceInM(lat1 : Double, long1 : Double, lat2 : Double, long2 : Double) : Double{
+        val earthRadiusM = 6371000;
+
+        val dLat = toRadians(lat2 - lat1)
+        val dLong = toRadians(long2 - long1)
+
+        val a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.sin(dLong/2) * Math.sin(dLong/2) *
+                Math.cos(lat1) * Math.cos(lat2)
+        val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+        val rounded = Math.round((earthRadiusM * c) * 10.0)/ 10.0 // for conversion
+        return rounded
+    }
+
+    fun updateLocation(username: String, lat: Double, lng: Double){
+        for(marker in markerList){
+            if(marker.title == username){
+                marker.position = LatLng(lat,lng)
+                return
+            }
+        }
     }
 }

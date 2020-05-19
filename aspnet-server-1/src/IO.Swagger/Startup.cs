@@ -1,7 +1,7 @@
 /*
- * Walking Skeleton API
+ * DeadCrumbs API
  *
- * This is the API for the Walking Skeleton.
+ * This is the API for for the DeadCrumbs application.
  *
  * OpenAPI spec version: 1
  * 
@@ -22,6 +22,7 @@ using IO.Swagger.Filters;
 
 
 using Microsoft.AspNetCore.Authentication;
+using IO.Swagger.DAL;
 
 namespace IO.Swagger
 {
@@ -51,6 +52,9 @@ namespace IO.Swagger
         /// <param name="services"></param>
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<MongoConnectionService>();
+            services.AddSingleton<LocationService>();
+            services.AddSingleton<UserService>();
             // Add framework services.
             services
                 .AddMvc()
@@ -70,8 +74,8 @@ namespace IO.Swagger
                     c.SwaggerDoc("1", new Info
                     {
                         Version = "1",
-                        Title = "Walking Skeleton API",
-                        Description = "Walking Skeleton API (ASP.NET Core 2.0)",
+                        Title = "DeadCrumbs API",
+                        Description = "DeadCrumbs API (ASP.NET Core 2.0)",
                         Contact = new Contact()
                         {
                            Name = "Swagger Codegen Contributors",
@@ -106,10 +110,10 @@ namespace IO.Swagger
                 .UseSwaggerUI(c =>
                 {
                     //TODO: Either use the SwaggerGen generated Swagger contract (generated from C# classes)
-                    c.SwaggerEndpoint("/swagger/1/swagger.json", "Walking Skeleton API");
+                    c.SwaggerEndpoint("/swagger/1/swagger.json", "DeadCrumbs API");
 
                     //TODO: Or alternatively use the original Swagger contract that's included in the static files
-                    // c.SwaggerEndpoint("/swagger-original.json", "Walking Skeleton API Original");
+                    // c.SwaggerEndpoint("/swagger-original.json", "DeadCrumbs API Original");
                 });
 
             if (env.IsDevelopment())

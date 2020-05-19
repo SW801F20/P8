@@ -1,7 +1,7 @@
 /*
- * Walking Skeleton API
+ * DeadCrumbs API
  *
- * This is the API for the Walking Skeleton.
+ * This is the API for for the DeadCrumbs application.
  *
  * OpenAPI spec version: 1
  * 
@@ -17,6 +17,8 @@ using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
+using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson;
 
 namespace IO.Swagger.Models
 { 
@@ -25,27 +27,51 @@ namespace IO.Swagger.Models
     /// </summary>
     [DataContract]
     public partial class Location : IEquatable<Location>
-    { 
+    {
+        public Location(string userRef, double yaw, Position position, DateTime timeStamp)
+        {
+            UserRef = userRef;
+            Yaw = yaw;
+            Position = position;
+            Timestamp = timeStamp;
+        }
         /// <summary>
-        /// Gets or Sets Id
+        /// Gets or Sets UserRef
         /// </summary>
-        [Required]
-        [DataMember(Name="id")]
-        public int? Id { get; set; }
+        [BsonId]
+        public ObjectId id { get; set; }
 
         /// <summary>
-        /// Gets or Sets DeviceId
+        /// Gets or Sets UserRef
         /// </summary>
         [Required]
-        [DataMember(Name="deviceId")]
-        public int? DeviceId { get; set; }
+        [BsonElement("user_ref")]
+        [DataMember(Name="user_ref")]
+        public string UserRef { get; set; }
 
         /// <summary>
-        /// Gets or Sets LocationValue
+        /// Gets or Sets Yaw
         /// </summary>
         [Required]
-        [DataMember(Name="locationValue")]
-        public string LocationValue { get; set; }
+        [BsonElement("yaw")]
+        [DataMember(Name="yaw")]
+        public double Yaw { get; set; }
+
+        /// <summary>
+        /// Gets or Sets Position
+        /// </summary>
+        [Required]
+        [BsonElement("position")]
+        [DataMember(Name="position")]
+        public Position Position { get; set; }
+
+        /// <summary>
+        /// Gets or Sets Timestamp
+        /// </summary>
+        [Required]
+        [BsonElement("timestamp")]
+        [DataMember(Name="timestamp")]
+        public DateTime Timestamp { get; set; }
 
         /// <summary>
         /// Returns the string presentation of the object
@@ -55,9 +81,10 @@ namespace IO.Swagger.Models
         {
             var sb = new StringBuilder();
             sb.Append("class Location {\n");
-            sb.Append("  Id: ").Append(Id).Append("\n");
-            sb.Append("  DeviceId: ").Append(DeviceId).Append("\n");
-            sb.Append("  LocationValue: ").Append(LocationValue).Append("\n");
+            sb.Append("  UserRef: ").Append(UserRef).Append("\n");
+            sb.Append("  Yaw: ").Append(Yaw).Append("\n");
+            sb.Append("  Position: ").Append(Position).Append("\n");
+            sb.Append("  Timestamp: ").Append(Timestamp).Append("\n");
             sb.Append("}\n");
             return sb.ToString();
         }
@@ -95,19 +122,24 @@ namespace IO.Swagger.Models
 
             return 
                 (
-                    Id == other.Id ||
-                    Id != null &&
-                    Id.Equals(other.Id)
+                    UserRef == other.UserRef ||
+                    UserRef != null &&
+                    UserRef.Equals(other.UserRef)
                 ) && 
                 (
-                    DeviceId == other.DeviceId ||
-                    DeviceId != null &&
-                    DeviceId.Equals(other.DeviceId)
+                    Yaw == other.Yaw ||
+                    Yaw != null &&
+                    Yaw.Equals(other.Yaw)
                 ) && 
                 (
-                    LocationValue == other.LocationValue ||
-                    LocationValue != null &&
-                    LocationValue.Equals(other.LocationValue)
+                    Position == other.Position ||
+                    Position != null &&
+                    Position.Equals(other.Position)
+                ) && 
+                (
+                    Timestamp == other.Timestamp ||
+                    Timestamp != null &&
+                    Timestamp.Equals(other.Timestamp)
                 );
         }
 
@@ -121,12 +153,14 @@ namespace IO.Swagger.Models
             {
                 var hashCode = 41;
                 // Suitable nullity checks etc, of course :)
-                    if (Id != null)
-                    hashCode = hashCode * 59 + Id.GetHashCode();
-                    if (DeviceId != null)
-                    hashCode = hashCode * 59 + DeviceId.GetHashCode();
-                    if (LocationValue != null)
-                    hashCode = hashCode * 59 + LocationValue.GetHashCode();
+                    if (UserRef != null)
+                    hashCode = hashCode * 59 + UserRef.GetHashCode();
+                    if (Yaw != null)
+                    hashCode = hashCode * 59 + Yaw.GetHashCode();
+                    if (Position != null)
+                    hashCode = hashCode * 59 + Position.GetHashCode();
+                    if (Timestamp != null)
+                    hashCode = hashCode * 59 + Timestamp.GetHashCode();
                 return hashCode;
             }
         }
