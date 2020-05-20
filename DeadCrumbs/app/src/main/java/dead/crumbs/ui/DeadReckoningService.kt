@@ -233,7 +233,6 @@ class DeadReckoningService : Service(), SensorEventListener {
                 }
             }
             if (peak){
-                Log.v("Peak: ", "Peak found. Value: ${accelReadings[t]!!.first}")
                 return true
             }
         }
