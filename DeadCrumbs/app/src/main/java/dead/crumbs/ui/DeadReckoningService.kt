@@ -283,19 +283,17 @@ class DeadReckoningService : Service(), SensorEventListener {
     }
 
     private fun estimateStepLength(accelerometerValues: MutableList<Float>): Double {
-        var simpleDist = 0.0
-        var scarletDist = 0.0
         var weinbergDist = 0.0
 
         // Estimate step length
         if (!accelerometerValues.isEmpty()) {
-//            simpleDist = simpleScarletEstimation(accelerometerValues)
-//            scarletDist = scarletEstimation(accelerometerValues)
+            //We experienced weinberg to work the best.
             weinbergDist = weinbergEstimation(accelerometerValues)
         }
         return weinbergDist
     }
 
+    //Used doing development for comparing with other strategies.
     private fun simpleScarletEstimation(accelerometerValues: MutableList<Float>): Double {
         // walkfudge from Jim Scarlet's code
         val k = 2.15 // This value works well for David
@@ -306,7 +304,8 @@ class DeadReckoningService : Service(), SensorEventListener {
         return k * ((avg - min!!) / (max!! - min))
     }
 
-    // TODO: Doesn't provide accurate distances at the moment
+    //Used doing development for comparing with other strategies.
+    //Sourcecode: https://www.analog.com/media/en/analog-dialogue/volume-41/backburner/ped_code.zip
     private fun scarletEstimation(accelerometerValues: MutableList<Float>): Double {
         // walkfudge from Jim Scarlet's code
         val k = 0.0249
@@ -327,7 +326,6 @@ class DeadReckoningService : Service(), SensorEventListener {
 
         return k * sqrt(abs(((max!! - min!!) / (avg - min)) * displace))
     }
-
 
     //This function calculates the distance of a step with the Weinberg method
     private fun weinbergEstimation(accelerometerValues: MutableList<Float>): Double {
