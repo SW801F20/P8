@@ -20,9 +20,7 @@ class DeadReckoningService : Service(), SensorEventListener {
     private var accelerometer: Sensor? = null
     private lateinit var sensorManager: SensorManager
     var orientationCallback: ((Float) -> Unit)? = null
-
     var stepCallback: ((Double) -> Unit)? = null
-
 
     override fun onCreate() {
         super.onCreate()
@@ -64,7 +62,6 @@ class DeadReckoningService : Service(), SensorEventListener {
 
     }
 
-
     //----------Binding--------------
     // Binder given to clients
     private val binder = LocalBinder()
@@ -89,7 +86,6 @@ class DeadReckoningService : Service(), SensorEventListener {
         // Don't receive any more updates from either sensor.
         sensorManager.unregisterListener(this)
     }
-
 
     // Step detection and step length estimation fields
     // Number of readings kept track of before wiping
@@ -137,11 +133,9 @@ class DeadReckoningService : Service(), SensorEventListener {
         }
     }
 
-
     override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
         // Do nothing
     }
-
 
     // -------------- Step detection and step length estimation -------------- //
     private fun processAndRecordReading(event: SensorEvent) {
@@ -372,9 +366,7 @@ class DeadReckoningService : Service(), SensorEventListener {
 
         return accelerometerZs
     }
-
     // -------------- End of step detection and step length estimation -------------- //
-
 
     private fun updateYawRotationVector(event: SensorEvent) {
         val orientation = FloatArray(3)
@@ -454,7 +446,6 @@ class DeadReckoningService : Service(), SensorEventListener {
 
         return yawDegrees
     }
-
 
     //NOTE: This might be unnecessary
     private fun exponentialSmoothing(

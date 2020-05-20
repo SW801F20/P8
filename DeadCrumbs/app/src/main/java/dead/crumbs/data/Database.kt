@@ -7,7 +7,6 @@ import dead.crumbs.client.apis.DeadCrumbsApi
 
 class Database private constructor() {
 
-
     val client = DeadCrumbsApi("http://130.225.57.95:8393/")
     // All the DAOs go here!
     var rssiDao = RSSI_DAO(client)

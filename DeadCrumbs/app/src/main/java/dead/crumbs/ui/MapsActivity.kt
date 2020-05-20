@@ -68,8 +68,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         viewModel!!.map.setOnMarkerClickListener(this)
 
         //Runnable makes call to updateMapPositions every 5 seconds
-        var context : Context = this
-        var runnable = object : Runnable {
+        val context : Context = this
+        val runnable = object : Runnable {
             override fun run(){
                 viewModel!!.updateMapPositions(context, this@MapsActivity)
                 handler.postDelayed(this, 5000)

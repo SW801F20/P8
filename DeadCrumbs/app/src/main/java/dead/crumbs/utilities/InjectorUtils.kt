@@ -1,6 +1,5 @@
 package dead.crumbs.utilities
 
-import android.location.Location
 import dead.crumbs.data.Database
 import dead.crumbs.data.LocationRepository
 import dead.crumbs.data.RSSIRepository
