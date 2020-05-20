@@ -1,6 +1,6 @@
 # P8
 
-This GitHub repository contains two applications: an Android application written in Kotlin and an ASP.NET Core REST API
+This GitHub repository contains two applications: an Android application written in Kotlin and an ASP.NET Core REST API. The Prototype folder contains two XD files for our GUI prototype, latest.xd being the newest.
 
 ##How To Run
 
