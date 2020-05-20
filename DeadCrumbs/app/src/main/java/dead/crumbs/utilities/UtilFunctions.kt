@@ -2,7 +2,7 @@ package dead.crumbs.utilities
 
 import java.util.*
 
-class UtilFunctions() {
+class UtilFunctions {
     companion object Functions {
         fun getDatetime(): String{
             val currYear = Calendar.getInstance().get(Calendar.YEAR).toString().padStart(4,'0')

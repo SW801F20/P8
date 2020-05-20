@@ -11,7 +11,7 @@ import android.os.Binder
 import android.os.IBinder
 
 //factory: RSSIViewModelFactory, viewModel: RSSIViewModel
-class BluetoothService() : Service(){
+class BluetoothService : Service(){
     var callback: ((String, Double) -> Unit)? = null
 
     //Called on creation of BluetoothService
@@ -20,7 +20,7 @@ class BluetoothService() : Service(){
         setupBluetooth()
     }
 
-    //----------Binding--------------
+    //----------Binding--------------//
     // Binder given to clients
     private val binder = LocalBinder()
 
@@ -37,10 +37,7 @@ class BluetoothService() : Service(){
         return binder
     }
 
-
-
-
-    //----------ScanBluetooth-------------
+    //----------ScanBluetooth-------------//
     private val bluetoothAdapter : BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
     // Create a BroadcastReceiver for ACTION_FOUND.
     private val bluetoothScanReceiver = object : BroadcastReceiver() {
@@ -54,8 +51,8 @@ class BluetoothService() : Service(){
                     val device: BluetoothDevice? =
                         intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
 
-                    var rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE).toDouble() // retrieve rssi
-                    var target_mac_address: String = device!!.address         //Note Bluetooth mac address != WiFi mac address
+                    val rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE).toDouble() // retrieve rssi
+                    val target_mac_address: String = device!!.address         //Note Bluetooth mac address != WiFi mac address
 
                     //Add to RSSIViewModel through callback
                     callback?.let { it(target_mac_address, rssi) }
@@ -63,8 +60,6 @@ class BluetoothService() : Service(){
             }
         }
     }
-
-
 
     private val bluetoothScanEndReceiver = object : BroadcastReceiver() {
 
@@ -78,7 +73,7 @@ class BluetoothService() : Service(){
         }
     }
 
-    fun setupBluetooth(){
+    private fun setupBluetooth(){
         //Get bluetooth adapter
         if (bluetoothAdapter == null) {
             // Device doesn't support Bluetooth
@@ -109,8 +104,7 @@ class BluetoothService() : Service(){
             //Restart discovery
             bluetoothAdapter.cancelDiscovery()
             bluetoothAdapter.startDiscovery()
-        }
-        else{
+        }else{
             //Keep trying to start discovery (Requires user to "allow")
             while(!bluetoothAdapter.startDiscovery()){
                 Thread.sleep(1000)

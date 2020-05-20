@@ -20,9 +20,7 @@ class DeadReckoningService : Service(), SensorEventListener {
     private var accelerometer: Sensor? = null
     private lateinit var sensorManager: SensorManager
     var orientationCallback: ((Float) -> Unit)? = null
-
     var stepCallback: ((Double) -> Unit)? = null
-
 
     override fun onCreate() {
         super.onCreate()
@@ -64,7 +62,6 @@ class DeadReckoningService : Service(), SensorEventListener {
 
     }
 
-
     //----------Binding--------------
     // Binder given to clients
     private val binder = LocalBinder()
@@ -89,7 +86,6 @@ class DeadReckoningService : Service(), SensorEventListener {
         // Don't receive any more updates from either sensor.
         sensorManager.unregisterListener(this)
     }
-
 
     // Step detection and step length estimation fields
     // Number of readings kept track of before wiping
@@ -137,11 +133,9 @@ class DeadReckoningService : Service(), SensorEventListener {
         }
     }
 
-
     override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
         // Do nothing
     }
-
 
     // -------------- Step detection and step length estimation -------------- //
     private fun processAndRecordReading(event: SensorEvent) {
@@ -239,8 +233,6 @@ class DeadReckoningService : Service(), SensorEventListener {
                 }
             }
             if (peak){
-                //TODO: Remove me at some point
-                Log.v("Peak: ", "Peak found. Value: ${accelReadings[t]!!.first}")
                 return true
             }
         }
@@ -289,19 +281,17 @@ class DeadReckoningService : Service(), SensorEventListener {
     }
 
     private fun estimateStepLength(accelerometerValues: MutableList<Float>): Double {
-        var simpleDist = 0.0
-        var scarletDist = 0.0
         var weinbergDist = 0.0
 
         // Estimate step length
         if (!accelerometerValues.isEmpty()) {
-//            simpleDist = simpleScarletEstimation(accelerometerValues)
-//            scarletDist = scarletEstimation(accelerometerValues)
+            //We experienced weinberg to work the best.
             weinbergDist = weinbergEstimation(accelerometerValues)
         }
         return weinbergDist
     }
 
+    //Used doing development for comparing with other strategies.
     private fun simpleScarletEstimation(accelerometerValues: MutableList<Float>): Double {
         // walkfudge from Jim Scarlet's code
         val k = 2.15 // This value works well for David
@@ -312,7 +302,8 @@ class DeadReckoningService : Service(), SensorEventListener {
         return k * ((avg - min!!) / (max!! - min))
     }
 
-    // TODO: Doesn't provide accurate distances at the moment
+    //Used doing development for comparing with other strategies.
+    //Sourcecode: https://www.analog.com/media/en/analog-dialogue/volume-41/backburner/ped_code.zip
     private fun scarletEstimation(accelerometerValues: MutableList<Float>): Double {
         // walkfudge from Jim Scarlet's code
         val k = 0.0249
@@ -334,7 +325,6 @@ class DeadReckoningService : Service(), SensorEventListener {
         return k * sqrt(abs(((max!! - min!!) / (avg - min)) * displace))
     }
 
-
     //This function calculates the distance of a step with the Weinberg method
     private fun weinbergEstimation(accelerometerValues: MutableList<Float>): Double {
 //        val k = 0.41 //Constant for scaling the step length, based on the Weinberg paper
@@ -347,7 +337,7 @@ class DeadReckoningService : Service(), SensorEventListener {
 
     //Taken from
     //https://rosettacode.org/wiki/Nth_root#Kotlin
-    fun nthRoot(x: Double, n: Int): Double {
+    private fun nthRoot(x: Double, n: Int): Double {
         if (n < 2) throw IllegalArgumentException("n must be more than 1")
         if (x <= 0.0) throw IllegalArgumentException("x must be positive")
         val np = n - 1
@@ -372,9 +362,7 @@ class DeadReckoningService : Service(), SensorEventListener {
 
         return accelerometerZs
     }
-
     // -------------- End of step detection and step length estimation -------------- //
-
 
     private fun updateYawRotationVector(event: SensorEvent) {
         val orientation = FloatArray(3)
@@ -454,7 +442,6 @@ class DeadReckoningService : Service(), SensorEventListener {
 
         return yawDegrees
     }
-
 
     //NOTE: This might be unnecessary
     private fun exponentialSmoothing(

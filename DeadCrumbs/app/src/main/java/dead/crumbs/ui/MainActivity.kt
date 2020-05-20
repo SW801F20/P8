@@ -68,11 +68,9 @@ class MainActivity : AppCompatActivity() {
         bluetoothService.onDestroy()
     }
 
-
-
     //-------------Maps-----------------------//
     var mapsViewModel: MapsViewModel? = null
-    fun initializeMapsViewModel(){
+    private fun initializeMapsViewModel(){
         val factory = InjectorUtils.singletonProvideMapsViewModelFactory()
         // Use ViewModelProviders class to create / get already created rssisViewModel
         // for this view (activity)
@@ -80,10 +78,7 @@ class MainActivity : AppCompatActivity() {
             .get(MapsViewModel::class.java)
     }
 
-
-
     //------------Dead Reckoning-------------//
-
     private lateinit var drService: DeadReckoningService
 
     private fun startDeadReckoning(){
@@ -125,7 +120,6 @@ class MainActivity : AppCompatActivity() {
         mapsViewModel!!.updateOrientation(yaw)
     }
 
-
     //------------Bluetooth Part-------------//
     var rssiViewModel : RSSIViewModel? = null
 
@@ -148,7 +142,6 @@ class MainActivity : AppCompatActivity() {
         //Start the actual bluetooth scan
         startBluetoothScan()
     }
-
 
     private fun enableBluetoothDiscoverability() {
         val discoverableIntent: Intent = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE).apply {
@@ -261,5 +254,4 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
 }

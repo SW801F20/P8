@@ -8,7 +8,6 @@ class RSSIRepository private constructor(private val rssiDao: RSSI_DAO) {
                       distance : Double, dateTimeString: String) =
                     rssiDao.bluetoothSync(my_username, target_mac, distance, dateTimeString)
 
-
     companion object {
         // Singleton instantiation you already know and love
         @Volatile private var instance: RSSIRepository? = null

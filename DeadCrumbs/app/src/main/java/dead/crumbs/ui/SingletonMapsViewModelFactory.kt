@@ -11,8 +11,6 @@ class SingletonMapsViewModelFactory(private val locationRepository: LocationRepo
 
     var mapsViewModel: ViewModel? = null
 
-
-
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         if (mapsViewModel == null)
