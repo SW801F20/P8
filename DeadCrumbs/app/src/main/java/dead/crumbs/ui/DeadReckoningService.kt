@@ -233,7 +233,6 @@ class DeadReckoningService : Service(), SensorEventListener {
                 }
             }
             if (peak){
-                //TODO: Remove me at some point
                 Log.v("Peak: ", "Peak found. Value: ${accelReadings[t]!!.first}")
                 return true
             }
@@ -339,7 +338,7 @@ class DeadReckoningService : Service(), SensorEventListener {
 
     //Taken from
     //https://rosettacode.org/wiki/Nth_root#Kotlin
-    fun nthRoot(x: Double, n: Int): Double {
+    private fun nthRoot(x: Double, n: Int): Double {
         if (n < 2) throw IllegalArgumentException("n must be more than 1")
         if (x <= 0.0) throw IllegalArgumentException("x must be positive")
         val np = n - 1
