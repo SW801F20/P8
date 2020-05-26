@@ -4,7 +4,6 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.util.Log
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -35,13 +34,11 @@ class DeadReckoningService : Service(), SensorEventListener {
     //will be set to true later on if available
     private var useRotationVectorSensor = false
 
-    private var rotationVector = FloatArray(5)
     private var geomagnetic = FloatArray(3)
     private var gravity = FloatArray(3)
 
     private var lastYawDegrees: Float = 0f
 
-    private val ROTATION_VECTOR_SMOOTHING_FACTOR = 1f
     private val GEOMAGNETIC_SMOOTHING_FACTOR = 1f
     private val GRAVITY_SMOOTHING_FACTOR = 0.3f
     //---ORIENTATION-END-------//
@@ -367,12 +364,6 @@ class DeadReckoningService : Service(), SensorEventListener {
     private fun updateYawRotationVector(event: SensorEvent) {
         val orientation = FloatArray(3)
 
-        // Smooth values
-        rotationVector = exponentialSmoothing(
-            event.values, rotationVector,
-            ROTATION_VECTOR_SMOOTHING_FACTOR
-        )
-
         // Calculate the rotation matrix
         val rotationMatrix = FloatArray(9)
         SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
@@ -403,8 +394,7 @@ class DeadReckoningService : Service(), SensorEventListener {
         }
         // Calculate the rotation and inclination matrix
         val rotationMatrix = FloatArray(9)
-        val inclinationMatrix = FloatArray(9)
-        SensorManager.getRotationMatrix(rotationMatrix, inclinationMatrix, gravity, geomagnetic)
+        SensorManager.getRotationMatrix(rotationMatrix, null, gravity, geomagnetic)
         // Calculate the orientation
         SensorManager.getOrientation(rotationMatrix, orientation)
 
